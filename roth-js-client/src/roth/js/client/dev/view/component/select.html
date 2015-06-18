@@ -1,0 +1,24 @@
+<div id="{{id}}" class="modal">
+	<div class="modal-dialog modal-sm">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">{{context}}</h4>
+			</div>
+			<div class="modal-body">
+				<div class="btn-group-vertical btn-block" data-toggle="buttons">
+					{% set first = true %}
+					{% for value in values %}
+					<label class="btn btn-default{{' active' if first else ''}}">
+						<input name="response" value="{{value}}" type="radio" autocomplete="off"{{' checked' if first else ''}} />{{value}}
+					</label>
+					{% set first = false %}
+					{% endfor %}
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button id="{{id}}-once" class="btn btn-info" type="button">Once</button>
+				<button id="{{id}}-session" class="btn btn-primary" type="button">Session</button>
+			</div>
+		</div>
+	</div>
+</div>
