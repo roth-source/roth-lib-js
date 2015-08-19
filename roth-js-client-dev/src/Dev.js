@@ -1,9 +1,5 @@
 
-/**
- * 
- * 
- */
-window.roth.js.Dev = function(config)
+roth.js.client.dev.Dev = function(config)
 {
 	var self = this;
 	

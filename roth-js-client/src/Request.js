@@ -1,8 +1,5 @@
-/**
- *  Parsed values from the url hash
- * 
- */
-window.roth.js.Request = function()
+
+roth.js.client.Request = function()
 {
 	var State =
 	{
@@ -30,9 +27,15 @@ window.roth.js.Request = function()
 	this.newModule = false;
 	this.newPage = false;
 	
-	this.hasParam = function(param)
+	this.hasParam = function(name)
 	{
-		return isSet(this.params[param]);
+		return isSet(this.params[name]);
+	};
+	
+	this.getParam = function(name, defaultValue)
+	{
+		var param = this.params[name];
+		return isValidString(param) ? param : defaultValue;
 	};
 	
 	this.getModule = function()
@@ -72,7 +75,7 @@ window.roth.js.Request = function()
 	this.setPage = function(page)
 	{
 		this.page = page;
-		this.newPage = this.page != this.loaded.page;
+		this.newPage = this.newModule || this.page != this.loaded.page;
 	};
 	
 	this.isNext = function()
@@ -222,5 +225,15 @@ window.roth.js.Request = function()
 	{
 		return $.extend({}, this.params);;
 	}
+	
+	this.cloneLoadedParams = function()
+	{
+		return isSet(this.loaded.params) ? $.extend({}, this.loaded.params) : {};
+	}
+	
+	this.loadParams = function()
+	{
+		this.loaded.params = this.params;
+	};
 	
 };

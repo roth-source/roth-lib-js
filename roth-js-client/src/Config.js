@@ -1,8 +1,5 @@
-/**
- * 
- * 
- */
-window.roth.js.Config = function()
+
+roth.js.client.Config = function()
 {
 	this.versionToken				= "{version}";
 	
@@ -16,8 +13,8 @@ window.roth.js.Config = function()
 	this.nunjucksScript				= "https://mozilla.github.io/nunjucks/files/nunjucks.min.js";
 	this.nunjucksVersion			= "1.3.3";
 	
-	this.devPath					= "http://dist.roth.cm/roth/js/client/roth-js-client/" + this.versionToken + "/dev/";
-	this.devScript					= "script/Dev.js";
+	this.devPath					= "http://dist.roth.cm/roth/js/roth-js-client-dev/" + this.versionToken + "/";
+	this.devScript					= "roth-js-client-dev.js";
 	this.devConfigScript			= null;
 	this.devViewPath				= "view/";
 	this.devViewExtension			= ".html";
@@ -575,7 +572,7 @@ window.roth.js.Config = function()
 	
 	this.getDevPath = function()
 	{
-		return this.devPath.replace(this.getVersionRegExp(), roth.js.version);
+		return this.devPath.replace(this.getVersionRegExp(), roth.js.client.version);
 	};
 	
 	this.getDevScript = function()
@@ -617,6 +614,12 @@ window.roth.js.Config = function()
 	{
 		var keep = element.attr(this.fieldKeepAttribute);
 		return "true" == keep;
+	};
+	
+	this.getPageChangeParams = function(module, page)
+	{
+		var changeParams = this.getPageConfig(module, page, "changeParams");
+		return isArray(changeParams) ? changeParams : [];
 	};
 	
 };

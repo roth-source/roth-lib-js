@@ -1,8 +1,5 @@
-/**
- * 
- * 
- */
-window.roth.js.Endpoint = function()
+
+roth.js.client.Endpoint = function()
 {
 	this.currentStorage = null;
 	this.availableStorage = null;

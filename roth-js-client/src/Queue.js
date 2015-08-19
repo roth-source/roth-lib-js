@@ -1,8 +1,5 @@
-/**
- * 
- * 
- */
-window.roth.js.Queue = function()
+
+roth.js.client.Queue = function()
 {
 	var Event =
 	{

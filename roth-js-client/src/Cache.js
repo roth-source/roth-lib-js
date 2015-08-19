@@ -1,8 +1,5 @@
-/**
- * 
- * 
- */
-window.roth.js.Cache = function()
+
+roth.js.client.Cache = function()
 {
 	
 	this.clear = function()

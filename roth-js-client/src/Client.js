@@ -1,18 +1,15 @@
 
-/**
- * 
- * 
- */
-window.roth.js.Client = function()
+
+roth.js.client.Client = function()
 {
 	var self = this;
 	var inited = false;
 	
-	this.config = new roth.js.Config();
-	this.request = new roth.js.Request();
-	this.endpoint = new roth.js.Endpoint();
-	this.queue = new roth.js.Queue();
-	this.cache = new roth.js.Cache();
+	this.config = new roth.js.client.Config();
+	this.request = new roth.js.client.Request();
+	this.endpoint = new roth.js.client.Endpoint();
+	this.queue = new roth.js.client.Queue();
+	this.cache = new roth.js.client.Cache();
 	this.dev = null;
 	
 	this.text = {};
@@ -113,7 +110,7 @@ window.roth.js.Client = function()
 	{
 		if(isDev())
 		{
-			this.dev = new roth.js.Dev(this.config);
+			this.dev = new roth.js.client.dev.Dev(this.config);
 		}
 	};
 	
@@ -121,21 +118,25 @@ window.roth.js.Client = function()
 	{
 		if(this.request.parse() && this.checkRequest())
 		{
-			this.request.log();
-			this.hideView();
-			this.loadEndpoints();
-			this.loadInitializers();
-			this.loadText();
-			this.loadLayout();
-			this.loadPage();
-			this.loadSections();
-			this.loadComponents();
-			this.initText();
-			this.initHandlers();
-			this.initLayout();
-			this.initPage();
-			this.showView();
-			this.queue.execute();
+			if(!this.checkChange())
+			{
+				this.request.log();
+				this.request.loadParams();
+				this.hideView();
+				this.loadEndpoints();
+				this.loadInitializers();
+				this.loadText();
+				this.loadLayout();
+				this.loadPage();
+				this.loadSections();
+				this.loadComponents();
+				this.initText();
+				this.initHandlers();
+				this.initLayout();
+				this.initPage();
+				this.showView();
+				this.queue.execute();
+			}
 		}
 	};
 	
@@ -197,6 +198,54 @@ window.roth.js.Client = function()
 			}
 		}
 		return valid;
+	};
+	
+	this.checkChange = function()
+	{
+		var change = false;
+		var module = this.request.getModule();
+		var page = this.request.getPage();
+		if(!this.request.newPage && isSet(this.request.loaded.params))
+		{
+			var loadedParams = this.request.cloneLoadedParams();
+			var changeParams = this.config.getPageChangeParams(module, page);
+			for(var name in this.request.params)
+			{
+				change = changeParams.indexOf(name) > -1;
+				if(!change)
+				{
+					change = this.request.params[name] == loadedParams[name];
+					if(!change)
+					{
+						break;
+					}
+					else
+					{
+						delete loadedParams[name];
+					}
+				}
+				else
+				{
+					delete loadedParams[name];
+				}
+			}
+			if(change)
+			{
+				change = Object.keys(loadedParams).length == 0;
+			}
+		}
+		if(change)
+		{
+			if(isFunction(this.layout.change))
+			{
+				this.layout.change(this.response.layout);
+			}
+			if(isFunction(this.page.change))
+			{
+				this.page.change(this.response.page);
+			}
+		}
+		return change;
 	};
 	
 	this.changeLang = function(lang)
@@ -479,7 +528,8 @@ window.roth.js.Client = function()
 									{
 										layout : self.response.layout,
 										page : self.response.page,
-										text : self.text
+										text : self.text,
+										request : self.request
 									};
 									html = layoutRenderer(html, data);
 								}
@@ -540,7 +590,8 @@ window.roth.js.Client = function()
 							{
 								layout : self.response.layout,
 								page : self.response.page,
-								text : self.text
+								text : self.text,
+								request : self.request
 							};
 							html = pageRenderer(html, data);
 						}
@@ -639,7 +690,7 @@ window.roth.js.Client = function()
 					layout : self.response.layout,
 					page : self.response.page,
 					text : self.text,
-					params : self.request.params
+					request : self.request
 				};
 				var componentId = Id.generate();
 				self.queue.loadComponent(componentId, function()
