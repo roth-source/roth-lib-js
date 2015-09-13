@@ -1,0 +1,55 @@
+<html>
+	<head>
+		
+		<meta charset="utf-8"/>
+		<title>Util Test</title>
+		
+		<style>
+			pre
+			{
+				tab-size : 4;
+				-moz-tab-size : 4;
+				-o-tab-size : 4;
+				white-space: pre-wrap;
+				white-space: -moz-pre-wrap;
+				white-space: -pre-wrap;
+				white-space: -o-pre-wrap;
+				word-wrap: break-word;
+			}
+		</style>
+		
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+		<script src="../src/_Global.js"></script>
+		<script src="../src/_Util.js"></script>
+		
+		<script>
+			$(function()
+			{
+				$("#random").text(IdUtil.generate());
+				$("#formatInput").text(CurrencyUtil.formatInput(123456));
+				$("#formatText").text(CurrencyUtil.formatText(123456));
+				$("#formatDate").text(DateUtil.format("yyyy-MM-dd hh:mm:ss a zZ", new Date()));
+				
+				//var value = DateUtil.format("yyyy-MM-dd HH:mm:ss", new Date());
+				//console.log(value);
+				console.log(DateUtil.parse("yyyy-MM-dd hh:mm:ss a", "2015-09-12 03:00:21 PM"));
+			});
+		</script>
+		
+	</head>
+	<body>
+		<hr/>
+		<h2>IdUtil.random()</h2>
+		<pre id="random"></pre>
+		<hr/>
+		<h2>CurrencyUtil.formatInput()</h2>
+		<pre id="formatInput"></pre>
+		<hr/>
+		<h2>CurrencyUtil.formatText()</h2>
+		<pre id="formatText"></pre>
+		<hr/>
+		<h2>DateUtil.format()</h2>
+		<pre id="formatDate"></pre>
+		<hr/>
+	</body>
+</html>

@@ -32,7 +32,7 @@ roth.js.client.Client = function()
 			if(!inited)
 			{
 				inited = true;
-				initConsole();
+				self.initConsole();
 				self.initJquery();
 				self.initConfig();
 				self.initDev();
@@ -67,6 +67,21 @@ roth.js.client.Client = function()
 				document.write('<script src="' + this.config.devConfigScript + '"></script>');
 			}
 			document.write('<script src="' + this.config.getDevScript() + '"></script>');
+		}
+	};
+	
+	this.initConsole = function()
+	{
+		var console = window.console;
+		if(console && !isDev() && !isDebug())
+		{
+			for(var method in console)
+			{
+				if(isFunction(console[method]) && Object.prototype.hasOwnProperty.call(console, method))
+				{
+					console[method] = noop;
+				}
+			}
 		}
 	};
 	

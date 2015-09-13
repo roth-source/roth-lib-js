@@ -17,7 +17,7 @@ roth.js.template.Template = function(config)
 		argVar						: "$_a",
 		tempVar						: "$_t",
 		sourceVar					: "$_s"
-	}
+	};
 	
 	var escapeRegExp = function(value)
 	{
@@ -34,19 +34,21 @@ roth.js.template.Template = function(config)
 				config[name] = Config[name];
 			}
 		}
-		var regExpBuilder = "";
-		regExpBuilder += "\n|";
-		regExpBuilder += "\"|";
-		regExpBuilder += escapeRegExp(config.openUnescapedExpression) + "|";
-		regExpBuilder += escapeRegExp(config.openEscapedExpression) + "|";
-		regExpBuilder += escapeRegExp(config.openStatement) + "|";
-		regExpBuilder += escapeRegExp(config.closeUnescapedExpression) + "|";
-		regExpBuilder += escapeRegExp(config.closeEscapedExpression) + "|";
-		regExpBuilder += escapeRegExp(config.closeStatement);
-		return new RegExp(regExpBuilder, "g");
+		var builder = "";
+		builder += "\\r\\n|";
+		builder += "\\n|";
+		builder += "\\\"|";
+		builder += escapeRegExp(config.openUnescapedExpression) + "|";
+		builder += escapeRegExp(config.openEscapedExpression) + "|";
+		builder += escapeRegExp(config.openStatement) + "|";
+		builder += escapeRegExp(config.closeUnescapedExpression) + "|";
+		builder += escapeRegExp(config.closeEscapedExpression) + "|";
+		builder += escapeRegExp(config.closeStatement) + "|";
+		builder += "defined\\((.+?)\\)";
+		return new RegExp(builder, "g");
 	})();
 	
-	this.render = function(source, data)
+	this.parse = function(source, data)
 	{
 		var escape = true;
 		var parsedSource = "";
@@ -58,13 +60,14 @@ roth.js.template.Template = function(config)
 			}
 		}
 		parsedSource += "var " + config.escapeVar + " = function(" + config.argVar + ") { return " + config.argVar + ".replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\"); };\n";
-		parsedSource += "var " + config.issetVar + " = function(" + config.argVar + ") { return " + config.argVar + " !== undefined && " + config.argVar + " !== null };\n";
+		parsedSource += "var " + config.issetVar + " = function(" + config.argVar + ") { return "  + config.argVar + " !== undefined && " + config.argVar + " !== null };\n";
 		parsedSource += "var " + config.tempVar + ";\nvar " + config.sourceVar + "=\"\";\n" + config.sourceVar + "+=\"";
-		parsedSource += source.replace(syntaxRegExp, function(match, offest)
+		parsedSource += source.replace(syntaxRegExp, function(match, capture)
 		{
 			var replacement = "";
 			switch(match)
 			{
+				case "\r\n":
 				case "\n":
 				{
 					replacement = escape ? "\\n" : "\n";
@@ -111,12 +114,29 @@ roth.js.template.Template = function(config)
 					escape = true;
 					break;
 				}
+				default:
+				{
+					if(match.indexOf("defined") == 0)
+					{
+						replacement = "typeof " + capture + " !== " + "\"undefined\"";
+					}
+					break;
+				}
 			}
 			return replacement;
 		});
 		parsedSource += "\";\nreturn " + config.sourceVar + ";";
-		var renderSource = new Function(config.dataVar, parsedSource);
-		return renderSource(data);
-	}
+		return parsedSource;
+	};
+	
+	this.renderParsed = function(parsedSource, data)
+	{
+		return new Function(config.dataVar, parsedSource)(data);
+	};
+	
+	this.render = function(source, data)
+	{
+		return this.renderParsed(this.parse(source, data), data);
+	};
 	
 }

@@ -17,7 +17,7 @@ var Type =
 };
 
 
-// UTIL
+// JS GLOBAL FUNCTIONS
 
 var noop = function(){};
 
@@ -149,91 +149,6 @@ var isObject = function(value)
 {
 	return isType(value, Type.OBJECT);
 };
-
-var padLeft = function(value, length, padding)
-{
-	padding = isValidString(padding) ? padding.slice(0, 1) : "0";
-	value = value + "";
-	return value.length < length ? new Array(length - value.length + 1).join(padding) + value : value;
-};
-
-
-var currency = function(value, symbol, seperator)
-{
-	symbol = isValidString(symbol) ? symbol : "$";
-	seperator = isValidString(seperator) ? seperator : ",";
-	var currency = null;
-	if(!isNaN(value))
-	{
-		currency = symbol + parseFloat(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, seperator);
-	}
-	return currency;
-};
-
-var date = function(value)
-{
-	if(!isNaN(value))
-	{
-		var date = new Date(value);
-		var display = "";
-		display += date.getFullYear();
-		display += "-";
-		display += padLeft((date.getMonth() + 1), 2);
-		display += "-";
-		display += padLeft(date.getDate(), 2);
-		return display;
-	}
-	else
-	{
-		return ""
-	}
-};
-
-var datetime = function(value)
-{
-	if(!isNaN(value))
-	{
-		var date = new Date(value);
-		var display = "";
-		display += date.getFullYear();
-		display += "-";
-		display += padLeft((date.getMonth() + 1), 2);
-		display += "-";
-		display += padLeft(date.getDate(), 2);
-		display += " ";
-		display += padLeft(date.getHours(), 2);
-		display += ":";
-		display += padLeft(date.getMinutes(), 2);
-		display += ":";
-		display += padLeft(date.getSeconds(), 2);
-		display += " ";
-		display += /\((\w*)\)/.exec(new Date().toString())[1];
-		return display;
-	}
-	else
-	{
-		return ""
-	}
-};
-
-
-var Id =
-{
-	length : 10,
-	key : "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
-	generate : function(length, key)
-	{
-		length = isNumber(length) ? length : this.length;
-		key = isValidString(key) ? key : this.key;
-		var value = "";
-		for(var i = 0; i < length; i++)
-		{
-			value += key.charAt(Math.floor(Math.random() * key.length));
-		}
-		return value;
-	}
-};
-
 
 
 

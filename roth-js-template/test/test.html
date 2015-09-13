@@ -1,0 +1,81 @@
+<html>
+	<head>
+		
+		<meta charset="utf-8"/>
+		<title>Template Test</title>
+		
+		<style>
+			pre
+			{
+				tab-size : 4;
+				-moz-tab-size : 4;
+				-o-tab-size : 4;
+				white-space: pre-wrap;
+				white-space: -moz-pre-wrap;
+				white-space: -pre-wrap;
+				white-space: -o-pre-wrap;
+				word-wrap: break-word;
+			}
+		</style>
+		
+		<script>
+			var roth = roth || {};
+			roth.js = roth.js || {};
+			roth.js.template = roth.js.template || {};
+		</script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+		<script src="../src/Template.js"></script>
+		
+		<script>
+			function load(path, type)
+			{
+				var result = null;
+				$.ajax(
+				{
+					url : path,
+					dataType : type,
+					async : false,
+					success : function(response)
+					{
+						result = response;
+					}
+				});
+				return result;
+			}
+			
+			$(function()
+			{
+				var template = new roth.js.template.Template();
+				var source = load("test-source.html", "text");
+				var data = load("test-data.json", "text");
+				var parsed = template.parse(source, JSON.parse(data));
+				var rendered = template.renderParsed(parsed, JSON.parse(data));
+				
+				$("#source").text(source);
+				$("#data").text(data);
+				$("#parsed").text(parsed);
+				$("#rendered").text(rendered);
+				$("#displayed").html(rendered);
+			});
+		</script>
+		
+	</head>
+	<body>
+		<hr/>
+		<h2>source</h2>
+		<pre id="source"></pre>
+		<hr/>
+		<h2>data</h2>
+		<pre id="data"></pre>
+		<hr/>
+		<h2>parsed</h2>
+		<pre id="parsed"></pre>
+		<hr/>
+		<h2>rendered</h2>
+		<pre id="rendered"></pre>
+		<hr/>
+		<h2>displayed</h2>
+		<div id="displayed"></div>
+		<hr/>
+	</body>
+</html>
