@@ -5,7 +5,9 @@ ARTIFACTS=(
 	roth-js
 	roth-js-client
 	roth-js-client-dev
+	roth-js-env
 	roth-js-template
+	roth-js-util
 );
 SRC="src";
 RESOURCES="resources";

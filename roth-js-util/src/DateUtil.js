@@ -1,109 +1,6 @@
 
 
 
-var IdUtil = (function()
-{
-	var defaultLength = 10;
-	var defaultKey = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-	
-	return {
-		
-		generate : function(length, key)
-		{
-			length = isNumber(length) ? length : defaultLength;
-			key = isValidString(key) ? key : defaultKey;
-			var value = "";
-			for(var i = 0; i < length; i++)
-			{
-				value += key.charAt(Math.floor(Math.random() * key.length));
-			}
-			return value;
-		}
-		
-	};
-	
-})();
-
-
-
-var CurrencyUtil = (function()
-{
-	
-	return {
-		
-		formatInput : function(value)
-		{
-			return this.format(value, null, null)
-		},
-		
-		formatText : function(value)
-		{
-			return this.format(value, "$", ",")
-		},
-		
-		format : function(value, symbol, seperator)
-		{
-			if(!isNaN(value))
-			{
-				value = value / 100;
-				var formattedValue = isValidString(symbol) ? symbol : "";
-				formattedValue += isValidString(seperator) ? parseFloat(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, seperator) : parseFloat(value).toFixed(2);
-				return formattedValue;
-			}
-			else
-			{
-				return "";
-			}
-		}
-		
-	};
-	
-})();
-
-
-
-var StringUtil = (function()
-{
-	
-	return {
-		
-		padNumber : function(value, length)
-		{
-			return this.pad(new String(value), length, "0", true);
-		},
-		
-		padLeft : function(value, length, character)
-		{
-			if(character)
-			return this.pad(value, length, character, true);
-		},
-		
-		padRight : function(value, length, character)
-		{
-			return this.pad(value, length, character, false);
-		},
-		
-		pad : function(value, length, character, left)
-		{
-			if(value.length < length)
-			{
-				character = isValidString(character) ? character.substring(0, 1) : " ";
-				var pad = new Array(length + 1 - value.length).join(character);
-				return left ? pad + value : value + pad;
-			}
-			else
-			{
-				return value;
-			}
-		}
-		
-	};
-	
-})();
-
-
-
-
 var DateUtil = (function()
 {
 	var defaultPattern = "yyyy-MM-dd HH:mm:ss z";
@@ -239,7 +136,7 @@ var DateUtil = (function()
 					case "hh":
 					case "h":
 					{
-						replacement = StringUtil.padNumber(date.getHours() % 12, match.length);
+						replacement = StringUtil.padNumber(date.getHours() % 12 || 12, match.length);
 						break;
 					}
 					case "mm":
@@ -489,7 +386,7 @@ var DateUtil = (function()
 				var year = defaultDate.getYear();
 				var month = defaultDate.getMonth();
 				var day = defaultDate.getDate();
-				var hour = 0;
+				var hours = 0;
 				var minutes = 0;
 				var seconds = 0;
 				var milliseconds = 0;
@@ -552,25 +449,25 @@ var DateUtil = (function()
 						case "HH":
 						case "H":
 						{
-							hour = new Number(capture);
+							hours = new Number(capture);
 							break;
 						}
 						case "kk":
 						case "k":
 						{
-							hour = new Number(capture) - 1;
+							hours = new Number(capture) - 1;
 							break;
 						}
 						case "KK":
 						case "K":
 						{
-							hour = new Number(capture) + 1;
+							hours = new Number(capture) + 1;
 							break;
 						}
 						case "hh":
 						case "h":
 						{
-							hour = new Number(capture);
+							hours = new Number(capture);
 							break;
 						}
 						case "mm":
@@ -601,13 +498,13 @@ var DateUtil = (function()
 				}
 				if(pm)
 				{
-					hour += 12;
-					if(hour == 24)
+					hours += 12;
+					if(hours == 24)
 					{
-						hour = 0;
+						hours = 0;
 					}
 				}
-				date = new Date(year, month, day, hour, minutes, seconds, milliseconds);
+				date = new Date(year, month, day, hours, minutes, seconds, milliseconds);
 			}
 			return date;
 		}

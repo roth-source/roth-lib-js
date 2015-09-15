@@ -2,12 +2,13 @@
 roth.js.client.dev.Dev = function(config)
 {
 	var self = this;
+	var template = new roth.js.template.Template();
 	
 	(function()
 	{
 		var devRenderer = function(html)
 		{
-			return nunjucks.renderString(html, { config : config, Id : Id });
+			return template.render(html, { config : config });
 		};
 		config.renderer.devRenderer = devRenderer;
 		config.layout = isSet(config.layout) ? config.layout : {};
@@ -41,7 +42,7 @@ roth.js.client.dev.Dev = function(config)
 	
 	this.select = function(context, values, callback)
 	{
-		var id = "dev-modal-" + Id.generate();
+		var id = "dev-modal-" + IdUtil.generate();
 		var value = sessionStorage.getItem(context);
 		if(!isTrue(value))
 		{
@@ -53,7 +54,7 @@ roth.js.client.dev.Dev = function(config)
 				crossDomain	: true,
 				success		: function(html)
 				{
-					html = nunjucks.renderString(html, { id : id, context : context, values : values});
+					html = template.render(html, { id : id, context : context, values : values});
 					$("body").append(html);
 					var modal = $("#" + id);
 					modal.modal(

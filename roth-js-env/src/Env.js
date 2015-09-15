@@ -48,14 +48,14 @@ hosts[Environment.DEV] = ["localhost", "127.0.0.1"];
 
 var getEnvironment = function()
 {
-	if(!isSet(environment))
+	if(environment == null)
 	{
 		if(isHyperTextProtocol())
 		{
 			var host = window.location.hostname.toLowerCase();
 			for(var env in hosts)
 			{
-				if(isArray(hosts[env]))
+				if(Array.isArray(hosts[env]))
 				{
 					if(hosts[env].indexOf(host) != -1)
 					{
@@ -64,7 +64,7 @@ var getEnvironment = function()
 					}
 				}
 			}
-			if(!isSet(environment))
+			if(environment == null)
 			{
 				environment = Environment.PROD;
 			}
@@ -104,7 +104,7 @@ var isProd = function()
 
 var isDebug = function()
 {
-	if(!isSet(debug))
+	if(debug == null)
 	{
 		var search = window.location.search.toLowerCase();
 		debug = search.indexOf("debug") != -1;
@@ -112,6 +112,7 @@ var isDebug = function()
 	return debug;
 };
 
+/*
 var secure = function()
 {
 	if(!isDev())
@@ -125,25 +126,6 @@ var secure = function()
 		window.location.replace(url);
 	}
 };
-
-
-
-/*
-var initNunjucks = function()
-{
-	if(isSet(nunjucks))
-	{
-		var nunjucksConfigure = nunjucks.configure({ autoescape: true });
-		for(var method in window)
-		{
-			if(isFunction(window[method]) && Object.prototype.hasOwnProperty.call(window, method))
-			{
-				nunjucksConfigure.addGlobal(method, window[method]);
-			}
-		}
-		nunjucksConfigure.addGlobal("Id", Id);
-		nunjucksConfigure.addGlobal("Cookie", Cookie);
-		return nunjucksConfigure;
-	}
-};
 */
+
+

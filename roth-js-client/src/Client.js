@@ -58,9 +58,9 @@ roth.js.client.Client = function()
 				document.write('<link rel="stylesheet" type="text/css" href="' + this.config.getBootstrapStyle() + '"/>');
 				document.write('<script src="' + this.config.getBootstrapScript() + '"></script>');
 			}
-			if(!isSet(nunjucks))
+			if(typeof roth.js.template.Template == "undefined")
 			{
-				document.write('<script src="' + this.config.getNunjucksScript() + '"></script>');
+				document.write('<script src="' + this.config.getDevTemplateScript() + '"></script>');
 			}
 			if(isSet(this.config.devConfigScript))
 			{
@@ -338,7 +338,7 @@ roth.js.client.Client = function()
 		var endpoints = sessionStorage.getItem(this.config.endpointAvailableStorage);
 		if(!isSet(endpoints))
 		{
-			var id = Id.generate();
+			var id = IdUtil.generate();
 			this.queue.loadEndpoints(id, function()
 			{
 				self.callEndpointList(self.config.endpoint[environment],
@@ -425,7 +425,7 @@ roth.js.client.Client = function()
 			var initializer = this.config.getLayoutInitializer(layout);
 			if(isFunction(initializer))
 			{
-				var id = Id.generate();
+				var id = IdUtil.generate();
 				this.queue.loadInitializer(id, function()
 				{
 					initializer(function(response)
@@ -460,7 +460,7 @@ roth.js.client.Client = function()
 		}
 		if(isFunction(initializer))
 		{
-			var id = Id.generate();
+			var id = IdUtil.generate();
 			this.queue.loadInitializer(id, function()
 			{
 				initializer(function(response)
@@ -482,7 +482,7 @@ roth.js.client.Client = function()
 		var lang = this.request.lang;
 		if(this.request.newLang)
 		{
-			var id = Id.generate();
+			var id = IdUtil.generate();
 			this.queue.loadText(id, function()
 			{
 				$.ajax(
@@ -516,7 +516,7 @@ roth.js.client.Client = function()
 			this.layout = {};
 			if(isValidString(layout))
 			{
-				var id = Id.generate();
+				var id = IdUtil.generate();
 				this.queue.loadLayout(id, function()
 				{
 					if(self.cache.hasLayout(hash))
@@ -576,7 +576,7 @@ roth.js.client.Client = function()
 		var page = this.request.getPage();
 		var hash = this.request.hash;
 		this.page = {};
-		var id = Id.generate();
+		var id = IdUtil.generate();
 		this.queue.loadPage(id, function()
 		{
 			if(self.cache.hasPage(hash))
@@ -631,14 +631,14 @@ roth.js.client.Client = function()
 	
 	this.loadSections = function()
 	{
-		var sectionsId = Id.generate();
+		var sectionsId = IdUtil.generate();
 		this.queue.loadSections(sectionsId, function()
 		{
 			$("[" + self.config.sectionAttribute + "]").each(function()
 			{
 				var element = $(this);
 				var section = element.attr(self.config.sectionAttribute);
-				var sectionId = Id.generate();
+				var sectionId = IdUtil.generate();
 				self.queue.loadSection(sectionId, function()
 				{
 					self.loadSection(element, section, sectionId);
@@ -693,7 +693,7 @@ roth.js.client.Client = function()
 		{
 			element = this.request.newLayout ? this.getLayoutElement() : this.getPageElement();
 		}
-		var componentsId = Id.generate();
+		var componentsId = IdUtil.generate();
 		this.queue.loadComponents(componentsId, function()
 		{
 			element.find("[" + self.config.componentAttribute + "]").each(function()
@@ -707,7 +707,7 @@ roth.js.client.Client = function()
 					text : self.text,
 					request : self.request
 				};
-				var componentId = Id.generate();
+				var componentId = IdUtil.generate();
 				self.queue.loadComponent(componentId, function()
 				{
 					self.loadComponent(fieldElement, component, data, componentId);
@@ -773,7 +773,7 @@ roth.js.client.Client = function()
 	
 	this.initText = function()
 	{
-		var id = Id.generate();
+		var id = IdUtil.generate();
 		this.queue.initText(id, function()
 		{
 			$("[" + self.config.textAttribute + "] > [" + self.config.langAttribute + "]").each(function()
@@ -848,7 +848,7 @@ roth.js.client.Client = function()
 	
 	this.initHandlers = function()
 	{
-		var id = Id.generate();
+		var id = IdUtil.generate();
 		this.queue.initHandlers(id, function()
 		{
 			// validation
@@ -902,6 +902,28 @@ roth.js.client.Client = function()
 				var element = $(this);
 				self.initEditable(element);
 				element.prop("inited-editable", "true");
+			});
+			// select value
+			$("select[value]").each(function()
+			{
+				var element = $(this);
+				var value = element.attr("value");
+				element.find("option[value='" + value + "']").first().prop("selected", true).change();
+			});
+			// radio value
+			$("[" + self.config.fieldRadioValueAttribute + "]").each(function()
+			{
+				var element = $(this);
+				var value = element.attr(self.config.fieldRadioValueAttribute);
+				var radio = element.find("input[type=radio][value='" + value + "']");
+				if(radio.length > 0)
+				{
+					radio.first().prop("checked", true);
+				}
+				else
+				{
+					element.find("input[type=radio]").first().prop("checked", true);
+				}
 			});
 			self.queue.complete(id);
 		});
@@ -1127,7 +1149,7 @@ roth.js.client.Client = function()
 	
 	this.initLayout = function()
 	{
-		var id = Id.generate();
+		var id = IdUtil.generate();
 		this.queue.initLayout(id, function()
 		{
 			if(self.request.newLayout && isFunction(self.layout.init))
@@ -1140,7 +1162,7 @@ roth.js.client.Client = function()
 	
 	this.initPage = function()
 	{
-		var id = Id.generate();
+		var id = IdUtil.generate();
 		this.queue.initPage(id, function()
 		{
 			if(isFunction(self.page.init))
@@ -1156,7 +1178,7 @@ roth.js.client.Client = function()
 		var module = this.request.getModule();
 		var page = this.request.getPage();
 		var showTransitioner = this.config.getShowTransitioner(module, page, this.request.state);
-		var id = Id.generate();
+		var id = IdUtil.generate();
 		this.queue.showView(id, function()
 		{
 			var layoutElement = self.getLayoutElement();

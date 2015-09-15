@@ -4,43 +4,45 @@
 		<input id="dev-endpoint" class="form-control" type="text" />
 	</div>
 	<br/>
-	{% for service, methods in config.dev.service %}
+	{% for(var service in config.dev.service) {
+		var methods = config.dev.service[service]; %}
 	<div class="panel panel-default">
 		<div class="panel-heading">
-			<h3 class="panel-title">{{service}}</h3>
+			<h3 class="panel-title">{{ service }}</h3>
 		</div>
 		<div class="panel-body">
-			<div id="{{service}}-group" class="panel-group " role="tablist" aria-multiselectable="true">
-				{% for method, responses in methods %}
-				{% set id = Id.generate() %}
+			<div id="{{ service }}-group" class="panel-group " role="tablist" aria-multiselectable="true">
+				{% for(var method in methods) {
+					var responses = methods[method]; 
+					var id = IdUtil.generate(); %}
 				<div class="panel panel-default">
 					<div class="panel-heading" role="tab">
 						<h4 class="panel-title">
-							<a data-toggle="collapse" data-target="#{{id}}" data-parent="#{{service}}-group" aria-expanded="false" aria-controls="{{id}}">{{method | replace("_", " ")}}
+							<a data-toggle="collapse" data-target="#{{ id }}" data-parent="#{{ service }}-group" aria-expanded="false" aria-controls="{{ id }}">{{ method.replace("_", " "); }}
 							</a>
 						</h4>
 					</div>
-					<div id="{{id}}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="">
+					<div id="{{ id }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="">
 						<div class="panel-body">
 							<div class="input-group input-group-lg">
-								<textarea id="{{id}}-request" class="form-control" rows="3" style="height:300px;resize:none;" data-request="{{config.getDevServiceRequestPath(service, method)}}"></textarea>
+								<textarea id="{{ id }}-request" class="form-control" rows="3" style="height:300px;resize:none;" data-request="{{ config.getDevServiceRequestPath(service, method) }}"></textarea>
 								<span class="input-group-addon">
 									<strong style="margin-right:15px;"><i class="glyphicon glyphicon-menu-left"></i>REQUEST</strong>
 									<br/>
-									<button class="btn btn-primary btn-lg" type="submit" style="margin:15px;" onclick="client.page.call('{{id}}', '{{config.getServicePath(service, method)}}');">call</button>
+									<button class="btn btn-primary btn-lg" type="submit" style="margin:15px;" onclick="client.page.call('{{ id }}', '{{ config.getServicePath(service, method) }}');">call</button>
 									<br/>
 									<strong style="margin-left:15px;">RESPONSE<i class="glyphicon glyphicon-menu-right"></i></strong>
 								</span>
-								<textarea id="{{id}}-response" class="form-control" rows="3" style="height:300px;resize:none;"></textarea>
+								<textarea id="{{ id }}-response" class="form-control" rows="3" style="height:300px;resize:none;"></textarea>
 							</div>
 						</div>
 					</div>
 				</div>
-				{% endfor %}
+				{% } %}
 			</div>
 		</div>
 	</div>
-	{% endfor %}
+	{% } %}
 </div>
 
 <script>
@@ -112,7 +114,7 @@
 					var text = responseElement.val();
 					if(isValidString(text))
 					{
-						text += "\n";
+						text += "";
 					}
 					text += "STATUS : " + textStatus;
 					responseElement.val(text);

@@ -10,9 +10,7 @@ roth.js.client.Config = function()
 	this.bootstrapScript			= "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/" + this.versionToken + "/js/bootstrap.min.js";
 	this.bootstrapVersion			= "3.3.4";
 	
-	this.nunjucksScript				= "https://mozilla.github.io/nunjucks/files/nunjucks.min.js";
-	this.nunjucksVersion			= "1.3.3";
-	
+	this.devTemplateScript			= "http://dist.roth.cm/roth/js/roth-js-template/" + this.versionToken + "/roth-js-template.js";
 	this.devPath					= "http://dist.roth.cm/roth/js/roth-js-client-dev/" + this.versionToken + "/";
 	this.devScript					= "roth-js-client-dev.js";
 	this.devConfigScript			= null;
@@ -96,6 +94,7 @@ roth.js.client.Config = function()
 	this.fieldKeyAttribute			= "data-key";
 	this.fieldEditorAttribute		= "data-editor";
 	this.fieldTypeAttribute			= "data-type";
+	this.fieldRadioValueAttribute	= "data-radio-value";
 	
 	this.servicePath				= "service/";
 	this.csrfTokenParam				= "csrfToken";
@@ -565,9 +564,9 @@ roth.js.client.Config = function()
 		return this.bootstrapScript.replace(this.getVersionRegExp(), this.bootstrapVersion);
 	};
 	
-	this.getNunjucksScript = function()
+	this.getDevTemplateScript = function()
 	{
-		return this.nunjucksScript.replace(this.getVersionRegExp(), this.nunjucksVersion);
+		return this.devTemplateScript.replace(this.getVersionRegExp(), roth.js.client.version);
 	};
 	
 	this.getDevPath = function()
