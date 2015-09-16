@@ -43,8 +43,14 @@ var environment = null;
 var debug = null;
 
 var hosts = {};
-
 hosts[Environment.DEV] = ["localhost", "127.0.0.1"];
+
+var dependencyMap = {};
+dependencyMap.styleMap = {};
+dependencyMap.assetMap = {};
+dependencyMap.scriptMap = {};
+
+var loadedDependencies = false;
 
 var getEnvironment = function()
 {
@@ -112,7 +118,6 @@ var isDebug = function()
 	return debug;
 };
 
-/*
 var secure = function()
 {
 	if(!isDev())
@@ -126,6 +131,39 @@ var secure = function()
 		window.location.replace(url);
 	}
 };
-*/
+
+var loadDependencies = function()
+{
+	if(!loadedDependencies)
+	{
+		for(var path in dependencyMap.styleMap)
+		{
+			if(!isDev())
+			{
+				var external = dependencyMap.styleMap[path];
+				if(external)
+				{
+					path = external;
+				}
+			}
+			document.write("<link rel=\"stylesheet\" type=\"text/css\" href=\"" + path + "\" />");
+		}
+		for(var path in dependencyMap.scriptMap)
+		{
+			if(!isDev())
+			{
+				var external = dependencyMap.scriptMap[path];
+				if(external)
+				{
+					path = external;
+				}
+			}
+			document.write("<script src=\"" + path + "\"></script>");
+		}
+		loadedDependencies = true;
+	}
+}
+
+
 
 
