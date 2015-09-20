@@ -139,4 +139,6 @@ roth.js.template.Template = roth.js.template.Template || function(config)
 		return this.renderParsed(this.parse(source, data), data);
 	};
 	
-}
+};
+
+

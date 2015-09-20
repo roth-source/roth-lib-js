@@ -9,6 +9,7 @@ ARTIFACTS=(
 	"roth-js-template"
 	"roth-js-client"
 	"roth-js-client-dev"
+	"roth-js-framework"
 );
 PROJECT="project.sh";
 SRC="src";

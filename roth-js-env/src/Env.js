@@ -197,6 +197,7 @@ var loadDependencies = loadDependencies || function(compiled)
 			}
 		}
 	}
-}
+};
+
 
 

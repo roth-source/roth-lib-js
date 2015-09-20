@@ -87,4 +87,5 @@ roth.js.client.Cache = roth.js.client.Cache || function()
 		return sessionStorage.getItem("cache-page" + hash);
 	};
 	
-}
+};
+
