@@ -1,7 +1,7 @@
 
 
 
-var CurrencyUtil = (function()
+var CurrencyUtil = CurrencyUtil || (function()
 {
 	
 	return {
@@ -29,6 +29,27 @@ var CurrencyUtil = (function()
 			{
 				return "";
 			}
+		},
+		
+		parse : function(value)
+		{
+			var parsedValue = null;
+			if(isValidString(value))
+			{
+				try
+				{
+					value = parseFloat(value.replace(/[^0-9.]/g, ""));
+					if(!isNaN(value))
+					{
+						parsedValue = Math.floor(value * 100);
+					}
+				}
+				catch(e)
+				{
+					
+				}
+			}
+			return parsedValue;
 		}
 		
 	};

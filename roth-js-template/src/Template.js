@@ -1,5 +1,5 @@
 
-roth.js.template.Template = function(config)
+roth.js.template.Template = roth.js.template.Template || function(config)
 {
 	var self = this;
 	

@@ -1,5 +1,5 @@
 
-roth.js.client.Request = function()
+roth.js.client.Request = roth.js.client.Request || function()
 {
 	var State =
 	{

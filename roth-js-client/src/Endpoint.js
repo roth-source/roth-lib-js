@@ -1,5 +1,5 @@
 
-roth.js.client.Endpoint = function()
+roth.js.client.Endpoint = roth.js.client.Endpoint || function()
 {
 	this.currentStorage = null;
 	this.availableStorage = null;

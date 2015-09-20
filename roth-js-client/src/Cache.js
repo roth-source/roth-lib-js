@@ -1,5 +1,5 @@
 
-roth.js.client.Cache = function()
+roth.js.client.Cache = roth.js.client.Cache || function()
 {
 	
 	this.clear = function()

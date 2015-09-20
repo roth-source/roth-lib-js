@@ -1,6 +1,6 @@
 
 
-roth.js.client.Client = function()
+roth.js.client.Client = roth.js.client.Client || function()
 {
 	var self = this;
 	var inited = false;
@@ -58,7 +58,7 @@ roth.js.client.Client = function()
 				document.write('<link rel="stylesheet" type="text/css" href="' + this.config.getBootstrapStyle() + '"/>');
 				document.write('<script src="' + this.config.getBootstrapScript() + '"></script>');
 			}
-			if(typeof roth.js.template.Template == "undefined")
+			if(typeof roth.js.template == "undefined" || typeof roth.js.template.Template == "undefined")
 			{
 				document.write('<script src="' + this.config.getDevTemplateScript() + '"></script>');
 			}
@@ -79,7 +79,7 @@ roth.js.client.Client = function()
 			{
 				if(isFunction(console[method]) && Object.prototype.hasOwnProperty.call(console, method))
 				{
-					console[method] = noop;
+					console[method] = function(){};
 				}
 			}
 		}
@@ -112,12 +112,12 @@ roth.js.client.Client = function()
 		this.request.langStorage = this.config.langStorage;
 		this.endpoint.currentStorage = this.config.endpointCurrentStorage;
 		this.endpoint.availableStorage = this.config.endpointAvailableStorage;
-		if(!isSet(this.config.endpoint[environment]) && isHyperTextProtocol())
+		if(!isSet(this.config.endpoint[roth.js.env.environment]) && isHyperTextProtocol())
 		{
 			var endpoint = "https://";
 			endpoint += window.location.host;
 			endpoint += window.location.pathname.slice(0, window.location.pathname.lastIndexOf("/") + 1);
-			this.config.endpoint[environment] = [endpoint];
+			this.config.endpoint[roth.js.env.environment] = [endpoint];
 		}
 	};
 	
@@ -341,7 +341,7 @@ roth.js.client.Client = function()
 			var id = IdUtil.generate();
 			this.queue.loadEndpoints(id, function()
 			{
-				self.callEndpointList(self.config.endpoint[environment],
+				self.callEndpointList(self.config.endpoint[roth.js.env.environment],
 				function()
 				{
 					self.queue.complete(id);
@@ -430,12 +430,12 @@ roth.js.client.Client = function()
 				{
 					initializer(function(response)
 					{
-						self.response.layout = response;
+						self.response.layout = response || {};
 						self.queue.complete(id);
 					},
 					function(errors)
 					{
-						self.response.layout = null;
+						self.response.layout = {};
 						self.queue.complete(id);
 					});
 				});
@@ -465,12 +465,12 @@ roth.js.client.Client = function()
 			{
 				initializer(function(response)
 				{
-					self.response.page = response;
+					self.response.page = response || {};
 					self.queue.complete(id);
 				},
 				function(errors)
 				{
-					self.response.page = null;
+					self.response.page = {};
 					self.queue.complete(id);
 				});
 			});
@@ -941,32 +941,39 @@ roth.js.client.Client = function()
 		var error = element.attr(this.config.fieldErrorAttribute);
 		element.click(function()
 		{
-			disabler = isFunction(disabler) ? disabler : noop;
+			disabler = isFunction(disabler) ? disabler : function(){};
 			disabler(element, true);
 			var groupElement = self.submitterGroupElement(element);
-			if(groupElement.length > 0 && self.validateGroup(groupElement))
+			if(groupElement.length > 0)
 			{
-				if(isValidString(presubmit))
-				{
-					eval(presubmit);
-				}
 				var request = self.createRequest(groupElement);
-				self.service(service, method, request, function(response)
+				if(isTrue(request))
+				{
+					if(isValidString(presubmit))
+					{
+						eval(presubmit);
+					}
+					self.service(service, method, request, function(response)
+					{
+						disabler(element, false);
+						if(isValidString(success))
+						{
+							eval(success);
+						}
+					},
+					function(errors)
+					{
+						disabler(element, false);
+						if(isValidString(error))
+						{
+							eval(error);
+						}
+					});
+				}
+				else
 				{
 					disabler(element, false);
-					if(isValidString(success))
-					{
-						eval(success);
-					}
-				},
-				function(errors)
-				{
-					disabler(element, false);
-					if(isValidString(error))
-					{
-						eval(error);
-					}
-				});
+				}
 			}
 			else
 			{
@@ -1252,58 +1259,232 @@ roth.js.client.Client = function()
 		return element.closest("[" + this.config.fieldGroupAttribute + "], #" + this.config.pageId + ", #" + this.config.layoutId).first();
 	};
 	
+	this.findGroupElements = function(element)
+	{
+		var selector = "";
+		selector += "input[name][type=hidden], ";
+		selector += "input[name][type!=hidden][type!=radio][" + this.config.fieldRequiredAttribute + "]:visible:enabled, ";
+		selector += "select[name][" + this.config.fieldRequiredAttribute + "]:visible:enabled, ";
+		selector += "textarea[name][" + this.config.fieldRequiredAttribute + "]:visible:enabled, ";
+		selector += "[" + this.config.fieldRadioGroupAttribute + "][" + this.config.fieldRequiredAttribute + "]:has(input[name][type=radio]:visible:enabled) ";
+		return element.find(selector);
+	}
+	
 	this.createRequest = function(element)
 	{
+		var nameRegExp = new RegExp("^(\\w+)(?:\\[|$)");
+		var indexRegExp = new RegExp("\\[(\\d+)?\\]", "g");
+		
 		var request = this.request.cloneParams();
-		element.find("input[type='hidden']").each(function()
+		this.findGroupElements(element).each(function()
 		{
-			var element = $(this);
-			var name = element.attr("name"); 
-			var value = element.val();
-			if(isTrue(name) && isTrue(value))
+			var field = self.validateField($(this));
+			if(!isTrue(field.valid))
 			{
-				request[name] = value;
+				request = null;
 			}
-		});
-		element.find("input[" + this.config.fieldRequiredAttribute + "], textarea[" + self.config.fieldRequiredAttribute + "]").each(function()
-		{
-			var element = $(this);
-			if(element.is(":visible") || element.attr("type") != "hidden")
+			if(isTrue(request))
 			{
-				var name = element.attr("name");
-				var type = element.attr("type");
-				if(isTrue(name))
+				if(isTrue(field.name) && isTrue(field.value))
 				{
-					if(type == "checkbox")
+					var tempObject = request;
+					var names = field.name.split(".");
+					for(var i in names)
 					{
-						var value = element.is(":checked");
-						request[name] = value;
-					}
-					else
-					{
-						var value = self.filterField(element);
-						if(isTrue(value))
+						var last = (i == names.length - 1);
+						var nameMatcher = nameRegExp.exec(names[i]);
+						if(nameMatcher)
 						{
-							request[name] = value;
+							var elementName = nameMatcher[1];
+							var indexes = [];
+							var indexMatcher;
+							while((indexMatcher = indexRegExp.exec(names[i])) !== null)
+							{
+								var index = indexMatcher[1];
+								indexes.push(index ? parseInt(index) : -1);
+							}
+							if(indexes.length > 0)
+							{
+								var tempElement = tempObject[elementName];
+								if(!isArray(tempElement))
+								{
+									tempElement = [];
+									tempObject[elementName] = tempElement;
+								}
+								tempObject = tempElement;
+								for(var j in indexes)
+								{
+									var index = indexes[j];
+									var lastIndex = (j == indexes.length - 1);
+									if(!lastIndex)
+									{
+										var tempElement = tempObject[index];
+										if(!isArray(tempElement))
+										{
+											tempElement = [];
+											tempObject[index] = tempElement;
+										}
+										tempObject = tempElement;
+									}
+									else
+									{
+										var tempElement = last ? field.value : {};
+										if(index >= 0)
+										{
+											tempObject[index] = tempElement;
+										}
+										else
+										{
+											tempObject.push(tempElement);
+										}
+										tempObject = tempElement;
+									}
+								}
+							}
+							else
+							{
+								if(!last)
+								{
+									var tempElement = tempObject[elementName];
+									if(!isObject(tempElement))
+									{
+										tempElement = {};
+										tempObject[elementName] = tempElement;
+									}
+									tempObject = tempElement;
+								}
+								else
+								{
+									tempObject[elementName] = field.value;
+								}
+							}
 						}
 					}
 				}
 			}
 		});
-		element.find("select[" + this.config.fieldRequiredAttribute + "]").each(function()
+		return request;
+	};
+	
+	this.validateGroup = function(element)
+	{
+		var validGroup = true;
+		this.findGroupElements(element).each(function()
 		{
-			var element = $(this);
-			if(element.is(":visible"))
+			var field = self.validateField($(this));
+			if(!isTrue(field.valid))
 			{
-				var name = element.attr("name");
-				if(isTrue(name))
-				{
-					var value = element.val();
-					request[name] = value;
-				}
+				validGroup = false;
 			}
 		});
-		return request;
+		return validGroup;
+	};
+	
+	this.filterField = function(element)
+	{
+		var value = null;
+		var name = element.attr(this.config.fieldRadioGroupAttribute);
+		if(name)
+		{
+			value = element.find("input[type=radio][name='" + name + "']:visible:enabled:checked").val();
+		}
+		else
+		{
+			name = element.attr("name");
+			var type = element.attr("type");
+			if(type == "checkbox")
+			{
+				value = element.is(":checked");
+			}
+			else
+			{
+				value = element.val();
+			}
+		}
+		if(isValidString(value))
+		{
+			value = value.trim();
+			var filterer = this.config.getFilterer(element);
+			if(isFunction(filterer))
+			{
+				value = filterer(value);
+			}
+		}
+		var tag = element.prop("tagName").toLowerCase();
+		var type = element.attr("type");
+		return { name : name, value : value, tag : tag, type : type };
+	};
+	
+	this.validateField = function(element)
+	{
+		var field = this.filterField(element);
+		var value = field.value;
+		var valid = true;
+		if(element.is(":visible"))
+		{
+			var required = element.attr(this.config.fieldRequiredAttribute);
+			if(isTrue(element.attr("multiple")))
+			{
+				if(isArray(value))
+				{
+					for(var i in value)
+					{
+						valid = isValidString(value[i]);
+						if(isTrue(valid))
+						{
+							break;
+						}
+					}
+				}
+				else
+				{
+					valid = false;
+				}
+			}
+			else
+			{
+				valid = isTrue(value);
+			}
+			if(valid)
+			{
+				var validators = this.config.getValidators(element);
+				if(isArray(validators))
+				{
+					for(var i in validators)
+					{
+						var validator = validators[i];
+						var validate = element.attr(this.config.fieldValidateAttribute);
+						var context = "";
+						var index = validate.indexOf(":");
+						if(index > 0)
+						{
+							context = validate.slice(index + 1);
+						}
+						valid = validator(value, context);
+						if(!valid)
+						{
+							break;
+						}
+					}
+				}
+			}
+			else if(!valid && !(isTrue(required) && required.toLowerCase() == "true"))
+			{
+				valid = true;
+			}
+			this.displayField(element, isTrue(valid) ? "valid" : "invalid");
+		}
+		field.valid = valid;
+		return field;
+	};
+	
+	this.displayField = function(element, status)
+	{
+		var displayor = this.config.getDisplayor(element);
+		if(isFunction(displayor))
+		{
+			displayor(element, status);
+		}
 	};
 	
 	this.resetGroups = function()
@@ -1314,19 +1495,19 @@ roth.js.client.Client = function()
 		});
 	};
 	
-	this.resetGroup = function(element)
+	this.resetGroup = function(groupElement)
 	{
-		if(isString(element))
+		if(isString(groupElement))
 		{
-			element = $("[" + this.config.fieldGroupAttribute + "='" + element + "']");
+			groupElement = $("[" + this.config.fieldGroupAttribute + "='" + groupElement + "']");
 		}
-		element.find("input[" + this.config.fieldRequiredAttribute + "], textarea[" + self.config.fieldRequiredAttribute + "]").each(function()
+		groupElement.find("input[" + this.config.fieldRequiredAttribute + "], textarea[" + self.config.fieldRequiredAttribute + "]").each(function()
 		{
 			var fieldElement = $(this);
 			fieldElement.val("");
 			self.displayField(fieldElement, "reset");
 		});
-		element.find("select[" + self.config.fieldRequiredAttribute + "]").each(function()
+		groupElement.find("select[" + self.config.fieldRequiredAttribute + "]").each(function()
 		{
 			var fieldElement = $(this);
 			fieldElement[0].selectedIndex = 0;
@@ -1339,99 +1520,17 @@ roth.js.client.Client = function()
 		});
 	}
 	
-	this.validateGroup = function(element)
+	this.resetValidateGroup = function(groupElement)
 	{
-		var validGroup = true;
-		element.find("input[" + this.config.fieldRequiredAttribute + "]:visible, select[" + self.config.fieldRequiredAttribute + "]:visible, textarea[" + self.config.fieldRequiredAttribute + "]:visible").each(function()
+		if(isString(groupElement))
 		{
-			if(!self.validateField($(this)))
-			{
-				validGroup = false;
-			}
+			groupElement = $("[" + this.config.fieldGroupAttribute + "='" + groupElement + "']");
+		}
+		groupElement.find("input[" + this.config.fieldRequiredAttribute + "], textarea[" + this.config.fieldRequiredAttribute + "], select[" + this.config.fieldRequiredAttribute + "]").each(function()
+		{
+			var element = $(this);
+			self.displayField(element, "reset");
 		});
-		return validGroup;
-	};
-	
-	this.filterField = function(element)
-	{
-		var value = element.val();
-		if(isValidString(value))
-		{
-			value = value.trim();
-			var filterer = this.config.getFilterer(element);
-			if(isFunction(filterer))
-			{
-				value = filterer(value);
-			}
-		}
-		return value;
-	};
-	
-	this.validateField = function(element)
-	{
-		var valid = true;
-		var value = this.filterField(element);
-		var required = element.attr(this.config.fieldRequiredAttribute);
-		if(isTrue(element.attr("multiple")))
-		{
-			if(isArray(value))
-			{
-				for(var i in value)
-				{
-					valid = isValidString(value[i]);
-					if(isTrue(valid))
-					{
-						break;
-					}
-				}
-			}
-			else
-			{
-				valid = false;
-			}
-		}
-		else
-		{
-			valid = isTrue(value);
-		}
-		if(valid)
-		{
-			var validators = this.config.getValidators(element);
-			if(isArray(validators))
-			{
-				for(var i in validators)
-				{
-					var validator = validators[i];
-					var validate = element.attr(this.config.fieldValidateAttribute);
-					var context = "";
-					var index = validate.indexOf(":");
-					if(index > 0)
-					{
-						context = validate.slice(index + 1);
-					}
-					valid = validator(value, context);
-					if(!valid)
-					{
-						break;
-					}
-				}
-			}
-		}
-		else if(!valid && !(isTrue(required) && required.toLowerCase() == "true"))
-		{
-			valid = true;
-		}
-		this.displayField(element, isTrue(valid) ? "valid" : "invalid");
-		return valid;
-	};
-	
-	this.displayField = function(element, status)
-	{
-		var displayor = this.config.getDisplayor(element);
-		if(isFunction(displayor))
-		{
-			displayor(element, status);
-		}
 	};
 	
 	this.service = function(service, method, request, success, error)
@@ -1449,18 +1548,18 @@ roth.js.client.Client = function()
 	
 	this.serviceFile = function(service, method, request, success, error)
 	{
-		var responses = this.config.getDevServiceResponses(service, method);
-		if(responses.length > 1)
+		var scenarios = this.config.getDevServiceResponseScenarios(service, method);
+		if(scenarios.length > 0)
 		{
-			this.dev.select(service + "/" + method, responses, function(response)
+			this.dev.select(service + "/" + method, scenarios, function(scenario)
 			{
-				var url = self.config.getDevServiceResponsePath(service, method, response);
+				var url = self.config.getDevServiceResponsePath(service, method, scenario);
 				self.serviceCall(url, request, success, error);
 			});
 		}
 		else
 		{
-			var url = self.config.getDevServiceResponsePath(service, method, responses[0]);
+			var url = self.config.getDevServiceResponsePath(service, method);
 			self.serviceCall(url, request, success, error);
 		}
 	};
@@ -1665,6 +1764,10 @@ roth.js.client.Client = function()
 	
 	this.config.filterer.number		= this.Filterer.replace(/[^0-9]/g);
 	this.config.filterer.decimal	= this.Filterer.replace(/[^0-9.]/g);
+	this.config.filterer.currency	= function(value)
+	{
+		return CurrencyUtil.parse(value);
+	};
 	
 	this.Validator =
 	{

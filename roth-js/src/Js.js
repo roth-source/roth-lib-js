@@ -1,7 +1,7 @@
 
 // CONSTANTS
 
-var Type =
+var Type = Type ||
 {
 	UNDEFINED 	: "undefined",
 	NULL		: "null",
@@ -19,14 +19,12 @@ var Type =
 
 // JS GLOBAL FUNCTIONS
 
-var noop = function(){};
-
-var typeOf = function(value)
+var typeOf = typeOf || function(value)
 {
 	return Object.prototype.toString.call(value).slice(8, -1).toLowerCase();
 };
 
-var isType = function(value)
+var isType = isType || function(value)
 {
 	var type = typeOf(value);
 	for(var i = 1; i < arguments.length; i++)
@@ -39,37 +37,37 @@ var isType = function(value)
 	return false;
 };
 
-var isUndefined = function(value)
+var isUndefined = isUndefined || function(value)
 {
 	return value === undefined;
 };
 
-var isNull = function(value)
+var isNull = isNull || function(value)
 {
 	return value === null;
 };
 
-var isSet = function(value)
+var isSet = isSet || function(value)
 {
 	return !isUndefined(value) && !isNull(value);
 };
 
-var isValid = function(value)
+var isValid = isValid || function(value)
 {
 	return isSet(value) && value !== "";
 };
 
-var isValidString = function(value)
+var isValidString = isValidString || function(value)
 {
 	return isValid(value) && isString(value);
 };
 
-var isInvalid = function(value)
+var isInvalid = isInvalid || function(value)
 {
 	return !isValid(value);
 };
 
-var isEmpty = function(value)
+var isEmpty = isEmpty || function(value)
 {
 	var empty = !isSet(value);
 	if(!empty)
@@ -90,62 +88,62 @@ var isEmpty = function(value)
 	return empty;
 };
 
-var isNotEmpty = function(value)
+var isNotEmpty = isNotEmpty || function(value)
 {
 	return !isEmpty(value);
 }
 
-var isTrue = function(value)
+var isTrue = isTrue || function(value)
 {
 	return (value ? true : false);
 };
 
-var isFalse = function(value)
+var isFalse = isFalse || function(value)
 {
 	return !isTrue(value);
 };
 
-var isBoolean = function(value)
+var isBoolean = isBoolean || function(value)
 {
 	return isType(value, Type.BOOLEAN);
 };
 
-var isNumber = function(value)
+var isNumber = isNumber || function(value)
 {
 	return isType(value, Type.NUMBER);
 };
 
-var isString = function(value)
+var isString = isString || function(value)
 {
 	return isType(value, Type.STRING);
 };
 
-var isArray = function(value)
+var isArray = isArray || function(value)
 {
 	return isType(value, Type.ARRAY);
 };
 
-var isFunction = function(value)
+var isFunction = isFunction || function(value)
 {
 	return isType(value, Type.FUNCTION);
 };
 
-var isDate = function(value)
+var isDate = isDate || function(value)
 {
 	return isType(value, Type.DATE);
 };
 
-var isError = function(value)
+var isError = isError || function(value)
 {
 	return isType(value, Type.ERROR);
 };
 
-var isRegexp = function(value)
+var isRegexp = isRegexp || function(value)
 {
 	return isType(value, Type.REGEXP);
 };
 
-var isObject = function(value)
+var isObject = isObject || function(value)
 {
 	return isType(value, Type.OBJECT);
 };

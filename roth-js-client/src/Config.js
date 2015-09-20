@@ -1,5 +1,5 @@
 
-roth.js.client.Config = function()
+roth.js.client.Config = roth.js.client.Config || function()
 {
 	this.versionToken				= "{version}";
 	
@@ -27,6 +27,7 @@ roth.js.client.Config = function()
 	this.devConfigPage				= "config";
 	this.devServicePath				= "dev/service/";
 	this.devServiceRequest			= "request";
+	this.devServiceResponse			= "response";
 	this.devServiceExtension		= ".json";
 	this.devSessionId				= "jsessionid";
 	this.devCsrfToken				= "csrfToken";
@@ -94,6 +95,7 @@ roth.js.client.Config = function()
 	this.fieldKeyAttribute			= "data-key";
 	this.fieldEditorAttribute		= "data-editor";
 	this.fieldTypeAttribute			= "data-type";
+	this.fieldRadioGroupAttribute	= "data-radio-group";
 	this.fieldRadioValueAttribute	= "data-radio-value";
 	
 	this.servicePath				= "service/";
@@ -505,36 +507,47 @@ roth.js.client.Config = function()
 		path += service;
 		path += "/";
 		path += method;
-		path += "/";
 		return path;
 	};
 	
-	this.getDevServiceRequestPath = function(service, method)
+	this.getDevServiceRequestPath = function(service, method, scenario)
 	{
 		var path = "";
 		path += this.getDevServicePath(service, method);
+		path += "-";
 		path += this.devServiceRequest;
+		if(scenario)
+		{
+			path += "-";
+			path += scenario;
+		}
 		path += this.devServiceExtension;
 		return path;
 	};
 	
-	this.getDevServiceResponsePath = function(service, method, response)
+	this.getDevServiceResponsePath = function(service, method, scenario)
 	{
 		var path = "";
 		path += this.getDevServicePath(service, method);
-		path += response;
+		path += "-";
+		path += this.devServiceResponse;
+		if(scenario)
+		{
+			path += "-";
+			path += scenario;
+		}
 		path += this.devServiceExtension;
 		return path;
 	};
 	
-	this.getDevServiceResponses = function(service, method)
+	this.getDevServiceResponseScenarios = function(service, method)
 	{
-		var responses = ["success"];
+		var scenarios = [];
 		if(isObject(this.dev.service[service]) && isArray(this.dev.service[service][method]))
 		{
-			responses = this.dev.service[service][method];
+			scenarios = this.dev.service[service][method];
 		}
-		return responses;
+		return scenarios;
 	};
 	
 	this.getEndpointListUrl = function(endpoint)

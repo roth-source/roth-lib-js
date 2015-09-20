@@ -1,5 +1,5 @@
 
-roth.js.client.dev.Dev = function(config)
+roth.js.client.dev.Dev = roth.js.client.dev.Dev || function(config)
 {
 	var self = this;
 	var template = new roth.js.template.Template();

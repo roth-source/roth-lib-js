@@ -1,5 +1,5 @@
 
-roth.js.client.Queue = function()
+roth.js.client.Queue = roth.js.client.Queue || function()
 {
 	var Event =
 	{

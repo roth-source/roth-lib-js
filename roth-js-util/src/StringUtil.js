@@ -1,7 +1,7 @@
 
 
 
-var StringUtil = (function()
+var StringUtil = StringUtil || (function()
 {
 	
 	return {

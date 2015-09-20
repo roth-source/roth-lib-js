@@ -1,6 +1,6 @@
 
 
-var IdUtil = (function()
+var IdUtil = IdUtil || (function()
 {
 	var defaultLength = 10;
 	var defaultKey = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";

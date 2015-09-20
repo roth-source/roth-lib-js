@@ -1,7 +1,7 @@
 
 
 
-var DateUtil = (function()
+var DateUtil = DateUtil || (function()
 {
 	var defaultPattern = "yyyy-MM-dd HH:mm:ss z";
 	var longMonths = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
