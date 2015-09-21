@@ -48,7 +48,6 @@ roth.lib.js.template.Template = roth.lib.js.template.Template || function(config
 		builder += escapeRegExp(config.closeEscapedExpression) + "|";
 		builder += escapeRegExp(config.closeStatement) + "|";
 		builder += "defined\\((.+?)\\)";
-		console.log(new RegExp(builder, "g").toString());
 		return new RegExp(builder, "g");
 	})();
 	
