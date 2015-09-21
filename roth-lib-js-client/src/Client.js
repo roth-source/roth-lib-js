@@ -105,6 +105,10 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		{
 			return !isSet($(element).prop("inited-editable"));
 		};
+		jQuery.expr[":"].notInitedValue = function(element, index, match)
+		{
+			return !isSet($(element).prop("inited-value"));
+		};
 	};
 	
 	this.initConfig = function()
@@ -906,14 +910,15 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 				element.prop("inited-editable", "true");
 			});
 			// select value
-			$("select[value]").each(function()
+			$("select[value]:notInitedValue").each(function()
 			{
 				var element = $(this);
 				var value = element.attr("value");
 				element.find("option[value='" + value + "']").first().prop("selected", true).change();
+				element.prop("inited-value", "true");
 			});
-			// radio value
-			$("[" + self.config.fieldRadioValueAttribute + "]").each(function()
+			// radio group value
+			$("[" + self.config.fieldRadioValueAttribute + "]:notInitedValue").each(function()
 			{
 				var element = $(this);
 				var value = element.attr(self.config.fieldRadioValueAttribute);
@@ -926,6 +931,18 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 				{
 					element.find("input[type=radio]").first().prop("checked", true);
 				}
+				element.prop("inited-value", "true");
+			});
+			// checkbox value
+			$("input[type=checkbox][" + self.config.fieldCheckboxValueAttribute + "]:notInitedValue").each(function()
+			{
+				var element = $(this);
+				var value = element.attr(self.config.fieldCheckboxValueAttribute);
+				if(isSet(value) && value.toLowerCase() == "true")
+				{
+					element.prop("checked", true);
+				}
+				element.prop("inited-value", "true");
 			});
 			self.queue.complete(id);
 		});
@@ -1287,7 +1304,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			}
 			if(isTrue(request))
 			{
-				if(isTrue(field.name) && isTrue(field.value))
+				if(isValidString(field.name) && isValid(field.value))
 				{
 					var tempObject = request;
 					var names = field.name.split(".");
@@ -1446,7 +1463,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			}
 			else
 			{
-				valid = isTrue(value);
+				valid = isValid(value);
 			}
 			if(valid)
 			{

@@ -1,3 +1,13 @@
+<style>
+	textarea
+	{
+		-moz-tab-size : 4;
+		-o-tab-size : 4;
+		tab-size : 4;
+		font-family : courier;
+		resize : none;
+	}
+</style>
 <div class="container-fluid">
 	<div class="input-group">
 		<span class="input-group-addon">endpoint</span>
@@ -13,19 +23,22 @@
 		<div class="panel-body">
 			<div id="{{ service }}-group" class="panel-group " role="tablist" aria-multiselectable="true">
 				{% for(var method in methods) {
-					var responses = methods[method]; 
-					var id = IdUtil.generate(); %}
+					var scenarios = config.getDevServiceRequestScenarios(service, method);
+					scenarios = scenarios.length > 0 ? scenarios : [null];
+					for(var i in scenarios) {
+						var scenario = scenarios[i]; 
+						var id = IdUtil.generate(); %}
 				<div class="panel panel-default">
 					<div class="panel-heading" role="tab">
 						<h4 class="panel-title">
-							<a data-toggle="collapse" data-target="#{{ id }}" data-parent="#{{ service }}-group" aria-expanded="false" aria-controls="{{ id }}">{{ method.replace("_", " "); }}
+							<a data-toggle="collapse" data-target="#{{ id }}" data-parent="#{{ service }}-group" aria-expanded="false" aria-controls="{{ id }}">{{ method.replace("_", " ") }} {{ isValidString(scenario) ? "- " + scenario : "" }}
 							</a>
 						</h4>
 					</div>
 					<div id="{{ id }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="">
 						<div class="panel-body">
 							<div class="input-group input-group-lg">
-								<textarea id="{{ id }}-request" class="form-control" rows="3" style="height:300px;resize:none;" data-request="{{ config.getDevServiceRequestPath(service, method) }}"></textarea>
+								<textarea id="{{ id }}-request" class="form-control" spellcheck="false" style="height:300px;font-size:12px;" data-request="{{ config.getDevServiceRequestPath(service, method, scenario) }}"></textarea>
 								<span class="input-group-addon">
 									<strong style="margin-right:15px;"><i class="glyphicon glyphicon-menu-left"></i>REQUEST</strong>
 									<br/>
@@ -33,12 +46,12 @@
 									<br/>
 									<strong style="margin-left:15px;">RESPONSE<i class="glyphicon glyphicon-menu-right"></i></strong>
 								</span>
-								<textarea id="{{ id }}-response" class="form-control" rows="3" style="height:300px;resize:none;"></textarea>
+								<textarea id="{{ id }}-response" class="form-control" spellcheck="false" style="height:300px;font-size:12px;"></textarea>
 							</div>
 						</div>
 					</div>
 				</div>
-				{% } %}
+				{% } } %}
 			</div>
 		</div>
 	</div>
@@ -114,7 +127,7 @@
 					var text = responseElement.val();
 					if(isValidString(text))
 					{
-						text += "";
+						text += "\n";
 					}
 					text += "STATUS : " + textStatus;
 					responseElement.val(text);

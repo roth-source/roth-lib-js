@@ -1,137 +1,138 @@
 
 roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 {
-	this.versionToken				= "{version}";
+	this.versionToken					= "{version}";
 	
-	this.jqueryScript				= "https://cdnjs.cloudflare.com/ajax/libs/jquery/" + this.versionToken + "/jquery.min.js";
-	this.jqueryVersion				= "1.11.2";
+	this.jqueryScript					= "https://cdnjs.cloudflare.com/ajax/libs/jquery/" + this.versionToken + "/jquery.min.js";
+	this.jqueryVersion					= "1.11.2";
 	
-	this.bootstrapStyle				= "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/" + this.versionToken + "/css/bootstrap.min.css";
-	this.bootstrapScript			= "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/" + this.versionToken + "/js/bootstrap.min.js";
-	this.bootstrapVersion			= "3.3.4";
+	this.bootstrapStyle					= "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/" + this.versionToken + "/css/bootstrap.min.css";
+	this.bootstrapScript				= "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/" + this.versionToken + "/js/bootstrap.min.js";
+	this.bootstrapVersion				= "3.3.4";
 	
-	this.devTemplateScript			= "http://dist.roth.cm/roth/js/roth-lib-js-template/" + this.versionToken + "/roth-lib-js-template.js";
-	this.devPath					= "http://dist.roth.cm/roth/js/roth-lib-js-client-dev/" + this.versionToken + "/";
-	this.devScript					= "roth-lib-js-client-dev.js";
-	this.devConfigScript			= null;
-	this.devViewPath				= "view/";
-	this.devViewExtension			= ".html";
-	this.devLayoutPath				= "layout/";
-	this.devLayout					= "dev";
-	this.devComponentPath			= "component/";
-	this.devSelectComponent			= "select";
-	this.devPagePath				= "page/";
-	this.devModule					= "dev";
-	this.devLinksPage				= "links";
-	this.devServicesPage			= "services";
-	this.devConfigPage				= "config";
-	this.devServicePath				= "dev/service/";
-	this.devServiceRequest			= "request";
-	this.devServiceResponse			= "response";
-	this.devServiceExtension		= ".json";
-	this.devSessionId				= "jsessionid";
-	this.devCsrfToken				= "csrfToken";
+	this.devTemplateScript				= "http://dist.roth.cm/roth/js/roth-lib-js-template/" + this.versionToken + "/roth-lib-js-template.js";
+	this.devPath						= "http://dist.roth.cm/roth/js/roth-lib-js-client-dev/" + this.versionToken + "/";
+	this.devScript						= "roth-lib-js-client-dev.js";
+	this.devConfigScript				= null;
+	this.devViewPath					= "view/";
+	this.devViewExtension				= ".html";
+	this.devLayoutPath					= "layout/";
+	this.devLayout						= "dev";
+	this.devComponentPath				= "component/";
+	this.devSelectComponent				= "select";
+	this.devPagePath					= "page/";
+	this.devModule						= "dev";
+	this.devLinksPage					= "links";
+	this.devServicesPage				= "services";
+	this.devConfigPage					= "config";
+	this.devServicePath					= "dev/service/";
+	this.devServiceRequest				= "request";
+	this.devServiceResponse				= "response";
+	this.devServiceExtension			= ".json";
+	this.devSessionId					= "jsessionid";
+	this.devCsrfToken					= "csrfToken";
 	
-	this.defaultLang				= "en";
-	this.defaultModule				= "index";
-	this.defaultPage				= "index";
+	this.defaultLang					= "en";
+	this.defaultModule					= "index";
+	this.defaultPage					= "index";
 	
-	this.endpointCurrentStorage		= "endpointCurrent";
-	this.endpointAvailableStorage	= "endpointAvailable";
-	this.endpointListPath			= "service/endpoint/list"
+	this.endpointCurrentStorage			= "endpointCurrent";
+	this.endpointAvailableStorage		= "endpointAvailable";
+	this.endpointListPath				= "service/endpoint/list"
 	
-	this.langStorage				= "lang";
-	this.langAttribute				= "lang";
+	this.langStorage					= "lang";
+	this.langAttribute					= "lang";
 	
-	this.textPath					= "text/";
-	this.textExtension				= ".json";
-	this.textAttribute				= "data-text";
-	this.textAttrAttribute			= "data-text-attr";
+	this.textPath						= "text/";
+	this.textExtension					= ".json";
+	this.textAttribute					= "data-text";
+	this.textAttrAttribute				= "data-text-attr";
 	
-	this.viewPath					= "view/";
-	this.viewExtension				= ".html";
-	this.viewRenderer				= null;
+	this.viewPath						= "view/";
+	this.viewExtension					= ".html";
+	this.viewRenderer					= null;
 	
-	this.layoutPath					= "layout/";
-	this.layoutExtension			= null;
-	this.layoutId					= "layout";
-	this.layoutRenderer				= null;
+	this.layoutPath						= "layout/";
+	this.layoutExtension				= null;
+	this.layoutId						= "layout";
+	this.layoutRenderer					= null;
 	
-	this.pagePath					= "page/";
-	this.pageExtension				= null;
-	this.pageId						= "page";
-	this.pageRenderer				= null;
+	this.pagePath						= "page/";
+	this.pageExtension					= null;
+	this.pageId							= "page";
+	this.pageRenderer					= null;
 	
-	this.sectionPath				= "section/";
-	this.sectionExtension			= null;
-	this.sectionAttribute			= "data-section";
-	this.sectionRenderer			= null;
+	this.sectionPath					= "section/";
+	this.sectionExtension				= null;
+	this.sectionAttribute				= "data-section";
+	this.sectionRenderer				= null;
 	
-	this.componentPath				= "component/";
-	this.componentExtension			= null;
-	this.componentAttribute			= "data-component";
-	this.componentRenderer			= null;
+	this.componentPath					= "component/";
+	this.componentExtension				= null;
+	this.componentAttribute				= "data-component";
+	this.componentRenderer				= null;
 	
-	this.errorEndpointRedirector	= null;
-	this.errorParamsRedirector		= null;
-	this.errorPageRedirector		= null;
+	this.errorEndpointRedirector		= null;
+	this.errorParamsRedirector			= null;
+	this.errorPageRedirector			= null;
 	
-	this.fieldDisplayor				= null;
-	this.fieldGroupAttribute		= "data-group";
-	this.fieldRequiredAttribute		= "data-required";
-	this.fieldFilterAttribute		= "data-filter";
-	this.fieldValidateAttribute		= "data-validate";
-	this.fieldDisplayAttribute		= "data-display";
-	this.fieldSubmitAttribute		= "data-submit";
-	this.fieldDisableAttribute		= "data-disable";
-	this.fieldPresubmitAttribute	= "data-presubmit";
-	this.fieldServiceAttribute		= "data-service";
-	this.fieldMethodAttribute		= "data-method";
-	this.fieldSuccessAttribute		= "data-success";
-	this.fieldErrorAttribute		= "data-error";
-	this.fieldKeepAttribute			= "data-keep";
-	this.fieldEditableAttribute		= "data-editable";
-	this.fieldNameAttribute			= "data-name";
-	this.fieldKeyAttribute			= "data-key";
-	this.fieldEditorAttribute		= "data-editor";
-	this.fieldTypeAttribute			= "data-type";
-	this.fieldRadioGroupAttribute	= "data-radio-group";
-	this.fieldRadioValueAttribute	= "data-radio-value";
+	this.fieldDisplayor					= null;
+	this.fieldGroupAttribute			= "data-group";
+	this.fieldRequiredAttribute			= "data-required";
+	this.fieldFilterAttribute			= "data-filter";
+	this.fieldValidateAttribute			= "data-validate";
+	this.fieldDisplayAttribute			= "data-display";
+	this.fieldSubmitAttribute			= "data-submit";
+	this.fieldDisableAttribute			= "data-disable";
+	this.fieldPresubmitAttribute		= "data-presubmit";
+	this.fieldServiceAttribute			= "data-service";
+	this.fieldMethodAttribute			= "data-method";
+	this.fieldSuccessAttribute			= "data-success";
+	this.fieldErrorAttribute			= "data-error";
+	this.fieldKeepAttribute				= "data-keep";
+	this.fieldEditableAttribute			= "data-editable";
+	this.fieldNameAttribute				= "data-name";
+	this.fieldKeyAttribute				= "data-key";
+	this.fieldEditorAttribute			= "data-editor";
+	this.fieldTypeAttribute				= "data-type";
+	this.fieldRadioGroupAttribute		= "data-radio-group";
+	this.fieldRadioValueAttribute		= "data-radio-value";
+	this.fieldCheckboxValueAttribute	= "data-checkbox-value";
 	
-	this.servicePath				= "service/";
-	this.csrfTokenParam				= "csrfToken";
-	this.csrfTokenStorage			= "csrfToken";
-	this.csrfTokenHeader			= "X-Csrf-Token";
+	this.servicePath					= "service/";
+	this.csrfTokenParam					= "csrfToken";
+	this.csrfTokenStorage				= "csrfToken";
+	this.csrfTokenHeader				= "X-Csrf-Token";
 	
-	this.replaceHideTransitioner	= null;
-	this.replaceShowTransitioner	= null;
-	this.nextHideTransitioner		= null;
-	this.nextShowTransitioner		= null;
-	this.backHideTransitioner		= null;
-	this.backShowTransitioner		= null;
+	this.replaceHideTransitioner		= null;
+	this.replaceShowTransitioner		= null;
+	this.nextHideTransitioner			= null;
+	this.nextShowTransitioner			= null;
+	this.backHideTransitioner			= null;
+	this.backShowTransitioner			= null;
 	
-	this.endpoint 					= {};
-	this.text 						= {};
-	this.layout 					= {};
-	this.module 					= {};
-	this.section 					= {};
-	this.component 					= {};
-	this.dev						=
+	this.endpoint 						= {};
+	this.text 							= {};
+	this.layout 						= {};
+	this.module 						= {};
+	this.section 						= {};
+	this.component 						= {};
+	this.dev							=
 	{
-		link 						: {},
-		service 					: {}
+		link 							: {},
+		service 						: {}
 	};
 	
 	// registries
-	this.checker					= {};
-	this.initializer				= {};
-	this.transitioner				= {};
-	this.renderer					= {};
-	this.redirector					= {};
-	this.filterer 					= {};
-	this.validator 					= {};
-	this.displayor 					= {};
-	this.disabler					= {};
+	this.checker						= {};
+	this.initializer					= {};
+	this.transitioner					= {};
+	this.renderer						= {};
+	this.redirector						= {};
+	this.filterer 						= {};
+	this.validator 						= {};
+	this.displayor 						= {};
+	this.disabler						= {};
 	
 	this.isValidLang = function(lang)
 	{
@@ -540,12 +541,22 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 		return path;
 	};
 	
+	this.getDevServiceRequestScenarios = function(service, method)
+	{
+		var scenarios = [];
+		if(isObject(this.dev.service[service]) && isObject(this.dev.service[service][method]) && isArray(this.dev.service[service][method].request))
+		{
+			scenarios = this.dev.service[service][method].request;
+		}
+		return scenarios;
+	};
+	
 	this.getDevServiceResponseScenarios = function(service, method)
 	{
 		var scenarios = [];
-		if(isObject(this.dev.service[service]) && isArray(this.dev.service[service][method]))
+		if(isObject(this.dev.service[service]) && isObject(this.dev.service[service][method]) && isArray(this.dev.service[service][method].response))
 		{
-			scenarios = this.dev.service[service][method];
+			scenarios = this.dev.service[service][method].response;
 		}
 		return scenarios;
 	};
