@@ -1,6 +1,4 @@
 
-
-
 var CurrencyUtil = CurrencyUtil || (function()
 {
 	

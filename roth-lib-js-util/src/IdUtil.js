@@ -1,5 +1,4 @@
 
-
 var IdUtil = IdUtil || (function()
 {
 	var defaultLength = 10;

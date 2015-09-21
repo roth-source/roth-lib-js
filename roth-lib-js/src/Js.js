@@ -1,6 +1,4 @@
 
-// CONSTANTS
-
 var Type = Type ||
 {
 	UNDEFINED 	: "undefined",
@@ -15,9 +13,6 @@ var Type = Type ||
 	REGEXP		: "regexp",
 	OBJECT		: "object"
 };
-
-
-// JS GLOBAL FUNCTIONS
 
 var typeOf = typeOf || function(value)
 {

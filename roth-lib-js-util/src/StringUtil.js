@@ -1,6 +1,4 @@
 
-
-
 var StringUtil = StringUtil || (function()
 {
 	

@@ -1,6 +1,4 @@
 
-
-
 var DateUtil = DateUtil || (function()
 {
 	var defaultPattern = "yyyy-MM-dd HH:mm:ss z";
@@ -512,3 +510,6 @@ var DateUtil = DateUtil || (function()
 	};
 	
 })();
+
+
+

@@ -1,7 +1,4 @@
 
-
-
-
 var Protocol = Protocol ||
 {
 	FILE		: "file:",
@@ -17,13 +14,36 @@ var Environment = Environment ||
 	PROD		: "prod"
 };
 
-
-roth.lib.js.env.hosts = roth.lib.js.env.hosts || { dev : ["localhost", "127.0.0.1"] };
+roth.lib.js.env.hostsMap = roth.lib.js.env.hostsMap || { dev : ["localhost", "127.0.0.1"] };
 roth.lib.js.env.environment = roth.lib.js.env.environment || null;
 roth.lib.js.env.debug = roth.lib.js.env.debug || null;
 roth.lib.js.env.compiled = roth.lib.js.env.compiled || true;
 roth.lib.js.env.dependencies = roth.lib.js.env.dependencies || [];
 
+var setHosts = function(environment, hosts)
+{
+	roth.lib.js.env.hostsMap[environment] = hosts;
+};
+
+var setEnvironment = function(environment)
+{
+	roth.lib.js.env.environment = environment;
+};
+
+var setDebug = function(debug)
+{
+	roth.lib.js.env.debug = debug;
+};
+
+var setCompiled = function(compiled)
+{
+	roth.lib.js.env.compiled = compiled;
+};
+
+var setDependencies = function(dependencies)
+{
+	roth.lib.js.env.dependencies = dependencies
+};
 
 var isFileProtocol = isFileProtocol || function()
 {
@@ -52,11 +72,11 @@ var getEnvironment = getEnvironment || function()
 		if(isHyperTextProtocol())
 		{
 			var host = window.location.hostname.toLowerCase();
-			for(var env in roth.lib.js.env.hosts)
+			for(var env in roth.lib.js.env.hostsMap)
 			{
-				if(Array.isArray(roth.lib.js.env.hosts[env]))
+				if(Array.isArray(roth.lib.js.env.hostsMap[env]))
 				{
-					if(roth.lib.js.env.hosts[env].indexOf(host) != -1)
+					if(roth.lib.js.env.hostsMap[env].indexOf(host) != -1)
 					{
 						roth.lib.js.env.environment = env;
 						break;
@@ -197,6 +217,11 @@ var loadDependencies = loadDependencies || function(compiled)
 			}
 		}
 	}
+};
+
+var getDependencies = getDependencies || function()
+{
+	return JSON.stringify(roth.lib.js.env.dependencies);
 };
 
 

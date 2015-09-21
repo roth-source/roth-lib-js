@@ -1,6 +1,4 @@
 
-
-
 var CookieUtil = CookieUtil || (function()
 {
 	
@@ -44,7 +42,6 @@ var CookieUtil = CookieUtil || (function()
 	};
 	
 })();
-
 
 
 
