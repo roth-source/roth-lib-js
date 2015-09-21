@@ -65,7 +65,10 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			{
 				document.write('<script src="' + this.config.devConfigScript + '"></script>');
 			}
-			document.write('<script src="' + this.config.getDevScript() + '"></script>');
+			if(typeof roth.lib.js.client.dev == "undefined" || typeof roth.lib.js.client.dev.Dev == "undefined")
+			{
+				document.write('<script src="' + this.config.getDevScript() + '"></script>');
+			}
 		}
 	};
 	
@@ -1261,11 +1264,11 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	this.findGroupElements = function(element)
 	{
 		var selector = "";
-		selector += "input[name][type=hidden], ";
-		selector += "input[name][type!=hidden][type!=radio][" + this.config.fieldRequiredAttribute + "]:visible:enabled, ";
-		selector += "select[name][" + this.config.fieldRequiredAttribute + "]:visible:enabled, ";
-		selector += "textarea[name][" + this.config.fieldRequiredAttribute + "]:visible:enabled, ";
-		selector += "[" + this.config.fieldRadioGroupAttribute + "][" + this.config.fieldRequiredAttribute + "]:has(input[name][type=radio]:visible:enabled) ";
+		selector += "input[name][type=hidden]:enabled, ";
+		selector += "input[name][type!=hidden][type!=radio][" + this.config.fieldRequiredAttribute + "]:enabled:visible, ";
+		selector += "select[name][" + this.config.fieldRequiredAttribute + "]:enabled:visible, ";
+		selector += "textarea[name][" + this.config.fieldRequiredAttribute + "]:enabled:visible, ";
+		selector += "[" + this.config.fieldRadioGroupAttribute + "][" + this.config.fieldRequiredAttribute + "]:has(input[name][type=radio]:enabled:visible) ";
 		return element.find(selector);
 	}
 	
@@ -1362,6 +1365,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 				}
 			}
 		});
+		//console.log(JSON.stringify(request, null, 4));
 		return request;
 	};
 	
