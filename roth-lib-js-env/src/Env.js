@@ -165,7 +165,7 @@ var loadDependencies = loadDependencies || function(compiled)
 		var dependency = roth.lib.js.env.dependencies[i];
 		if(dependency)
 		{
-			if(!(dependency.exclude === true) && !(!isDev() && dependency.dev === true))
+			if(!((dependency.exclude === true) || (!isDev() && dependency.dev === true) || (isDev() && dependency.dev === false)))
 			{
 				if((compiled === undefined && dependency.compiled === undefined) || (compiled === true && dependency.compiled === true) || (compiled === false && dependency.compiled === false))
 				{
