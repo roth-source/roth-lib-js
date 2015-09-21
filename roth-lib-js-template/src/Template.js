@@ -35,8 +35,11 @@ roth.lib.js.template.Template = roth.lib.js.template.Template || function(config
 			}
 		}
 		var builder = "";
+		builder += "\\\\r\\\\n|";
+		builder += "\\\\n|";
 		builder += "\\r\\n|";
 		builder += "\\n|";
+		builder += "\\\\\"|";
 		builder += "\\\"|";
 		builder += escapeRegExp(config.openUnescapedExpression) + "|";
 		builder += escapeRegExp(config.openEscapedExpression) + "|";
@@ -45,6 +48,7 @@ roth.lib.js.template.Template = roth.lib.js.template.Template || function(config
 		builder += escapeRegExp(config.closeEscapedExpression) + "|";
 		builder += escapeRegExp(config.closeStatement) + "|";
 		builder += "defined\\((.+?)\\)";
+		console.log(new RegExp(builder, "g").toString());
 		return new RegExp(builder, "g");
 	})();
 	
@@ -67,10 +71,21 @@ roth.lib.js.template.Template = roth.lib.js.template.Template || function(config
 			var replacement = "";
 			switch(match)
 			{
+				case "\\r\\n":
+				case "\\n":
+				{
+					replacement = escape ? "\\\\n" : "\\n";
+					break;
+				}
 				case "\r\n":
 				case "\n":
 				{
 					replacement = escape ? "\\n" : "\n";
+					break;
+				}
+				case "\\\"":
+				{
+					replacement = escape ? "\\\\\\\"" : "\\\"";
 					break;
 				}
 				case "\"":
