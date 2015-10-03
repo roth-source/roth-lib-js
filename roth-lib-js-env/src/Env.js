@@ -14,7 +14,7 @@ var Environment = Environment ||
 	PROD		: "prod"
 };
 
-roth.lib.js.env.hostsMap = roth.lib.js.env.hostsMap || { dev : ["localhost", "127.0.0.1"] };
+roth.lib.js.env.hosts = roth.lib.js.env.hosts || { dev : ["localhost", "127.0.0.1"] };
 roth.lib.js.env.environment = roth.lib.js.env.environment || null;
 roth.lib.js.env.debug = roth.lib.js.env.debug || null;
 roth.lib.js.env.compiled = roth.lib.js.env.compiled || true;
@@ -22,7 +22,7 @@ roth.lib.js.env.dependencies = roth.lib.js.env.dependencies || [];
 
 var setHosts = function(environment, hosts)
 {
-	roth.lib.js.env.hostsMap[environment] = hosts;
+	roth.lib.js.env.hosts[environment] = hosts;
 };
 
 var setEnvironment = function(environment)
@@ -72,11 +72,11 @@ var getEnvironment = getEnvironment || function()
 		if(isHyperTextProtocol())
 		{
 			var host = window.location.hostname.toLowerCase();
-			for(var env in roth.lib.js.env.hostsMap)
+			for(var env in roth.lib.js.env.hosts)
 			{
-				if(Array.isArray(roth.lib.js.env.hostsMap[env]))
+				if(Array.isArray(roth.lib.js.env.hosts[env]))
 				{
-					if(roth.lib.js.env.hostsMap[env].indexOf(host) != -1)
+					if(roth.lib.js.env.hosts[env].indexOf(host) != -1)
 					{
 						roth.lib.js.env.environment = env;
 						break;

@@ -3,108 +3,108 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 {
 	var Event =
 	{
-		LOAD_ENDPOINTS		: "loadEndpoints",
-		LOAD_INITIALIZER	: "loadInitializer",
-		LOAD_TEXT			: "loadText",
-		LOAD_LAYOUT			: "loadLayout",
-		LOAD_PAGE			: "loadPage",
-		LOAD_SECTIONS		: "loadSections",
-		LOAD_SECTION		: "loadSection",
-		LOAD_COMPONENTS		: "loadComponents",
-		LOAD_COMPONENT		: "loadComponent",
-		INIT_TEXT			: "initText",
-		INIT_HANDLERS		: "initHandlers",
-		INIT_LAYOUT			: "initLayout",
-		INIT_PAGE			: "initPage",
-		SHOW_VIEW			: "showView"
+		ENDPOINTS		: "endpoints",
+		INITIALIZER		: "initializer",
+		TEXT			: "text",
+		LAYOUT			: "layout",
+		PAGE			: "page",
+		SECTIONS		: "sections",
+		SECTION			: "section",
+		COMPONENTS		: "components",
+		COMPONENT		: "component",
+		TRANSLATION		: "translation",
+		FIELDS			: "fields",
+		READY			: "ready",
+		SHOW			: "show",
+		CALLBACK		: "callback"
 	};
 	
 	var Order = {};
-	Order[Event.LOAD_ENDPOINTS] 	= [];
-	Order[Event.LOAD_TEXT] 			= [];
-	Order[Event.LOAD_INITIALIZER] 	= [Event.LOAD_ENDPOINTS];
-	Order[Event.LOAD_LAYOUT] 		= [Event.LOAD_TEXT, Event.LOAD_INITIALIZER];
-	Order[Event.LOAD_PAGE] 			= [Event.LOAD_LAYOUT];
-	Order[Event.LOAD_SECTIONS] 		= [Event.LOAD_PAGE];
-	Order[Event.LOAD_SECTION] 		= [Event.LOAD_SECTIONS];
-	Order[Event.LOAD_COMPONENTS] 	= [Event.LOAD_PAGE];
-	Order[Event.LOAD_COMPONENT] 	= [Event.LOAD_COMPONENTS];
-	Order[Event.INIT_TEXT] 			= [Event.LOAD_SECTION, Event.LOAD_COMPONENT, Event.LOAD_TEXT];
-	Order[Event.INIT_HANDLERS] 		= [Event.INIT_TEXT];
-	Order[Event.INIT_LAYOUT] 		= [Event.LOAD_INITIALIZER, Event.INIT_HANDLERS];
-	Order[Event.INIT_PAGE] 			= [Event.LOAD_INITIALIZER, Event.INIT_HANDLERS];
-	Order[Event.SHOW_VIEW] 			= [Event.INIT_LAYOUT, Event.INIT_PAGE];
+	Order[Event.ENDPOINTS] 		= [];
+	Order[Event.TEXT] 			= [];
+	Order[Event.INITIALIZER] 	= [Event.ENDPOINTS];
+	Order[Event.LAYOUT] 		= [Event.TEXT, Event.INITIALIZER];
+	Order[Event.PAGE] 			= [Event.LAYOUT];
+	Order[Event.SECTIONS] 		= [Event.PAGE];
+	Order[Event.SECTION] 		= [Event.SECTIONS];
+	Order[Event.COMPONENTS] 	= [Event.PAGE];
+	Order[Event.COMPONENT] 		= [Event.COMPONENTS];
+	Order[Event.TRANSLATION] 	= [Event.SECTION, Event.COMPONENT, Event.TEXT];
+	Order[Event.FIELDS] 		= [Event.TRANSLATION];
+	Order[Event.READY] 			= [Event.INITIALIZER, Event.FIELDS];
+	Order[Event.SHOW] 			= [Event.READY];
+	Order[Event.CALLBACK] 		= [Event.SHOW];
 	
 	this.task = {};
 	
-	this.loadEndpoints = function(id, callback)
+	this.endpoints = function(id, callback)
 	{
-		this.add(id, Event.LOAD_ENDPOINTS, callback);
+		this.add(id, Event.ENDPOINTS, callback);
 	};
 	
-	this.loadInitializer = function(id, callback)
+	this.initializer = function(id, callback)
 	{
-		this.add(id, Event.LOAD_INITIALIZER, callback);
+		this.add(id, Event.INITIALIZER, callback);
 	};
 	
-	this.loadText = function(id, callback)
+	this.text = function(id, callback)
 	{
-		this.add(id, Event.LOAD_TEXT, callback);
+		this.add(id, Event.TEXT, callback);
 	};
 	
-	this.loadLayout = function(id, callback)
+	this.layout = function(id, callback)
 	{
-		this.add(id, Event.LOAD_LAYOUT, callback);
+		this.add(id, Event.LAYOUT, callback);
 	};
 	
-	this.loadPage = function(id, callback)
+	this.page = function(id, callback)
 	{
-		this.add(id, Event.LOAD_PAGE, callback);
+		this.add(id, Event.PAGE, callback);
 	};
 	
-	this.loadSections = function(id, callback)
+	this.sections = function(id, callback)
 	{
-		this.add(id, Event.LOAD_SECTIONS, callback);
+		this.add(id, Event.SECTIONS, callback);
 	};
 	
-	this.loadSection = function(id, callback)
+	this.section = function(id, callback)
 	{
-		this.add(id, Event.LOAD_SECTION, callback);
+		this.add(id, Event.SECTION, callback);
 	};
 	
-	this.loadComponents = function(id, callback)
+	this.components = function(id, callback)
 	{
-		this.add(id, Event.LOAD_COMPONENTS, callback);
+		this.add(id, Event.COMPONENTS, callback);
 	};
 	
-	this.loadComponent = function(id, callback)
+	this.component = function(id, callback)
 	{
-		this.add(id, Event.LOAD_COMPONENT, callback);
+		this.add(id, Event.COMPONENT, callback);
 	};
 	
-	this.initText = function(id, callback)
+	this.translation = function(id, callback)
 	{
-		this.add(id, Event.INIT_TEXT, callback);
+		this.add(id, Event.TRANSLATION, callback);
 	};
 	
-	this.initHandlers = function(id, callback)
+	this.fields = function(id, callback)
 	{
-		this.add(id, Event.INIT_HANDLERS, callback);
+		this.add(id, Event.FIELDS, callback);
 	};
 	
-	this.initLayout = function(id, callback)
+	this.ready = function(id, callback)
 	{
-		this.add(id, Event.INIT_LAYOUT, callback);
+		this.add(id, Event.READY, callback);
 	};
 	
-	this.initPage = function(id, callback)
+	this.show = function(id, callback)
 	{
-		this.add(id, Event.INIT_PAGE, callback);
+		this.add(id, Event.SHOW, callback);
 	};
 	
-	this.showView = function(id, callback)
+	this.callback = function(id, callback)
 	{
-		this.add(id, Event.SHOW_VIEW, callback);
+		this.add(id, Event.CALLBACK, callback);
 	};
 	
 	this.add = function(id, event, callback)
@@ -122,12 +122,15 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 	
 	this.complete = function(id)
 	{
-		if(isSet(this.task[id]))
+		if(isSet(id))
 		{
-			//console.log(id + " - completing " + this.task[id].event);
-			delete this.task[id];
+			if(isSet(this.task[id]))
+			{
+				//console.log(id + " - completing " + this.task[id].event);
+				delete this.task[id];
+			}
+			this.execute();
 		}
-		this.execute();
 	};
 	
 	this.execute = function()

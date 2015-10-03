@@ -1,4 +1,5 @@
 <div data-group="group" style="margin:20px;">
+	<!--
 	<div>
 		<label>
 			<input name="textHidden" type="hidden" value="testHidden" />
@@ -69,15 +70,64 @@
 			<input name="textArrays[]" type="text" data-required="true" value="testArray2" />
 		</label>
 	</div>
+	<div>
+		<label>
+			<input name="file" type="file" data-required="false" onchange="client.file(this);" />
+		</label>
+	</div>
+	
+	<div>
+		<label>
+			<input name="texts[0].inputText0" type="text" data-required="true" value="test0" />
+		</label>
+	</div>
+	<div>
+		<label>
+			<input name="texts[0].inputText1" type="text" data-required="true" value="test1" />
+		</label>
+	</div>
+	<div>
+		<label>
+			<input name="texts[0].inputText2" type="text" data-required="true" value="test2" />
+		</label>
+	</div>
+	-->
+	
+	<div>
+		<label>
+			<input type="text" 
+				name="test"
+				data-required="true"
+				data-filter="number(value)"
+				data-validate="number(value)"
+				value="1234" />
+		</label>
+	</div>
+	<div>
+		<label>
+			<input type="text" 
+				name="testUpdate"
+				value="1234"
+				data-update-value="1234"
+				data-request="{ contextId : '1234' }"
+				data-required="true"
+				data-filter="number(value)"
+				data-validate="number(value)"
+				data-service="test"
+				data-method="update"
+				onblur="client.update(this);" />
+		</label>
+	</div>
 	
 	<div>
 		<button autocomplete="off"
 			data-disable=""
-			data-submit="group"
+			data-submit-group="group"
 			data-service="test"
 			data-method="test"
 			data-success=""
-			data-text="true">
+			data-text="true"
+			onclick="client.submit(this);">
 		Create Request
 		</button>
 	</div>

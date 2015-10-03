@@ -1,11 +1,10 @@
 #!/bin/bash
 
-VERSION="0.1.4-SNAPSHOT";
+VERSION="0.1.5-SNAPSHOT";
 GROUP="roth.lib.js";
 ARTIFACTS=(
 	"roth-lib-js-env"
 	"roth-lib-js"
-	"roth-lib-js-util"
 	"roth-lib-js-template"
 	"roth-lib-js-client"
 	"roth-lib-js-client-dev"
@@ -33,7 +32,6 @@ do
 	if [ -f "$PROJECT" ];
 	then
 		
-		
 		source "$PROJECT";
 		version="$VERSION";
 		group=${GROUP//./\/};
@@ -48,8 +46,14 @@ do
 		
 		rm -rf "$target/"*;
 		mkdir -p "$target";
-		cat "$src/$namespace" > "$target/$artifact.js";
-		echo -e "${artifact//-/.}.version = \"$version\";" >> "$target/$artifact.js";
+		touch "$target/$artifact.js";
+		
+		if [ -f "$src/$namespace" ];
+		then
+			cat "$src/$namespace" >> "$target/$artifact.js";
+			echo -e "${artifact//-/.}.version = \"$version\";" >> "$target/$artifact.js";
+		fi
+		
 		cat $(printf "$src/%s " "${files[@]}") >> "$target/$artifact.js";
 		
 		if [ -d "$resources" ];

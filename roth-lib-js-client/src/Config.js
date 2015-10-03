@@ -76,19 +76,22 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.errorParamsRedirector			= null;
 	this.errorPageRedirector			= null;
 	
-	this.fieldDisplayor					= null;
+	this.fieldFeedbacker				= null;
 	this.fieldGroupAttribute			= "data-group";
 	this.fieldRequiredAttribute			= "data-required";
 	this.fieldFilterAttribute			= "data-filter";
 	this.fieldValidateAttribute			= "data-validate";
-	this.fieldDisplayAttribute			= "data-display";
-	this.fieldSubmitAttribute			= "data-submit";
+	this.fieldFeedbackAttribute			= "data-feedback";
+	this.fieldSubmitGroupAttribute		= "data-submit-group";
 	this.fieldDisableAttribute			= "data-disable";
+	this.fieldPrerequestAttribute		= "data-prerequest";
 	this.fieldPresubmitAttribute		= "data-presubmit";
 	this.fieldServiceAttribute			= "data-service";
 	this.fieldMethodAttribute			= "data-method";
 	this.fieldSuccessAttribute			= "data-success";
 	this.fieldErrorAttribute			= "data-error";
+	this.fieldRequestAttribute			= "data-request";
+	this.fieldUpdateValueAttribute		= "data-update-value";
 	this.fieldKeepAttribute				= "data-keep";
 	this.fieldEditableAttribute			= "data-editable";
 	this.fieldNameAttribute				= "data-name";
@@ -98,6 +101,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.fieldRadioGroupAttribute		= "data-radio-group";
 	this.fieldRadioValueAttribute		= "data-radio-value";
 	this.fieldCheckboxValueAttribute	= "data-checkbox-value";
+	this.fieldFileValueAttribute		= "data-file-value";
 	
 	this.servicePath					= "service/";
 	this.csrfTokenParam					= "csrfToken";
@@ -131,7 +135,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.redirector						= {};
 	this.filterer 						= {};
 	this.validator 						= {};
-	this.displayor 						= {};
+	this.feedbacker 					= {};
 	this.disabler						= {};
 	
 	this.isValidLang = function(lang)
@@ -200,22 +204,22 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	
 	this.getLayoutExtension = function()
 	{
-		return isTrue(this.layoutExtension) ? this.layoutExtension : this.viewExtension;
+		return isSet(this.layoutExtension) ? this.layoutExtension : this.viewExtension;
 	};
 	
 	this.getPageExtension = function()
 	{
-		return isTrue(this.pageExtension) ? this.pageExtension : this.viewExtension;
+		return isSet(this.pageExtension) ? this.pageExtension : this.viewExtension;
 	};
 	
 	this.getSectionExtension = function()
 	{
-		return isTrue(this.sectionExtension) ? this.sectionExtension : this.viewExtension;
+		return isSet(this.sectionExtension) ? this.sectionExtension : this.viewExtension;
 	};
 	
 	this.getComponentExtension = function()
 	{
-		return isTrue(this.componentExtension) ? this.componentExtension : this.viewExtension;
+		return isSet(this.componentExtension) ? this.componentExtension : this.viewExtension;
 	};
 	
 	this.getPageConfig = function(module, page, config)
@@ -253,7 +257,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.getErrorParamsRedirector = function(module, page)
 	{
 		var redirector = this.getPageConfig(module, page, "errorParamsRedirector");
-		if(isFalse(redirector))
+		if(!isSet(redirector))
 		{
 			redirector = this.errorParamsRedirector;
 		}
@@ -263,7 +267,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.getErrorPageRedirector = function(module, page)
 	{
 		var redirector = this.getPageConfig(module, page, "errorPageRedirector");
-		if(isFalse(redirector))
+		if(!isSet(redirector))
 		{
 			redirector = this.errorPageRedirector;
 		}
@@ -285,9 +289,9 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.getLayoutRenderer = function(layout)
 	{
 		var renderer = this.getLayoutConfig(layout, "renderer");
-		if(isFalse(renderer))
+		if(!isSet(renderer))
 		{
-			renderer = isTrue(this.layoutRenderer) ? this.layoutRenderer : this.viewRenderer;
+			renderer = isSet(this.layoutRenderer) ? this.layoutRenderer : this.viewRenderer;
 		}
 		return isString(renderer) ? this.renderer[renderer] : renderer;
 	};
@@ -295,22 +299,22 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.getPageRenderer = function(module, page)
 	{
 		var renderer = this.getPageConfig(module, page, "renderer");
-		if(isFalse(renderer))
+		if(!isSet(renderer))
 		{
-			renderer = isTrue(this.pageRenderer) ? this.pageRenderer : this.viewRenderer;
+			renderer = isSet(this.pageRenderer) ? this.pageRenderer : this.viewRenderer;
 		}
 		return isString(renderer) ? this.renderer[renderer] : renderer;
 	};
 	
 	this.getSectionRenderer = function()
 	{
-		var renderer = isTrue(this.sectionRenderer) ? this.sectionRenderer : this.viewRenderer;
+		var renderer = isSet(this.sectionRenderer) ? this.sectionRenderer : this.viewRenderer;
 		return isString(renderer) ? this.renderer[renderer] : renderer;
 	};
 	
 	this.getComponentRenderer = function()
 	{
-		var renderer = isTrue(this.componentRenderer) ? this.componentRenderer : this.viewRenderer;
+		var renderer = isSet(this.componentRenderer) ? this.componentRenderer : this.viewRenderer;
 		return isString(renderer) ? this.renderer[renderer] : renderer;
 	};
 	
@@ -353,7 +357,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.getReplaceHideTransitioner = function(module, page)
 	{
 		var transitioner = this.getPageConfig(module, page, "replaceHideTransitioner");
-		if(isFalse(transitioner))
+		if(!isSet(transitioner))
 		{
 			transitioner = this.replaceHideTransitioner;
 		}
@@ -363,7 +367,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.getReplaceShowTransitioner = function(module, page)
 	{
 		var transitioner = this.getPageConfig(module, page, "replaceShowTransitioner");
-		if(isFalse(transitioner))
+		if(!isSet(transitioner))
 		{
 			transitioner = this.replaceShowTransitioner;
 		}
@@ -373,7 +377,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.getNextHideTransitioner = function(module, page)
 	{
 		var transitioner = this.getPageConfig(module, page, "nextHideTransitioner");
-		if(isFalse(transitioner))
+		if(!isSet(transitioner))
 		{
 			transitioner = this.nextHideTransitioner;
 		}
@@ -383,7 +387,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.getNextShowTransitioner = function(module, page)
 	{
 		var transitioner = this.getPageConfig(module, page, "nextShowTransitioner");
-		if(isFalse(transitioner))
+		if(!isSet(transitioner))
 		{
 			transitioner = this.nextShowTransitioner;
 		}
@@ -393,7 +397,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.getBackHideTransitioner = function(module, page)
 	{
 		var transitioner = this.getPageConfig(module, page, "backHideTransitioner");
-		if(isFalse(transitioner))
+		if(!isSet(transitioner))
 		{
 			transitioner = this.backHideTransitioner;
 		}
@@ -403,7 +407,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.getBackShowTransitioner = function(module, page)
 	{
 		var transitioner = this.getPageConfig(module, page, "backShowTransitioner");
-		if(isFalse(transitioner))
+		if(!isSet(transitioner))
 		{
 			transitioner = this.backShowTransitioner;
 		}
@@ -422,52 +426,25 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 		return isString(initializer) ? this.initializer[initializer] : initializer;
 	};
 	
-	this.getFilterer = function(element)
+	this.getFeedbacker = function(element, module, page)
 	{
-		var filterer = element.attr(this.fieldFilterAttribute);
-		return isString(filterer) ? this.filterer[filterer] : filterer;
-	};
-	
-	this.getValidators = function(element)
-	{
-		var validators = [];
-		var validate = element.attr(this.fieldValidateAttribute);
-		if(isSet(validate))
+		var feedbacker = element.attr(this.fieldFeedbackAttribute);
+		if(!isValidString(feedbacker))
 		{
-			var validates = validate.split(",");
-			for(var i in validates)
+			feedbacker = this.getPageConfig(module, page, "feedbacker");
+			if(!isValidString(feedbacker) && !isFunction(feedbacker))
 			{
-				var validator = this.getValidator(validates[i]);
-				if(isFunction(validator))
-				{
-					validators.push(validator);
-				}
+				feedbacker = this.fieldFeedbacker;
 			}
 		}
-		return validators;
+		return isString(feedbacker) ? this.feedbacker[feedbacker] : feedbacker;
 	};
 	
-	this.getValidator = function(validator)
+	this.getDisabler = function(element)
 	{
-		if(isSet(validator))
-		{
-			var index = validator.indexOf(":");
-			if(index > 0)
-			{
-				validator = validator.slice(0, index);
-			}
-		}
-		return isString(validator) ? this.validator[validator] : validator;
-	};
-	
-	this.getDisplayor = function(element)
-	{
-		var displayor = element.attr(this.fieldDisplayAttribute);
-		if(isFalse(displayor))
-		{
-			displayor = this.fieldDisplayor;
-		}
-		return isString(displayor) ? this.displayor[displayor] : displayor;
+		var disable = element.attr(this.fieldDisableAttribute);
+		var disabler = this.disabler[disable];
+		return isFunction(disabler) ? disabler : function(){};
 	};
 	
 	this.getDevPrefill = function(module, page)
@@ -643,6 +620,12 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	{
 		var changeParams = this.getPageConfig(module, page, "changeParams");
 		return isArray(changeParams) ? changeParams : [];
+	};
+	
+	this.isTranslated = function(module, page)
+	{
+		var translated = this.getPageConfig(module, page, "translated");
+		return isBoolean(translated) ? translated : false;
 	};
 	
 };

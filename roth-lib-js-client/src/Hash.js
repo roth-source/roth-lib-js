@@ -1,5 +1,5 @@
 
-roth.lib.js.client.Request = roth.lib.js.client.Request || function()
+roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 {
 	var State =
 	{
@@ -8,12 +8,12 @@ roth.lib.js.client.Request = roth.lib.js.client.Request || function()
 		BACK 	: "back"
 	};
 	
-	this.hash = null;
+	this.value = null;
 	this.lang = null;
 	this.layout = null;
 	this.module = null;
 	this.page = null;
-	this.params = {};
+	this.param = {};
 	
 	this.defaultModule = "index";
 	this.defaultPage = "index";	
@@ -21,7 +21,7 @@ roth.lib.js.client.Request = roth.lib.js.client.Request || function()
 	this.state = null;
 	this.loaded = {};
 	
-	this.newHash = false;
+	this.newValue = false;
 	this.newLang = false;
 	this.newLayout = false;
 	this.newModule = false;
@@ -29,13 +29,13 @@ roth.lib.js.client.Request = roth.lib.js.client.Request || function()
 	
 	this.hasParam = function(name)
 	{
-		return isSet(this.params[name]);
+		return isSet(this.param[name]);
 	};
 	
 	this.getParam = function(name, defaultValue)
 	{
-		var param = this.params[name];
-		return isValidString(param) ? param : defaultValue;
+		var value = this.param[name];
+		return isValidString(value) ? value : defaultValue;
 	};
 	
 	this.getModule = function()
@@ -48,10 +48,10 @@ roth.lib.js.client.Request = roth.lib.js.client.Request || function()
 		return isSet(this.page) ? this.page : this.defaultPage;
 	};
 	
-	this.setHash = function(hash)
+	this.setValue = function(value)
 	{
-		this.hash = hash;
-		this.newHash = this.hash != this.loaded.hash;
+		this.value = value;
+		this.newValue = this.value != this.loaded.value;
 	};
 	
 	this.setLang = function(lang)
@@ -78,6 +78,31 @@ roth.lib.js.client.Request = roth.lib.js.client.Request || function()
 		this.newPage = this.newModule || this.page != this.loaded.page;
 	};
 	
+	this.isNewValue = function()
+	{
+		return this.newValu;
+	}
+	
+	this.isNewLang = function()
+	{
+		return this.newLang;
+	}
+	
+	this.isNewLayout = function()
+	{
+		return this.newLayout;
+	}
+	
+	this.isNewModule = function()
+	{
+		return this.newModule;
+	}
+	
+	this.isNewPage = function()
+	{
+		return this.newPage;
+	}
+	
 	this.isNext = function()
 	{
 		return this.state == State.NEXT;
@@ -99,23 +124,37 @@ roth.lib.js.client.Request = roth.lib.js.client.Request || function()
 		window.history.back();
 	};
 	
-	this.next = function(module, page, params)
+	this.next = function(module, page, param)
 	{
 		//this.state = State.NEXT;
 		this.state = State.REPLACE;
-		window.location.assign(this.buildHash(module, page, params));
+		if(!isValidString(page))
+		{
+			window.location.assign(module);
+		}
+		else
+		{
+			window.location.assign(this.build(module, page, param));
+		}
 	};
 	
-	this.replace = function(module, page, params)
+	this.replace = function(module, page, param)
 	{
 		this.state = State.REPLACE;
-		window.location.replace(this.buildHash(module, page, params));
+		if(!isValidString(page))
+		{
+			window.location.replace(module);
+		}
+		else
+		{
+			window.location.replace(this.build(module, page, param));
+		}
 	};
 	
 	this.refresh = function()
 	{
 		this.state = State.REPLACE;
-		window.location.replace(this.buildHash(this.module, this.page, this.params));
+		window.location.replace(this.build(this.module, this.page, this.param));
 	};
 	
 	this.reload = function()
@@ -123,7 +162,7 @@ roth.lib.js.client.Request = roth.lib.js.client.Request || function()
 		window.location.reload();
 	};
 	
-	this.buildHash = function(module, page, params)
+	this.build = function(module, page, param)
 	{
 		var hash = "#";
 		if(isValidString(module))
@@ -132,11 +171,11 @@ roth.lib.js.client.Request = roth.lib.js.client.Request || function()
 			if(isValidString(page))
 			{
 				hash += page + "/";
-				if(isObject(params))
+				if(isObject(param))
 				{
-					for(var name in params)
+					for(var name in param)
 					{
-						hash += encodeURIComponent(name) + "/" + encodeURIComponent(params[name]) + "/";
+						hash += encodeURIComponent(name) + "/" + encodeURIComponent(param[name]) + "/";
 					}
 				}
 			}
@@ -144,7 +183,7 @@ roth.lib.js.client.Request = roth.lib.js.client.Request || function()
 		return hash;
 	};
 	
-	this.parse = function()
+	this.isValid = function()
 	{
 		var hash = "#/";
 		var lang = null;
@@ -172,7 +211,7 @@ roth.lib.js.client.Request = roth.lib.js.client.Request || function()
 			hash += values[i] + "/";
 			i++;
 		}
-		this.params = {};
+		this.param = {};
 		var name = null;
 		for(i; i < values.length; i++)
 		{
@@ -184,7 +223,7 @@ roth.lib.js.client.Request = roth.lib.js.client.Request || function()
 				}
 				else
 				{
-					this.params[name] = decodeURIComponent(values[i]);
+					this.param[name] = decodeURIComponent(values[i]);
 					hash += name + "/";
 					hash += values[i] + "/";
 					name = null;
@@ -205,10 +244,40 @@ roth.lib.js.client.Request = roth.lib.js.client.Request || function()
 		}
 		else
 		{
-			this.setHash(window.location.hash);
+			this.setValue(window.location.hash);
 			this.newLang = false;
 			return true;
 		}
+	};
+	
+	this.loadedParam = function()
+	{
+		this.loaded.param = this.param;
+	};
+	
+	this.loadedValue = function(value)
+	{
+		this.loaded.value = isSet(value) ? value : this.value;
+	};
+	
+	this.loadedLang = function(lang)
+	{
+		this.loaded.lang = isSet(lang) ? lang : this.lang;
+	};
+	
+	this.loadedLayout = function(layout)
+	{
+		this.loaded.layout = layout;
+	};
+	
+	this.loadedModule = function(module)
+	{
+		this.loaded.module = module;
+	};
+	
+	this.loadedPage = function(page)
+	{
+		this.loaded.page = page;
 	};
 	
 	this.log = function()
@@ -218,23 +287,18 @@ roth.lib.js.client.Request = roth.lib.js.client.Request || function()
 		group += this.lang + " / ";
 		group += this.getModule() + " / ";
 		group += this.getPage() + " / ";
-		console.group(group + JSON.stringify(this.params));
+		console.group(group + JSON.stringify(this.param));
 	};
 	
 	this.cloneParams = function()
 	{
-		return $.extend({}, this.params);;
+		return $.extend({}, this.param);;
 	}
 	
 	this.cloneLoadedParams = function()
 	{
-		return isSet(this.loaded.params) ? $.extend({}, this.loaded.params) : {};
+		return isSet(this.loaded.param) ? $.extend({}, this.loaded.param) : {};
 	}
-	
-	this.loadParams = function()
-	{
-		this.loaded.params = this.params;
-	};
 	
 };
 

@@ -90,12 +90,12 @@ var isNotEmpty = isNotEmpty || function(value)
 
 var isTrue = isTrue || function(value)
 {
-	return (value ? true : false);
+	return value === true;
 };
 
 var isFalse = isFalse || function(value)
 {
-	return !isTrue(value);
+	return value === false;
 };
 
 var isBoolean = isBoolean || function(value)
@@ -141,6 +141,63 @@ var isRegexp = isRegexp || function(value)
 var isObject = isObject || function(value)
 {
 	return isType(value, Type.OBJECT);
+};
+
+var inArray = inArray || function(value, array)
+{
+	var contains = false;
+	if(isArray(array))
+	{
+		contains = array.indexOf(value) > -1;
+	}
+	return contains;
+};
+
+var inMap = inMap || function(value, map)
+{
+	var array = [];
+	for(var key in map)
+	{
+		array.push(map[key]);
+	}
+	return inArray(value, array);
+};
+
+var forEach = forEach || function(object, callback)
+{
+	if(isFunction(callback))
+	{
+		if(isArray(object))
+		{
+			for(var i in object)
+			{
+				var loop =
+				{
+					index 	: i,
+					length 	: object.length,
+					first	: i == 0,
+					last	: i == object.length - 1
+				};
+				callback(object[i], i, loop);
+			}
+		}
+		else if(isObject(object))
+		{
+			var keys = Object.keys(object);
+			for(var i in keys)
+			{
+				var key = keys[i];
+				var loop =
+				{
+					index 	: i,
+					length 	: keys.length,
+					first	: i == 0,
+					last	: i == keys.length - 1
+				};
+				callback(object[key], key, loop);
+			}
+		}
+	}
 };
 
 

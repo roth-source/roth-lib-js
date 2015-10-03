@@ -44,7 +44,7 @@ roth.lib.js.client.dev.Dev = roth.lib.js.client.dev.Dev || function(config)
 	{
 		var id = "dev-modal-" + IdUtil.generate();
 		var value = sessionStorage.getItem(context);
-		if(!isTrue(value))
+		if(!value)
 		{
 			$.ajax(
 			{
