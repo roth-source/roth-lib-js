@@ -1,0 +1,16 @@
+{
+	"client":"1234",
+	"amountType":"BALANCE_ONLY",
+	"balanceType":"BALANCE_FORWARD",
+	"paymentBlackoutStart":"20",
+	"paymentBlackoutEnd":"24",
+	"eCheckBlackoutStart":"18",
+	"eCheckBlackoutEnd":"22",
+	"scheduleType":"FIXED",
+	"scheduleBlackoutStart":"15",
+	"scheduleBlackoutEnd":"18",
+	"searchType":"CODE",
+	"searchResultLimit":"30",
+	"securityDeposit":true,
+	"application":true
+}

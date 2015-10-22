@@ -1,0 +1,14 @@
+{
+	"clientName":"Test",
+	"firstName":"John",
+	"lastName":"Doe",
+	"email":"john@doe.com",
+	"phone":"1234567890",
+	"processorTypes":
+	[
+		"PRO_PAY",
+		"BANK_SERV"
+	],
+	"note":""
+	
+}

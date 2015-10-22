@@ -1,0 +1,27 @@
+{
+	"id":"1234",
+	"boardingTargets":
+	[
+		{
+			"id":"1234",
+			"targetType":"RENT",
+			"name":"Rent",
+			"bankId":null,
+			"feeType":"RESIDENT"
+		},
+		{
+			"id":"1235",
+			"targetType":"APPLICATION",
+			"name":"Application",
+			"bankId":null,
+			"feeType":"US"
+		},
+		{
+			"id":"1236",
+			"targetType":"DEPOSIT",
+			"name":"Deposit",
+			"bankId":null,
+			"feeType":"US"
+		}
+	]
+}

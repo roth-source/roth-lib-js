@@ -1,0 +1,41 @@
+{
+	"packageTypeMap":
+	{
+		"BUNDLED" : "Bundled Pricing",
+		"PRODUCT" : "Product Pricing"
+	},
+	"priceTypeMap":
+	{
+		"PER_UNIT" : "Per Unit",
+		"PER_BED" : "Per Bed",
+		"PER_PROPERTY" : "Per Property"
+	},
+	"processorTypes":
+	[
+		"PRO_PAY",
+		"BANK_SERV"
+	],
+	"packageMap":
+	{
+		"1234":"Resident Anywhere"
+	},
+	
+	"packageId":"1234",
+	"packageType":"PRODUCT",
+	"packageName":"Resident Anywhere",
+	"packageSetupPrice":10000,
+	"packagePrice":null,
+	"packagePriceType":"PER_UNIT",
+	
+	"paymentsActive":true,
+	"paymentsPrice":10,
+	
+	"messagingActive":true,
+	"messagingPrice":10,
+	
+	"maintenanceActive":true,
+	"maintenancePrice":10,
+	
+	"surveysActive":true,
+	"surveysPrice":10
+}

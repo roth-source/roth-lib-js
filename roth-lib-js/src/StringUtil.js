@@ -43,6 +43,11 @@ var StringUtil = StringUtil || (function()
 				equals = new String(value1).match(new RegExp("^" + new String(value2) + "$", caseInsensitive ? "i" : "")) !== null;
 			}
 			return equals;
+		},
+		
+		capitalize : function(value)
+		{
+			return value.charAt(0).toUpperCase() + value.slice(1);
 		}
 	};
 	

@@ -3,6 +3,8 @@ roth.lib.js.client.dev.Dev = roth.lib.js.client.dev.Dev || function(config)
 {
 	var self = this;
 	var template = new roth.lib.js.template.Template();
+	var selects = $('<div class="roth-dev-selects"></div>');
+	selects.appendTo("body");
 	
 	(function()
 	{
@@ -14,15 +16,15 @@ roth.lib.js.client.dev.Dev = roth.lib.js.client.dev.Dev || function(config)
 		config.layout = isSet(config.layout) ? config.layout : {};
 		config.layout[config.devLayout] =
 		{
+			init : false,
 			path : config.getDevLayoutPath(),
-			renderer : "devRenderer",
-			cache : false
+			renderer : "devRenderer"
 		};
 		config.module[config.devModule] =
 		{
+			init : false,
 			layout : config.devLayout,
 			renderer : "devRenderer",
-			cache : false,
 			page : {}
 		};
 		config.module[config.devModule].page[config.devLinksPage] =
@@ -42,7 +44,6 @@ roth.lib.js.client.dev.Dev = roth.lib.js.client.dev.Dev || function(config)
 	
 	this.select = function(context, values, callback)
 	{
-		var id = "dev-modal-" + IdUtil.generate();
 		var value = sessionStorage.getItem(context);
 		if(!value)
 		{
@@ -54,36 +55,39 @@ roth.lib.js.client.dev.Dev = roth.lib.js.client.dev.Dev || function(config)
 				crossDomain	: true,
 				success		: function(html)
 				{
-					html = template.render(html, { id : id, context : context, values : values});
-					$("body").append(html);
-					var modal = $("#" + id);
-					modal.modal(
+					var id = IdUtil.generate();
+					var select = $(template.render(html, { id : id, context : context, values : values}));
+					select.find("#" + id + "-once").click(function()
 					{
-						backdrop : "static",
-						keyboard : false,
-						show : true
-					});
-					$("#" + id + "-once").click(function()
-					{
-						var value = modal.find("input[type='radio'][name='response']:checked").val();
+						var value = select.find("input[type='radio'][name='" + id + "-response']:checked").val();
 						if(!isSet(value))
 						{
-							value = modal.find("input[type='radio'][name='response']").first().val();
+							value = values[0];
 						}
-						modal.modal("hide").remove();
+						select.remove();
+						if(selects.children().length == 0)
+						{
+							selects.hide();
+						}
 						callback(value);
 					});
-					$("#" + id + "-session").click(function()
+					select.find("#" + id + "-session").click(function()
 					{
-						var value = modal.find("input[type='radio'][name='response']:checked").val();
+						var value = select.find("input[type='radio'][name='" + id + "-response']:checked").val();
 						if(!isSet(value))
 						{
-							value = modal.find("input[type='radio'][name='response']").first().val();
+							value = values[0];
 						}
-						modal.modal("hide").remove();
+						select.remove();
+						if(selects.children().length == 0)
+						{
+							selects.hide();
+						}
 						sessionStorage.setItem(context, value);
 						callback(value);
 					});
+					selects.append(select);
+					selects.show();
 				},
 				error		: function(jqXHR, textStatus, errorThrown)
 				{

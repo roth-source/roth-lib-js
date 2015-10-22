@@ -16,7 +16,7 @@ var CurrencyUtil = CurrencyUtil || (function()
 		
 		format : function(value, symbol, seperator)
 		{
-			if(!isNaN(value))
+			if(isNumber(value))
 			{
 				value = value / 100;
 				var formattedValue = isValidString(symbol) ? symbol : "";

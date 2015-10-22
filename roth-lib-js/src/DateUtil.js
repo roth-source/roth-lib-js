@@ -2,10 +2,7 @@
 var DateUtil = DateUtil || (function()
 {
 	var defaultPattern = "yyyy-MM-dd HH:mm:ss z";
-	var longMonths = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-	var shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-	var longDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-	var shortDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+	var defaultLang = "en";
 	
 	var formatRegExp = (function()
 	{
@@ -30,8 +27,34 @@ var DateUtil = DateUtil || (function()
 	
 	return {
 		
-		format : function(pattern, date)
+		label :
 		{
+			"en" :
+			{
+				"longMonths" : ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+				"shortMonths" : ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+				"longDays" : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+				"shortDays" : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+			},
+			"es" :
+			{
+				"longMonths" : ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
+				"shortMonths" : ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
+				"longDays" : ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"],
+				"shortDays" : ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
+			}
+		},
+		
+		get : function(year, month, day, hour, minutes, seconds, milliseconds)
+		{
+			month = !isNaN(month) ? month - 1 : 0;
+			return new Date(year, month, day, hour, minutes, seconds, milliseconds);
+		},
+		
+		format : function(pattern, date, lang)
+		{
+			var self = this;
+			pattern = isValidString(pattern) ? pattern : defaultPattern;
 			if(!isNaN(date))
 			{
 				date = new Date(date);
@@ -40,7 +63,7 @@ var DateUtil = DateUtil || (function()
 			{
 				date = new Date();
 			}
-			pattern = isValidString(pattern) ? pattern : defaultPattern;
+			lang = isSet(this.label[lang]) ? lang : defaultLang;
 			var escape = false;
 			var formattedDate = pattern.replace(formatRegExp, function(match, capture)
 			{
@@ -78,12 +101,12 @@ var DateUtil = DateUtil || (function()
 					}
 					case "MMMM":
 					{
-						replacement = longMonths[date.getMonth()];
+						replacement = self.label[lang].longMonths[date.getMonth()];
 						break;
 					}
 					case "MMM":
 					{
-						replacement = shortMonths[date.getMonth()];
+						replacement = self.label[lang].shortMonths[date.getMonth()];
 						break;
 					}
 					case "MM":
@@ -100,12 +123,12 @@ var DateUtil = DateUtil || (function()
 					}
 					case "EEEE":
 					{
-						replacement = longDays[date.getDay()];
+						replacement = self.label[lang].longDays[date.getDay()];
 						break;
 					}
 					case "EEE":
 					{
-						replacement = shortDays[date.getDay()];
+						replacement = self.label[lang].shortDays[date.getDay()];
 						break;
 					}
 					case "u":
@@ -185,9 +208,11 @@ var DateUtil = DateUtil || (function()
 			return formattedDate;
 		},
 		
-		getParser : function(pattern)
+		getParser : function(pattern, lang)
 		{
+			var self = this;
 			pattern = isValidString(pattern) ? pattern : defaultPattern;
+			lang = isSet(this.label[lang]) ? lang : defaultLang;
 			var groups = [];
 			var escape = false;
 			var builder = pattern.replace(formatRegExp, function(match, capture)
@@ -226,12 +251,12 @@ var DateUtil = DateUtil || (function()
 					}
 					case "MMMM":
 					{
-						replacement = "(" + longMonths.join("|") + ")";
+						replacement = "(" + self.label[lang].longMonths.join("|") + ")";
 						break;
 					}
 					case "MMM":
 					{
-						replacement = "(" + shortMonths.join("|") + ")";
+						replacement = "(" + self.label[lang].shortMonths.join("|") + ")";
 						break;
 					}
 					case "MM":
@@ -256,12 +281,12 @@ var DateUtil = DateUtil || (function()
 					}
 					case "EEEE":
 					{
-						replacement = "(" + longDays.join("|") + ")";
+						replacement = "(" + self.label[lang].longDays.join("|") + ")";
 						break;
 					}
 					case "EEE":
 					{
-						replacement = "(" + shortDays.join("|") + ")";
+						replacement = "(" + self.label[lang].shortDays.join("|") + ")";
 						break;
 					}
 					case "u":
@@ -367,15 +392,17 @@ var DateUtil = DateUtil || (function()
 			}
 		},
 		
-		isValid : function(pattern, value)
+		isValid : function(pattern, value, lang)
 		{
-			var parser = this.getParser(pattern);
+			var parser = this.getParser(pattern, lang);
 			return parser.regExp.test(value);
 		},
 		
-		parse : function(pattern, value)
+		parse : function(pattern, value, lang)
 		{
-			var parser = this.getParser(pattern);
+			var self = this;
+			lang = isSet(this.label[lang]) ? lang : defaultLang;
+			var parser = this.getParser(pattern, lang);
 			var date = null;
 			var matcher = parser.regExp.exec(value);
 			if(matcher)
@@ -383,7 +410,7 @@ var DateUtil = DateUtil || (function()
 				var defaultDate = new Date();
 				var year = defaultDate.getYear();
 				var month = defaultDate.getMonth();
-				var day = defaultDate.getDate();
+				var day = 1;
 				var hours = 0;
 				var minutes = 0;
 				var seconds = 0;
@@ -408,7 +435,7 @@ var DateUtil = DateUtil || (function()
 						case "MMMM":
 						{
 							capture = capture.charAt(0).toUpperCase() + capture.slice(1).toLowerCase();
-							var index = longMonths.indexOf(capture);
+							var index = self.label[lang].longMonths.indexOf(capture);
 							if(index > -1)
 							{
 								month = index;
@@ -418,7 +445,7 @@ var DateUtil = DateUtil || (function()
 						case "MMM":
 						{
 							capture = capture.charAt(0).toUpperCase() + capture.slice(1).toLowerCase();
-							var index = shortMonths.indexOf(capture);
+							var index = self.label[lang].shortMonths.indexOf(capture);
 							if(index > -1)
 							{
 								month = index;

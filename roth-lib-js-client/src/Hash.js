@@ -38,6 +38,16 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 		return isValidString(value) ? value : defaultValue;
 	};
 	
+	this.getParamSize = function()
+	{
+		return Object.keys(this.param).length;
+	};
+	
+	this.isParamEmpty = function()
+	{
+		return this.getParamSize() == 0;
+	};
+	
 	this.getModule = function()
 	{
 		return isSet(this.module) ? this.module : this.defaultModule;
@@ -118,6 +128,12 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 		return this.state == State.REPLACE || isNull(this.state);
 	};
 	
+	this.changeLang = function(lang)
+	{
+		this.setLang(lang);
+		this.reload();
+	};
+	
 	this.back = function()
 	{
 		this.state = State.BACK;
@@ -126,8 +142,7 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 	
 	this.next = function(module, page, param)
 	{
-		//this.state = State.NEXT;
-		this.state = State.REPLACE;
+		this.state = State.NEXT;
 		if(!isValidString(page))
 		{
 			window.location.assign(module);
@@ -171,12 +186,10 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 			if(isValidString(page))
 			{
 				hash += page + "/";
-				if(isObject(param))
+				param = isObject(param) ? param : this.param;
+				for(var name in param)
 				{
-					for(var name in param)
-					{
-						hash += encodeURIComponent(name) + "/" + encodeURIComponent(param[name]) + "/";
-					}
+					hash += encodeURIComponent(name) + "/" + encodeURIComponent(param[name]) + "/";
 				}
 			}
 		}
@@ -290,12 +303,12 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 		console.group(group + JSON.stringify(this.param));
 	};
 	
-	this.cloneParams = function()
+	this.cloneParam = function()
 	{
 		return $.extend({}, this.param);;
 	}
 	
-	this.cloneLoadedParams = function()
+	this.cloneLoadedParam = function()
 	{
 		return isSet(this.loaded.param) ? $.extend({}, this.loaded.param) : {};
 	}

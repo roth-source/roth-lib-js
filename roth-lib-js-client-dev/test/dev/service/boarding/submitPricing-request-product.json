@@ -1,0 +1,14 @@
+{
+	"packageId":"1234",
+	"packageName":"Resident Anywhere",
+	"packageSetupPrice":10000,
+	"packagePriceType":"PER_UNIT",
+	"paymentsActive":true,
+	"paymentsPrice":10,
+	"messagingActive":true,
+	"messagingPrice":10,
+	"maintenanceActive":true,
+	"maintenancePrice":10,
+	"surveysActive":true,
+	"surveysPrice":10,
+}

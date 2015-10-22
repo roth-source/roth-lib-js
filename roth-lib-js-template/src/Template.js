@@ -150,7 +150,7 @@ roth.lib.js.template.Template = roth.lib.js.template.Template || function(config
 	
 	this.render = function(source, data)
 	{
-		return this.renderParsed(this.parse(source, data), data);
+		return self.renderParsed(self.parse(source, data), data);
 	};
 	
 };

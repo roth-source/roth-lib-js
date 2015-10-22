@@ -6,19 +6,17 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.jqueryScript					= "https://cdnjs.cloudflare.com/ajax/libs/jquery/" + this.versionToken + "/jquery.min.js";
 	this.jqueryVersion					= "1.11.2";
 	
-	this.bootstrapStyle					= "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/" + this.versionToken + "/css/bootstrap.min.css";
-	this.bootstrapScript				= "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/" + this.versionToken + "/js/bootstrap.min.js";
-	this.bootstrapVersion				= "3.3.4";
-	
 	this.devTemplateScript				= "http://dist.roth.cm/roth/js/roth-lib-js-template/" + this.versionToken + "/roth-lib-js-template.js";
 	this.devPath						= "http://dist.roth.cm/roth/js/roth-lib-js-client-dev/" + this.versionToken + "/";
 	this.devScript						= "roth-lib-js-client-dev.js";
+	this.devStyle						= "style/dev.css";
 	this.devConfigScript				= null;
 	this.devViewPath					= "view/";
 	this.devViewExtension				= ".html";
 	this.devLayoutPath					= "layout/";
 	this.devLayout						= "dev";
 	this.devComponentPath				= "component/";
+	this.devSelectsComponent			= "selects";
 	this.devSelectComponent				= "select";
 	this.devPagePath					= "page/";
 	this.devModule						= "dev";
@@ -75,10 +73,12 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.errorEndpointRedirector		= null;
 	this.errorParamsRedirector			= null;
 	this.errorPageRedirector			= null;
+	this.errorAuthRedirector			= null;
 	
 	this.fieldFeedbacker				= null;
 	this.fieldGroupAttribute			= "data-group";
 	this.fieldRequiredAttribute			= "data-required";
+	this.fieldIncludeAttribute			= "data-include";
 	this.fieldFilterAttribute			= "data-filter";
 	this.fieldValidateAttribute			= "data-validate";
 	this.fieldFeedbackAttribute			= "data-feedback";
@@ -108,29 +108,15 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.csrfTokenStorage				= "csrfToken";
 	this.csrfTokenHeader				= "X-Csrf-Token";
 	
-	this.replaceHideTransitioner		= null;
-	this.replaceShowTransitioner		= null;
-	this.nextHideTransitioner			= null;
-	this.nextShowTransitioner			= null;
-	this.backHideTransitioner			= null;
-	this.backShowTransitioner			= null;
-	
 	this.endpoint 						= {};
 	this.text 							= {};
 	this.layout 						= {};
 	this.module 						= {};
 	this.section 						= {};
 	this.component 						= {};
-	this.dev							=
-	{
-		link 							: {},
-		service 						: {}
-	};
+	this.dev							= {};
 	
 	// registries
-	this.checker						= {};
-	this.initializer					= {};
-	this.transitioner					= {};
 	this.renderer						= {};
 	this.redirector						= {};
 	this.filterer 						= {};
@@ -224,14 +210,14 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	
 	this.getPageConfig = function(module, page, config)
 	{
-		var value = null;
+		var value = undefined;
 		if(isSet(this.module[module]))
 		{
-			if(isSet(this.module[module].page) && isSet(this.module[module].page[page]) && isSet(this.module[module].page[page][config]))
+			if(isDefined(this.module[module].page) && isDefined(this.module[module].page[page]) && isDefined(this.module[module].page[page][config]))
 			{
 				value = this.module[module].page[page][config];
 			}
-			else if(isSet(this.module[module][config]))
+			else if(isDefined(this.module[module][config]))
 			{
 				value = this.module[module][config];
 			}
@@ -241,8 +227,8 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	
 	this.getLayoutConfig = function(layout, config)
 	{
-		var value = null;
-		if(isSet(this.layout[layout]) && isSet(this.layout[layout][config]))
+		var value = undefined;
+		if(isDefined(this.layout[layout]) && isDefined(this.layout[layout][config]))
 		{
 			value = this.layout[layout][config];
 		}
@@ -251,12 +237,17 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	
 	this.getLayout = function(module, page)
 	{
-		return this.getPageConfig(module, page, "layout");
+		var layout = this.getPageConfig(module, page, "layout");
+		return isValidString(layout) ? layout : module;
 	};
 	
-	this.getErrorParamsRedirector = function(module, page)
+	this.getErrorParamsRedirector = function(module, page, layout)
 	{
 		var redirector = this.getPageConfig(module, page, "errorParamsRedirector");
+		if(!isSet(redirector))
+		{
+			redirector = this.getLayoutConfig(layout, "errorParamsRedirector");
+		}
 		if(!isSet(redirector))
 		{
 			redirector = this.errorParamsRedirector;
@@ -274,22 +265,58 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 		return isString(redirector) ? this.redirector[redirector] : redirector;
 	};
 	
-	this.getPageChecker = function(module, page)
+	this.getErrorAuthRedirector = function(module, page)
 	{
-		var checker = this.getPageConfig(module, page, "checker");
-		return isString(checker) ? this.checker[checker] : checker;
+		var redirector = this.getPageConfig(module, page, "errorAuthRedirector");
+		if(!isSet(redirector))
+		{
+			redirector = this.errorPageRedirector;
+		}
+		return isString(redirector) ? this.redirector[redirector] : redirector;
 	};
 	
-	this.getLayoutChecker = function(layout)
+	this.getParam = function(module, page, layout)
 	{
-		var checker = this.getLayoutConfig(layout, "checker");
-		return isString(checker) ? this.checker[checker] : checker;
+		var param = {};
+		this.getMergeParam(param, this.getLayoutParam(layout));
+		this.getMergeParam(param, this.getPageParam(module, page));
+		return param;
+	};
+	
+	this.getMergeParam = function(param, mergeParam)
+	{
+		if(isObject(mergeParam))
+		{
+			var fields = ["change", "required", "any"];
+			for(var i in fields)
+			{
+				var field = fields[i];
+				if(isArray(mergeParam[field]))
+				{
+					if(!isArray(param[field]))
+					{
+						param[field] = [];
+					}
+					param[field].concat(mergeParam[field]);
+				}
+			}
+		}
+	};
+	
+	this.getLayoutParam = function(layout)
+	{
+		return this.getLayoutConfig(layout, "param");
+	};
+	
+	this.getPageParam = function(module, page)
+	{
+		return this.getPageConfig(module, page, "param");
 	};
 	
 	this.getLayoutRenderer = function(layout)
 	{
 		var renderer = this.getLayoutConfig(layout, "renderer");
-		if(!isSet(renderer))
+		if(isUndefined(renderer))
 		{
 			renderer = isSet(this.layoutRenderer) ? this.layoutRenderer : this.viewRenderer;
 		}
@@ -299,7 +326,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.getPageRenderer = function(module, page)
 	{
 		var renderer = this.getPageConfig(module, page, "renderer");
-		if(!isSet(renderer))
+		if(isUndefined(renderer))
 		{
 			renderer = isSet(this.pageRenderer) ? this.pageRenderer : this.viewRenderer;
 		}
@@ -318,112 +345,42 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 		return isString(renderer) ? this.renderer[renderer] : renderer;
 	};
 	
-	this.getHideTransitioner = function(module, page, state)
+	this.getLayoutInit = function(layout)
 	{
-		var transitioner = null;
-		if("next" == state)
+		var init = this.getLayoutConfig(layout, "init");
+		if(!isFalse(init))
 		{
-			transitioner = this.getNextHideTransitioner(module, page);
+			if(!isObject(init))
+			{
+				init = {};
+				init.service = this.getLayoutConfig(layout, "service");
+				if(!isValidString(init.service))
+				{
+					init.service = layout;
+				}
+				init.method = "init" + StringUtil.capitalize(layout);
+			}
 		}
-		else if("back" == state)
-		{
-			transitioner = this.getBackHideTransitioner(module, page);
-		}
-		else
-		{
-			transitioner = this.getReplaceHideTransitioner(module, page);
-		}
-		return transitioner;
+		return init;
 	};
 	
-	this.getShowTransitioner = function(module, page, state)
+	this.getPageInit = function(module, page)
 	{
-		var transitioner = null;
-		if("next" == state)
+		var init = this.getPageConfig(module, page, "init");
+		if(!isFalse(init))
 		{
-			transitioner = this.getNextShowTransitioner(module, page);
+			if(!isObject(init))
+			{
+				init = {};
+				init.service = this.getPageConfig(module, page, "service");
+				if(!isValidString(init.service))
+				{
+					init.service = module;
+				}
+				init.method = "init" + StringUtil.capitalize(page);
+			}
 		}
-		else if("back" == state)
-		{
-			transitioner = this.getBackShowTransitioner(module, page);
-		}
-		else
-		{
-			transitioner = this.getReplaceShowTransitioner(module, page);
-		}
-		return transitioner;
-	};
-	
-	this.getReplaceHideTransitioner = function(module, page)
-	{
-		var transitioner = this.getPageConfig(module, page, "replaceHideTransitioner");
-		if(!isSet(transitioner))
-		{
-			transitioner = this.replaceHideTransitioner;
-		}
-		return isString(transitioner) ? this.transitioner[transitioner] : transitioner;
-	};
-	
-	this.getReplaceShowTransitioner = function(module, page)
-	{
-		var transitioner = this.getPageConfig(module, page, "replaceShowTransitioner");
-		if(!isSet(transitioner))
-		{
-			transitioner = this.replaceShowTransitioner;
-		}
-		return isString(transitioner) ? this.transitioner[transitioner] : transitioner;
-	};
-	
-	this.getNextHideTransitioner = function(module, page)
-	{
-		var transitioner = this.getPageConfig(module, page, "nextHideTransitioner");
-		if(!isSet(transitioner))
-		{
-			transitioner = this.nextHideTransitioner;
-		}
-		return isString(transitioner) ? this.transitioner[transitioner] : transitioner;
-	};
-	
-	this.getNextShowTransitioner = function(module, page)
-	{
-		var transitioner = this.getPageConfig(module, page, "nextShowTransitioner");
-		if(!isSet(transitioner))
-		{
-			transitioner = this.nextShowTransitioner;
-		}
-		return isString(transitioner) ? this.transitioner[transitioner] : transitioner;
-	};
-	
-	this.getBackHideTransitioner = function(module, page)
-	{
-		var transitioner = this.getPageConfig(module, page, "backHideTransitioner");
-		if(!isSet(transitioner))
-		{
-			transitioner = this.backHideTransitioner;
-		}
-		return isString(transitioner) ? this.transitioner[transitioner] : transitioner;
-	};
-	
-	this.getBackShowTransitioner = function(module, page)
-	{
-		var transitioner = this.getPageConfig(module, page, "backShowTransitioner");
-		if(!isSet(transitioner))
-		{
-			transitioner = this.backShowTransitioner;
-		}
-		return isString(transitioner) ? this.transitioner[transitioner] : transitioner;
-	};
-	
-	this.getLayoutInitializer = function(layout)
-	{
-		var initializer = this.getLayoutConfig(layout, "initializer");
-		return isString(initializer) ? this.initializer[initializer] : initializer;
-	};
-	
-	this.getPageInitializer = function(module, page)
-	{
-		var initializer = this.getPageConfig(module, page, "initializer");
-		return isString(initializer) ? this.initializer[initializer] : initializer;
+		return init;
 	};
 	
 	this.getFeedbacker = function(element, module, page)
@@ -447,24 +404,6 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 		return isFunction(disabler) ? disabler : function(){};
 	};
 	
-	this.getDevPrefill = function(module, page)
-	{
-		var devPrefill = this.getPageConfig(module, page, "devPrefill");
-		return isObject(devPrefill) ? devPrefill : null;
-	};
-	
-	this.getLayoutCache = function(layout)
-	{
-		var cache = this.getLayoutConfig(layout, "cache");
-		return isBoolean(cache) ? cache : false;
-	};
-	
-	this.getPageCache = function(module, page)
-	{
-		var cache = this.getPageConfig(module, page, "cache");
-		return isBoolean(cache) ? cache : false;
-	};
-	
 	this.getServicePath = function(service, method)
 	{
 		var path = "";
@@ -485,6 +424,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 		path += service;
 		path += "/";
 		path += method;
+		path += "/";
 		return path;
 	};
 	
@@ -492,6 +432,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	{
 		var path = "";
 		path += this.getDevServicePath(service, method);
+		path += method;
 		path += "-";
 		path += this.devServiceRequest;
 		if(scenario)
@@ -507,6 +448,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	{
 		var path = "";
 		path += this.getDevServicePath(service, method);
+		path += method;
 		path += "-";
 		path += this.devServiceResponse;
 		if(scenario)
@@ -521,9 +463,9 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.getDevServiceRequestScenarios = function(service, method)
 	{
 		var scenarios = [];
-		if(isObject(this.dev.service[service]) && isObject(this.dev.service[service][method]) && isArray(this.dev.service[service][method].request))
+		if(isObject(this.dev[service]) && isObject(this.dev[service].service) && isObject(this.dev[service].service[method]) && isArray(this.dev[service].service[method].request))
 		{
-			scenarios = this.dev.service[service][method].request;
+			scenarios = this.dev[service].service[method].request;
 		}
 		return scenarios;
 	};
@@ -531,9 +473,9 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.getDevServiceResponseScenarios = function(service, method)
 	{
 		var scenarios = [];
-		if(isObject(this.dev.service[service]) && isObject(this.dev.service[service][method]) && isArray(this.dev.service[service][method].response))
+		if(isObject(this.dev[service]) && isObject(this.dev[service].service) && isObject(this.dev[service].service[method]) && isArray(this.dev[service].service[method].response))
 		{
-			scenarios = this.dev.service[service][method].response;
+			scenarios = this.dev[service].service[method].response;
 		}
 		return scenarios;
 	};
@@ -580,6 +522,11 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 		return this.getDevPath() + this.devScript;
 	};
 	
+	this.getDevStyle = function()
+	{
+		return this.getDevPath() + this.devStyle;
+	};
+	
 	this.getDevLayoutPath = function()
 	{
 		return this.getDevPath() + this.devViewPath + this.devLayoutPath + this.devLayout + this.devViewExtension;
@@ -605,6 +552,11 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 		return this.getDevModulePath() + this.devConfigPage + this.devViewExtension;
 	};
 	
+	this.getDevSelectsPath = function()
+	{
+		return this.getDevPath() + this.devViewPath + this.devComponentPath + this.devSelectsComponent + this.devViewExtension;
+	};
+	
 	this.getDevSelectPath = function()
 	{
 		return this.getDevPath() + this.devViewPath + this.devComponentPath + this.devSelectComponent + this.devViewExtension;
@@ -616,16 +568,101 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 		return "true" == keep;
 	};
 	
-	this.getPageChangeParams = function(module, page)
-	{
-		var changeParams = this.getPageConfig(module, page, "changeParams");
-		return isArray(changeParams) ? changeParams : [];
-	};
-	
 	this.isTranslated = function(module, page)
 	{
 		var translated = this.getPageConfig(module, page, "translated");
 		return isBoolean(translated) ? translated : false;
+	};
+	
+	this.filterer.replace = function(value, regExp, replacement)
+	{
+		replacement = isSet(replacement) ? replacement : "";
+		return value.replace(regExp, replacement);
+	};
+	
+	this.filterer.number = function(value)
+	{
+		return value.replace(/[^0-9]/g, "");
+	};
+	
+	this.filterer.decimal = function(value)
+	{
+		return value.replace(/[^0-9.]/g, "");
+	};
+	
+	this.filterer.int = function(value)
+	{
+		if(value)
+		{
+			value = value.replace(/[^0-9.]/g, "");
+			if(!isNaN(value))
+			{
+				value = parseInt(value);
+			}
+			if(!isNaN(value))
+			{
+				return value;
+			}
+		}
+		return null;
+	};
+	
+	this.filterer.float = function(value)
+	{
+		if(value)
+		{
+			value = value.replace(/[^0-9.]/g, "");
+			if(!isNaN(value))
+			{
+				value = parseFloat(value);
+			}
+			if(!isNaN(value))
+			{
+				return value;
+			}
+		}
+		return null;
+	};
+	
+	this.filterer.currency = function(value)
+	{
+		return CurrencyUtil.parse(value);
+	};
+	
+	this.validator.test = function(value, regExp)
+	{
+		return regexp.test(value);
+	};
+	
+	this.validator.email = function(value)
+	{
+		return (/^[a-zA-Z0-9._\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]+$/).test(value);
+	};
+	
+	this.validator.phone = function(value)
+	{
+		return (/^[0-9]{10}$/).test(value);
+	};
+	
+	this.validator.zip = function(value)
+	{
+		return (/^[0-9]{5}$/).test(value);
+	};
+	
+	this.validator.number = function(value)
+	{
+		return (/^[0-9]+(\.[0-9]{1,2})?$/).test(value);
+	};
+	
+	this.validator.confirm = function(value, id)
+	{
+		var value2 = $("#" + id).val();
+		return value == value2;
+	};
+	
+	this.validator.date = function(value, pattern)
+	{
+		return DateUtil.isValid(pattern, value);
 	};
 	
 };

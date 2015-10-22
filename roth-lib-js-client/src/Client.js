@@ -8,7 +8,6 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	this.hash = new roth.lib.js.client.Hash();
 	this.endpoint = new roth.lib.js.client.Endpoint();
 	this.queue = new roth.lib.js.client.Queue();
-	this.cache = new roth.lib.js.client.Cache();
 	this.dev = null;
 	
 	this.text = {};
@@ -41,7 +40,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	
 	this.checkJquery = function()
 	{
-		if(!isSet(window.jQuery))
+		if(!isSet(jQuery))
 		{
 			document.write('<script src="' + this.config.jgetJqueryScript() + '"></script>');
 		}
@@ -51,22 +50,18 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	{
 		if(isDev())
 		{
-			if(!(isSet(window.jQuery) && isSet(window.jQuery.fn) && isSet(window.jQuery.fn.modal)))
-			{
-				document.write('<link rel="stylesheet" type="text/css" href="' + this.config.getBootstrapStyle() + '"/>');
-				document.write('<script src="' + this.config.getBootstrapScript() + '"></script>');
-			}
 			if(typeof roth.lib.js.template == "undefined" || typeof roth.lib.js.template.Template == "undefined")
 			{
 				document.write('<script src="' + this.config.getDevTemplateScript() + '"></script>');
 			}
+			if(typeof roth.lib.js.client.dev == "undefined" || typeof roth.lib.js.client.dev.Dev == "undefined")
+			{
+				document.write('<link href="' + this.config.getDevStyle() + '" rel="stylesheet" type="text/css" />');
+				document.write('<script src="' + this.config.getDevScript() + '"></script>');
+			}
 			if(isSet(this.config.devConfigScript))
 			{
 				document.write('<script src="' + this.config.devConfigScript + '"></script>');
-			}
-			if(typeof roth.lib.js.client.dev == "undefined" || typeof roth.lib.js.client.dev.Dev == "undefined")
-			{
-				document.write('<script src="' + this.config.getDevScript() + '"></script>');
 			}
 		}
 	};
@@ -95,9 +90,14 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	
 	this.initJquery = function()
 	{
-		jQuery.expr[":"].notInitedValue = function(element, index, match)
+		jQuery.expr[":"].notInitedValue = function(node, index, match)
 		{
-			return !isSet($(element).prop("inited-value"));
+			return !isSet($(node).prop("inited-value"));
+		};
+		jQuery.expr[":"].include = function(node, index, match)
+		{
+			var element = $(node);
+			return element.is(":enabled") && (element.is(":visible") || isTrue(element.attr(self.config.fieldIncludeAttribute)));
 		};
 	};
 	
@@ -127,18 +127,18 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	
 	this.load = function()
 	{
-		if(this.isValidHash() && !this.isChangedParam())
+		if(this.isLoadable())
 		{
 			this.hide();
 			this.queueEndpoints();
 			this.queueText();
 			if(this.hash.isNewLayout())
 			{
-				this.queueLayoutInitializer();
+				this.queueLayoutInit();
 				this.queueLayout();
 				this.queueLayoutReady();
 			}
-			this.queuePageInitializer();
+			this.queuePageInit();
 			this.queuePage();
 			this.queuePageReady();
 			this.queueSections();
@@ -150,14 +150,15 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	this.isValidHash = function()
+	this.isLoadable = function()
 	{
-		var valid = this.hash.isValid();
-		if(valid)
+		var loadable = this.hash.isValid();
+		if(loadable)
 		{
 			var module = this.hash.getModule();
 			var page = this.hash.getPage();
-			this.hash.setLayout(this.config.getLayout(module, page));
+			var layout = this.config.getLayout(module, page);
+			this.hash.setLayout(layout);
 			if(!(isSet(this.hash.lang) && this.config.isValidLang(this.hash.lang)))
 			{
 				var lang = localStorage.getItem(this.hash.langStorage);
@@ -184,88 +185,83 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 					localStorage.setItem(this.hash.langStorage, lang);
 				}
 			}
-			var errorParamsRedirector = this.config.getErrorParamsRedirector(module, page);
-			if(isFunction(errorParamsRedirector))
+			var param = this.config.getParam(module, page, layout);
+			if(isNotEmpty(param.change))
 			{
-				if(this.hash.isNewLayout())
+				var changed = false;
+				var loadedParam = this.hash.cloneLoadedParam();
+				for(var name in this.hash.param)
 				{
-					var layoutChecker = this.config.getLayoutChecker(this.hash.layout);
-					if(isFunction(layoutChecker))
-					{
-						if(!layoutChecker())
-						{
-							errorParamsRedirector();
-							valid = false;
-						}
-					}
-				}
-				var pageChecker = this.config.getPageChecker(module, page);
-				if(isFunction(pageChecker))
-				{
-					if(!pageChecker())
-					{
-						errorParamsRedirector();
-						valid = false;
-					}
-				}
-			}
-		}
-		return valid;
-	};
-	
-	this.isChangedParam = function()
-	{
-		var changed = false;
-		var module = this.hash.getModule();
-		var page = this.hash.getPage();
-		if(!this.hash.isNewPage() && isSet(this.hash.loaded.param))
-		{
-			var loadedParams = this.hash.cloneLoadedParams();
-			var changeParams = this.config.getPageChangeParams(module, page);
-			for(var name in this.hash.param)
-			{
-				changed = changeParams.indexOf(name) > -1;
-				if(!changed)
-				{
-					changed = this.hash.param[name] == loadedParams[name];
+					changed = param.change.indexOf(name) > -1;
 					if(!changed)
 					{
-						break;
+						changed = this.hash.param[name] == loadedParam[name];
+						if(!changed)
+						{
+							break;
+						}
+						else
+						{
+							delete loadedParam[name];
+						}
 					}
 					else
 					{
-						delete loadedParams[name];
+						delete loadedParam[name];
 					}
 				}
-				else
+				if(changed)
 				{
-					delete loadedParams[name];
+					changed = Object.keys(loadedParam).length == 0;
+				}
+				if(changed)
+				{
+					if(isFunction(this.layout.change))
+					{
+						this.layout.change(this.layout.init);
+					}
+					if(isFunction(this.page.change))
+					{
+						this.page.change(this.page.init);
+					}
+					loadable = false;
 				}
 			}
-			if(changed)
+			var errorParamsRedirector = this.config.getErrorParamsRedirector(module, page, layout);
+			if(isFunction(errorParamsRedirector))
 			{
-				changed = Object.keys(loadedParams).length == 0;
+				if(loadable && isNotEmpty(param.required))
+				{
+					for(var i = 0; i < param.required.length; i++)
+					{
+						if(!this.hash.hasParam(param.required[i]))
+						{
+							errorParamsRedirector();
+							loadable = false;
+							break;
+						}
+					}
+				}
+				if(loadable && isNotEmpty(param.any))
+				{
+					var found = false;
+					for(var i = 0; i < param.any.length; i++)
+					{
+						if(self.hash.hasParam(param.any[i]))
+						{
+							found = true;
+							break;
+						}
+					}
+					if(!found)
+					{
+						errorParamsRedirector();
+						loadable = false;
+					}
+				}
 			}
 		}
-		if(changed)
-		{
-			if(isFunction(this.layout.change))
-			{
-				this.layout.change(this.layout.response);
-			}
-			if(isFunction(this.page.change))
-			{
-				this.page.change(this.page.response);
-			}
-		}
-		return changed;
-	};
-	
-	this.changeLang = function(lang)
-	{
-		this.cache.clearView();
-		this.hash.setLang(lang);
-		this.hash.reload();
+		return loadable;
 	};
 	
 	this.getLayoutElement = function()
@@ -287,57 +283,21 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		var page = this.hash.getPage();
 		var layoutElement = this.getLayoutElement();
 		var pageElement = this.getPageElement();
-		var hideTransitioner = this.config.getHideTransitioner(module, page, this.hash.state);
-		var layoutCache = this.config.getLayoutCache(layout);
-		var pageCache = this.config.getPageCache(module, page);
 		if(isSet(this.hash.loaded.value) && isSet(this.hash.loaded.layout) && this.hash.isNewLayout())
 		{
-			if(isFunction(hideTransitioner))
-			{
-				hideTransitioner(layoutElement);
-			}
-			else
-			{
-				layoutElement.hide();
-			}
+			layoutElement.hide();
 			pageElement.hide();
-			if(pageCache)
-			{
-				this.cache.setPage(hash, pageElement);
-			}
 			pageElement.empty();
-			if(layoutCache)
-			{
-				this.cache.setLayout(hash, layoutElement);
-			}
 			layoutElement.empty();
 		}
 		else if(isSet(this.hash.loaded.value) && isSet(this.hash.loaded.page))
 		{
-			if(isFunction(hideTransitioner))
-			{
-				hideTransitioner(layoutElement);
-			}
-			else
-			{
-				pageElement.hide();
-			}
-			if(pageCache)
-			{
-				this.cache.setPage(hash, pageElement);
-			}
+			pageElement.hide();
 			pageElement.empty();
 		}
 		else
 		{
-			if(isFunction(hideTransitioner))
-			{
-				hideTransitioner(layoutElement);
-			}
-			else
-			{
-				layoutElement.hide();
-			}
+			layoutElement.hide();
 			pageElement.hide();
 		}
 		if(this.hash.isNewLayout())
@@ -359,7 +319,12 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	
 	this.loadEndpoints = function(endpoints, id)
 	{
-		if(!isSet(endpoints))
+		if(isMock())
+		{
+			self.endpoint.clear();
+			self.queue.complete(id);
+		}
+		else if(!isSet(endpoints))
 		{
 			self.callEndpointList(self.config.endpoint[getEnvironment()],
 			function()
@@ -386,11 +351,12 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			{
 				type		: "POST",
 				url			: this.config.getEndpointListUrl(endpoint),
+				contentType	: "text/plain",
 				dataType	: "json",
 				cache		: false,
 				success		: function(response)
 				{
-					if(isDev())
+					if(isLocal())
 					{
 						self.endpoint.set([endpoint]);
 						success();
@@ -416,43 +382,44 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 		else
 		{
-			if(isDev())
-			{
-				this.endpoint.clear();
-				success();
-			}
-			else
-			{
-				error();
-			}
+			error();
 		}
 	};
 	
-	this.queueLayoutInitializer = function()
+	this.queueLayoutInit = function()
 	{
 		var id = IdUtil.generate();
-		this.queue.initializer(id, function()
+		this.queue.init(id, function()
 		{
-			self.loadLayoutInitializer(id);
+			self.loadLayoutInit(id);
 		});
 	};
 	
-	this.loadLayoutInitializer = function(id)
+	this.loadLayoutInit = function(id)
 	{
-		var initializer = this.config.getLayoutInitializer(this.hash.layout);
-		if(isFunction(initializer))
+		var init = this.config.getLayoutInit(this.hash.layout);
+		if(isObject(init))
 		{
-			var success = function(response)
+			var request = isObject(init.request) ? init.request : this.hash.param;
+			var success = function(data)
 			{
-				self.layout.response = response || {};
+				if(isFunction(init.success))
+				{
+					init.success(data);
+				}
+				self.layout.init = data || {};
 				self.queue.complete(id);
 			};
 			var error = function(errors)
 			{
-				self.layout.response = {};
+				if(isFunction(init.error))
+				{
+					init.error(errors);
+				}
+				self.layout.init = {};
 				self.queue.complete(id);
 			};
-			initializer(success, error);
+			this.service(init.service, init.method, request, success, error);
 		}
 		else
 		{
@@ -460,42 +427,42 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	this.queuePageInitializer = function()
+	this.queuePageInit = function()
 	{
 		var id = IdUtil.generate();
-		this.queue.initializer(id, function()
+		this.queue.init(id, function()
 		{
-			self.loadPageInitializer(id);
+			self.loadPageInit(id);
 		});
 	};
 	
-	this.loadPageInitializer = function(id)
+	this.loadPageInit = function(id)
 	{
 		var module = this.hash.getModule();
 		var page = this.hash.getPage();
-		var initializer = this.config.getPageInitializer(module, page);
-		if(!isFunction(initializer))
+		var init = this.config.getPageInit(module, page);
+		if(isObject(init))
 		{
-			var initializers = this.config.getPageConfig(module, page, "initializers");
-			if(isValidString(initializers))
+			var request = isObject(init.request) ? init.request : this.hash.param;
+			var success = function(data)
 			{
-				var capitalPage = page.charAt(0).toUpperCase() + page.slice(1);
-				initializer = this.Initializer.params(initializers, "init" + capitalPage);
-			}
-		}
-		if(isFunction(initializer))
-		{
-			var success = function(response)
-			{
-				self.page.response = response || {};
+				if(isFunction(init.success))
+				{
+					init.success(data);
+				}
+				self.page.init = data || {};
 				self.queue.complete(id);
 			};
 			var error = function(errors)
 			{
-				self.page.response = {};
+				if(isFunction(init.error))
+				{
+					init.error(errors);
+				}
+				self.page.init = {};
 				self.queue.complete(id);
 			};
-			initializer(success, error);
+			this.service(init.service, init.method, request, success, error);
 		}
 		else
 		{
@@ -563,41 +530,33 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		var layout = this.hash.layout;
 		if(isValidString(layout))
 		{
-			if(this.cache.hasLayout(this.hash.value))
+			var success = function(html)
 			{
-				this.getLayoutElement().append(this.cache.getLayout(this.hash.value));
-				this.hash.loadedLayout(layout);
-				this.queue.complete(id);
-			}
-			else
-			{
-				var success = function(html)
+				var layoutRenderer = self.config.getLayoutRenderer(layout);
+				if(isFunction(layoutRenderer))
 				{
-					var layoutRenderer = self.config.getLayoutRenderer(layout);
-					if(isFunction(layoutRenderer))
+					html = layoutRenderer(html,
 					{
-						html = layoutRenderer(html,
-						{
-							data : self.layout.response,
-							hash : self.hash,
-							text : self.text,
-							layout	: self.layout,
-							page : self.page,
-							context : self.context
-						});
-					}
-					self.getLayoutElement().html(html);
-					self.hash.loadedLayout(layout);
-					self.queue.complete(id);
-				};
-				var error = function(jqXHR, textStatus, errorThrown)
-				{
-					self.getLayoutElement().html("<div id=\"" + self.config.pageId + "\"></div");
-					self.hash.loadedLayout(layout);
-					self.queue.complete(id);
-				};
-				this.loadLayoutResource(layout, success, error);
-			}
+						data : self.layout.init,
+						config : self.config,
+						hash : self.hash,
+						text : self.text,
+						layout	: self.layout,
+						page : self.page,
+						context : self.context
+					});
+				}
+				self.getLayoutElement().html(html);
+				self.hash.loadedLayout(layout);
+				self.queue.complete(id);
+			};
+			var error = function(jqXHR, textStatus, errorThrown)
+			{
+				self.getLayoutElement().html("<div id=\"" + self.config.pageId + "\"></div");
+				self.hash.loadedLayout(layout);
+				self.queue.complete(id);
+			};
+			this.loadLayoutResource(layout, success, error);
 		}
 		else
 		{
@@ -624,47 +583,37 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	{
 		var module = this.hash.getModule();
 		var page = this.hash.getPage();
-		if(this.cache.hasPage(this.hash.value))
+		var success = function(html)
 		{
-			this.getPageElement().append(this.cache.getPage(this.hash.value));
-			this.hash.loadedModule(module);
-			this.hash.loadedPage(page);
-			this.hash.loadedValue();
-			this.queue.complete(id);
-		}
-		else
+			var pageRenderer = self.config.getPageRenderer(module, page);
+			if(isFunction(pageRenderer))
+			{
+				html = pageRenderer(html,
+				{
+					data : self.page.init,
+					config : self.config,
+					hash : self.hash,
+					text : self.text,
+					layout	: self.layout,
+					page : self.page,
+					context : self.context
+				});
+			}
+			self.getPageElement().html(html);
+			self.hash.loadedModule(module);
+			self.hash.loadedPage(page);
+			self.hash.loadedValue();
+			self.queue.complete(id);
+		};
+		var error = function(jqXHR, textStatus, errorThrown)
 		{
-			var success = function(html)
+			var errorPageRedirector = self.config.getErrorPageRedirector();
+			if(isFunction(errorPageRedirector))
 			{
-				var pageRenderer = self.config.getPageRenderer(module, page);
-				if(isFunction(pageRenderer))
-				{
-					html = pageRenderer(html,
-					{
-						data : self.page.response,
-						hash : self.hash,
-						text : self.text,
-						layout	: self.layout,
-						page : self.page,
-						context : self.context
-					});
-				}
-				self.getPageElement().html(html);
-				self.hash.loadedModule(module);
-				self.hash.loadedPage(page);
-				self.hash.loadedValue();
-				self.queue.complete(id);
-			};
-			var error = function(jqXHR, textStatus, errorThrown)
-			{
-				var errorPageRedirector = self.config.getErrorPageRedirector();
-				if(isFunction(errorPageRedirector))
-				{
-					errorPageRedirector();
-				}
-			};
-			this.loadPageResource(module, page, success, error);
-		}
+				errorPageRedirector();
+			}
+		};
+		this.loadPageResource(module, page, success, error);
 	};
 	
 	this.loadPageResource = function(module, page, success, error)
@@ -716,7 +665,8 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			{
 				html = sectionRenderer(html,
 				{
-					data : self.page.response,
+					data : self.page.init,
+					config : self.config,
 					hash : self.hash,
 					text : self.text,
 					layout	: self.layout,
@@ -811,6 +761,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 				html = componentRenderer(html,
 				{
 					data : data,
+					config : self.config,
 					hash : self.hash,
 					text : self.text,
 					layout	: self.layout,
@@ -1018,7 +969,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	{
 		if(isFunction(self.layout.ready))
 		{
-			self.layout.ready(self.layout.response);
+			self.layout.ready(self.layout.init);
 		}
 	};
 	
@@ -1036,7 +987,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	{
 		if(isFunction(self.page.ready))
 		{
-			self.page.ready(self.page.response);
+			self.page.ready(self.page.init);
 		}
 	};
 	
@@ -1054,67 +1005,16 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	{
 		var module = this.hash.getModule();
 		var page = this.hash.getPage();
-		var showTransitioner = this.config.getShowTransitioner(module, page, this.hash.state);
 		var layoutElement = self.getLayoutElement();
 		var pageElement = self.getPageElement();
 		if(layoutElement.is(":hidden"))
 		{
 			pageElement.show();
-			if(isFunction(showTransitioner))
-			{
-				showTransitioner(layoutElement);
-			}
-			else
-			{
-				layoutElement.show();
-			}
+			layoutElement.show();
 		}
 		else
 		{
-			if(isFunction(showTransitioner))
-			{
-				showTransitioner(pageElement);
-			}
-			else
-			{
-				pageElement.show();
-			}
-		}
-		var devPrefill = self.config.getDevPrefill(module, page);
-		if(isDev() && isSet(devPrefill))
-		{
-			self.dev.select("prefillFields", ["true", "false"], function(value)
-			{
-				var prefillFields = (value == "true");
-				$("input[" + self.config.fieldRequiredAttribute + "]:not([value])").each(function()
-				{
-					var element = $(this);
-					var name = element.attr("name");
-					if(isSet(self.hash.param[name]))
-					{
-						element.val(self.hash.param[name]);
-						self.validate(element);
-					}
-					else if(prefillFields && isSet(devPrefill[name]))
-					{
-						element.val(devPrefill[name]);
-						self.validate(element);
-					}
-				});
-			});
-		}
-		else
-		{
-			$("input[" + self.config.fieldRequiredAttribute + "]:not([value])").each(function()
-			{
-				var element = $(this);
-				var name = element.attr("name");
-				if(isSet(self.hash.param[name]))
-				{
-					element.val(self.hash.param[name]);
-					self.validate(element);
-				}
-			});
+			pageElement.show();
 		}
 		self.hash.state = null;
 	};
@@ -1137,10 +1037,10 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		active = isSet(active) ? active : true;
 		var selector = "";
 		selector += "input[name][type=hidden]" + (active ? ":enabled" : "") + ", ";
-		selector += "input[name][type!=hidden][type!=radio][" + this.config.fieldRequiredAttribute + "]" + (active ? ":enabled:visible" : "") + ", ";
-		selector += "select[name][" + this.config.fieldRequiredAttribute + "]" + (active ? ":enabled:visible" : "") + ", ";
-		selector += "textarea[name][" + this.config.fieldRequiredAttribute + "]" + (active ? ":enabled:visible" : "") + ", ";
-		selector += "[" + this.config.fieldRadioGroupAttribute + "][" + this.config.fieldRequiredAttribute + "]:has(input[name][type=radio]" + (active ? ":enabled:visible" : "") + ") ";
+		selector += "input[name][type!=hidden][type!=radio][" + this.config.fieldRequiredAttribute + "]" + (active ? ":include" : "") + ", ";
+		selector += "select[name][" + this.config.fieldRequiredAttribute + "]" + (active ? ":include" : "") + ", ";
+		selector += "textarea[name][" + this.config.fieldRequiredAttribute + "]" + (active ? ":include" : "") + ", ";
+		selector += "[" + this.config.fieldRadioGroupAttribute + "][" + this.config.fieldRequiredAttribute + "]:has(input[name][type=radio]" + (active ? ":include" : "") + ") ";
 		return element.find(selector);
 	}
 	
@@ -1149,7 +1049,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		var elementRegExp = new RegExp("^(\\w+)(?:\\[|$)");
 		var indexRegExp = new RegExp("\\[(\\d+)?\\]", "g");
 		var valid = true;
-		var request = this.hash.cloneParams();
+		var request = this.hash.cloneParam();
 		this.findGroupElements(element).each(function()
 		{
 			var field = self.validate($(this));
@@ -1252,20 +1152,6 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		return { request : request, valid : valid };
 	};
 	
-	this.validateGroup = function(element)
-	{
-		var validGroup = true;
-		this.findGroupElements(element).each(function()
-		{
-			var field = self.validate($(this));
-			if(!field.valid)
-			{
-				validGroup = false;
-			}
-		});
-		return validGroup;
-	};
-	
 	this.update = function(element)
 	{
 		element = this.getJqueryElement(element);
@@ -1275,7 +1161,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			var updateValue = element.attr(this.config.fieldUpdateValueAttribute);
 			if(field.value != updateValue)
 			{
-				var request = this.hash.cloneParams();
+				var request = this.hash.cloneParam();
 				request.name = field.name;
 				request.value = field.value;
 				this.submit(element, request, function()
@@ -1403,7 +1289,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		field.value = null;
 		if(field.name)
 		{
-			field.formValue = element.find("input[type=radio][name='" + field.name + "']:visible:enabled:checked").val();
+			field.formValue = element.find("input[type=radio][name='" + field.name + "']:include:checked").val();
 			field.value = field.formValue;
 		}
 		else
@@ -1440,6 +1326,20 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			}
 		}
 		return field;
+	};
+	
+	this.validateGroup = function(element)
+	{
+		var validGroup = true;
+		this.findGroupElements(element).each(function()
+		{
+			var field = self.validate($(this));
+			if(!field.valid)
+			{
+				validGroup = false;
+			}
+		});
+		return validGroup;
 	};
 	
 	this.validate = function(element)
@@ -1540,6 +1440,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	
 	this.clear = function(element)
 	{
+		this.feedback(element);
 		var tag = element.prop("tagName").toLowerCase();
 		var type = element.attr("type");
 		element.val("");
@@ -1551,7 +1452,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	
 	this.service = function(service, method, request, success, error)
 	{
-		if(isFileProtocol() && !isSet(this.endpoint.current()))
+		if(isMock())
 		{
 			this.serviceFile(service, method, request, success, error);
 		}
@@ -1582,6 +1483,8 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	
 	this.serviceCall = function(url, request, success, error)
 	{
+		var module = this.hash.getModule();
+		var page = this.hash.getPage();
 		if(url.substring(0, 4) == "http")
 		{
 			var sessionId = localStorage.getItem(this.config.devSessionId);
@@ -1602,6 +1505,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			type		: "POST",
 			url			: url,
 			data		: JSON.stringify(request),
+			contentType	: "text/plain",
 			dataType	: "json",
 			cache		: false,
 			success		: function(response, textStatus, jqXHR)
@@ -1625,6 +1529,23 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 				if(isSet(response.errors) && response.errors.length > 0)
 				{
 					console.info("RESPONSE : " + url, response.errors);
+					forEach(response.errors, function(error)
+					{
+						switch(error.type)
+						{
+							case "SERVICE_AJAX_NOT_AUTHENTICATED":
+							case "SERVICE_CSRF_TOKEN_INVALID":
+							{
+								var redirector = self.config.getErrorAuthRedirector(module, page);
+								if(isFunction(redirector))
+								{
+									self.queue.stop();
+									redirector();
+								}
+								break;
+							}
+						}
+					});
 					error(response.errors);
 				}
 				else
@@ -1652,194 +1573,6 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 				}
 			}
 		});
-	};
-	
-	this.Checker =
-	{
-		param : function(param)
-		{
-			return function()
-			{
-				return self.hash.hasParam(param);
-			};
-		},
-		allParams : function(params)
-		{
-			params = isArray(params) ? params : [];
-			return function()
-			{
-				for(var i = 0; i < params.length; i++)
-				{
-					if(!self.hash.hasParam(params[i]))
-					{
-						return false;
-					}
-				}
-				return true;
-			};
-		},
-		anyParams : function(params)
-		{
-			params = isArray(params) ? params : [];
-			return function()
-			{
-				for(var i = 0; i < params.length; i++)
-				{
-					if(self.hash.hasParam(params[i]))
-					{
-						return true;
-					}
-				}
-				return false;
-			};
-		}
-		
-	};
-	
-	this.Initializer =
-	{
-		params : function(service, method, successOverride, errorOverride)
-		{
-			return function(success, error)
-			{
-				success = isFunction(successOverride) ? successOverride : success;
-				error = isFunction(errorOverride) ? errorOverride : error;
-				self.service(service, method, self.hash.param, success, error);
-			};
-		}
-	};
-	
-	this.Transitioner =
-	{
-		hide : function(effect)
-		{
-			return function(element)
-			{
-				element.hide(effect);
-			};
-		},
-		show : function(effect)
-		{
-			return function(element)
-			{
-				element.show(effect);
-			};
-		}
-	};
-	
-	this.Redirector =
-	{
-		replace : function(module, page, params)
-		{
-			return function()
-			{
-				self.hash.replace(module, page, params);
-			};
-		},
-		next : function(module, page, params)
-		{
-			return function()
-			{
-				self.hash.next(module, page, params);
-			};
-		},
-		back : function()
-		{
-			return function()
-			{
-				self.hash.back();
-			};
-		},
-		refresh : function()
-		{
-			return function()
-			{
-				self.hash.refresh();
-			};
-		},
-		reload : function()
-		{
-			return function()
-			{
-				self.hash.reload();
-			};
-		}
-	};
-	
-	this.Filterer =
-	{
-		replace : function(regexp, replacement)
-		{
-			replacement = isSet(replacement) ? replacement : "";
-			return function(value)
-			{
-				return value.replace(regexp, replacement);
-			};
-		}
-	};
-	
-	this.config.filterer.number		= this.Filterer.replace(/[^0-9]/g);
-	this.config.filterer.decimal	= this.Filterer.replace(/[^0-9.]/g);
-	this.config.filterer.int		= function(value)
-	{
-		if(value)
-		{
-			value = value.replace(/[^0-9.]/g, "");
-			if(!isNaN(value))
-			{
-				value = parseInt(value);
-			}
-			if(!isNaN(value))
-			{
-				return value;
-			}
-		}
-		return null;
-	};
-	this.config.filterer.float		= function(value)
-	{
-		if(value)
-		{
-			value = value.replace(/[^0-9.]/g, "");
-			if(!isNaN(value))
-			{
-				value = parseFloat(value);
-			}
-			if(!isNaN(value))
-			{
-				return value;
-			}
-		}
-		return null;
-	};
-	this.config.filterer.currency	= function(value)
-	{
-		return CurrencyUtil.parse(value);
-	};
-	
-	this.Validator =
-	{
-		test : function(regexp)
-		{
-			return function(value)
-			{
-				return regexp.test(value);
-			};
-		}
-	};
-	
-	this.config.validator.email		= this.Validator.test(/^[a-zA-Z0-9._\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]+$/);
-	this.config.validator.phone		= this.Validator.test(/^[0-9]{10}$/);
-	this.config.validator.zip		= this.Validator.test(/^[0-9]{5}$/);
-	this.config.validator.number	= this.Validator.test(/^[0-9]+(\.[0-9]{1,2})?$/);
-	this.config.validator.confirm	= function(value, id)
-	{
-		var value2 = $("#" + id).val();
-		return value == value2;
-	};
-	this.config.validator.date		= function(value, pattern)
-	{
-		return DateUtil.isValid(pattern, value);
 	};
 	
 };

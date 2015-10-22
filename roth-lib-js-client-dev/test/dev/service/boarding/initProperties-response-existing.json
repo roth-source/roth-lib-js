@@ -1,0 +1,127 @@
+{
+	"bankMap":
+	{
+		"1234":"Wells Fargo ****8908"
+	},
+	"packageMap":
+	{
+		"1234":"Resident Anywhere",
+		"1235":"Per product"
+	},
+	"integrationDatabaseMap":
+	{
+		"1234":"Yardi",
+		"1235":"MRI"
+	},
+	"feeTypeMap":
+	{
+		"US":"Us",
+		"RESIDENT":"Resident"
+	},
+	"targetTypeMap":
+	{
+		"RENT":"Rent",
+		"APPLICATION":"Application",
+		"DEPOSIT":"Deposit"
+	},
+	"regionMap":
+	{
+		"1234":"West",
+		"1235":"East",
+		"1236":"Midwest",
+		"1237":"South"
+	},
+	"subRegionMap":
+	{
+		"1234":"North-West",
+		"1235":"North-East",
+		"1236":"South-West",
+		"1237":"South-East"
+	},
+	"typeMap":
+	{
+		"1234":"Multi-Family",
+		"1235":"Single-Family",
+		"1236":"Commerciel",
+		"1237":"Student Housing"
+	},
+	"subTypeMap":
+	{
+		"1234":"Garden Apartment",
+		"1235":"Duplex",
+		"1236":"Townhouse"
+	},
+	"propertyClassMap":
+	{
+		"1234":"Class A",
+		"1235":"Class B",
+		"1236":"Class C",
+		"1237":"Class D"
+	},
+	"section8Map":
+	{
+		"1234":"Yes",
+		"1235":"No"
+	},
+	"section42Map":
+	{
+		"1234":"Yes",
+		"1235":"No"
+	},
+	
+	"internal":false,
+	"boardingProperties":
+	[
+		{
+			"id":"1234",
+			"propertyName":"Test Property",
+			"legalName":"Test LLC",
+			"address":"123 Fake St",
+			"city":"Santa Barbara",
+			"state":"CA",
+			"zip":"12345",
+			"phone":"1234567890",
+			"units":"1000",
+			"beds":null,
+			"region_tag_id":"1234",
+			"subRegion_tag_id":"1234",
+			"type_tag_id":"1234",
+			"subType_tag_id":"1234",
+			"propertyClass_tag_id":"1234",
+			"section8_tag_id":"1234",
+			"section42_tag_id":"1234",
+			"boardingTargets":
+			[
+				{
+					"id":"1234",
+					"type":"RENT",
+					"name":"Rent",
+					"bankId":"1234",
+					"feeType":"RESIDENT"
+				},
+				{
+					"id":"1235",
+					"type":"APPLICATION",
+					"name":"Application",
+					"bankId":"1234",
+					"feeType":"RESIDENT"
+				},
+				{
+					"id":"1236",
+					"type":"DEPOSIT",
+					"name":"Deposit",
+					"bankId":"1234",
+					"feeType":"US"
+				}
+			],
+			"taxId":"987654321",
+			
+			"averageRent":"100000",
+			"maxVolume":"100000",
+			"maxTransaction":"2000000",
+			"finance_package_id":"1234",
+			"integration_database_id":"1234",
+			"integrationId":"1234"
+		}
+	]
+}

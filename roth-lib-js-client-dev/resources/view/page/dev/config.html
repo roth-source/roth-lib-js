@@ -1,5 +1,21 @@
-<div class="container-fluid">
-	config
+<div>
+	<pre class="roth-dev-config-pre"><!--
+		-->{% var getterRegExp = new RegExp("^(is|get)"); %}<!--
+		-->{% forEach(config, function(value, name) { %}<!--
+		-->{% if(!getterRegExp.test(name)) { %}<!--
+		-->{{ name }} : <!--
+		-->{% if(isNull(value)) { %}<!--
+		-->null<!--
+		-->{% } else if(isObject(value)) { %}<!--
+		-->{{ JSON.stringify(value, null, 4) }}<!--
+		-->{% } else if(isString(value)) { %}<!--
+		-->"{{ value }}"<!--
+		-->{% } else { %}<!--
+		-->{{ value }}<!--
+		-->{% } %}<!--
+		--><br/><!--
+		-->{% } }); %}<!--
+	--></pre>
 </div>
 
 <script>
@@ -7,8 +23,8 @@
 {
 	client.page.ready = function()
 	{
-		$("#dev-tabs > li").removeClass("active");
-		$("#config-tab").addClass("active");
+		$(".roth-dev-nav").removeClass("roth-dev-nav-active");
+		$("#roth-dev-nav-config").addClass("roth-dev-nav-active");
 	};
 })
 ();

@@ -19,8 +19,14 @@
 		</style>
 		
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-		<script src="../src/_Global.js"></script>
-		<script src="../src/_Util.js"></script>
+		<script src="../src/_namespace.js"></script>
+		<script src="../src/Js.js"></script>
+		<script src="../src/CookieUtil.js"></script>
+		<script src="../src/CurrencyUtil.js"></script>
+		<script src="../src/DateUtil.js"></script>
+		<script src="../src/IdUtil.js"></script>
+		<script src="../src/ObjectUtil.js"></script>
+		<script src="../src/StringUtil.js"></script>
 		
 		<script>
 			$(function()
@@ -28,7 +34,7 @@
 				$("#random").text(IdUtil.generate());
 				$("#formatInput").text(CurrencyUtil.formatInput(123456));
 				$("#formatText").text(CurrencyUtil.formatText(123456));
-				$("#formatDate").text(DateUtil.format("yyyy-MM-dd hh:mm:ss a zZ", new Date()));
+				$("#formatDate").text(DateUtil.format("MMMM MMM yyyy EEEE EEE", new Date(), "es"));
 				
 				//var value = DateUtil.format("yyyy-MM-dd HH:mm:ss", new Date());
 				//console.log(value);

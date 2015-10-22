@@ -37,6 +37,11 @@ var isUndefined = isUndefined || function(value)
 	return value === undefined;
 };
 
+var isDefined = isDefined || function(value)
+{
+	return !isUndefined(value);
+};
+
 var isNull = isNull || function(value)
 {
 	return value === null;
@@ -90,12 +95,12 @@ var isNotEmpty = isNotEmpty || function(value)
 
 var isTrue = isTrue || function(value)
 {
-	return value === true;
+	return value === true || value === "true";
 };
 
 var isFalse = isFalse || function(value)
 {
-	return value === false;
+	return value === false || value === "false";;
 };
 
 var isBoolean = isBoolean || function(value)

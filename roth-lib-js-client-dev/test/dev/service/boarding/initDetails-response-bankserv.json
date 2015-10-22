@@ -1,0 +1,33 @@
+{
+	"processorTypes":
+	[
+		"PRO_PAY",
+		"BANK_SERV"
+	],
+	"internal":false,
+	
+	"companyLegalName":"Test Company LLC",
+	"companyIncorporationState":"CA",
+	"companyTaxId":"123456789",
+	"companyStartedOn":"4/12/2010",
+	"companyAddress":"123 Fake St",
+	"companyCity":"Santa Barbara",
+	"companyState":"CA",
+	"companyZip":"12345",
+	"companyWebsite":"resman.com",
+	"companySupportPhone":"1234567890",
+	"bankName":"Wells Fargo",
+	"bankAccount":"123456789",
+	"bankRouting":"987654321",
+	"contactFirstName":"John",
+	"contactLastName":"Doe",
+	"contactPhone":"5555555555",
+	"contactAddress":"123 Main St",
+	"contactCity":"Santa Barbara",
+	"contactState":"CA",
+	"contactZip":"98765",
+	"contactBirthDate":"1/1/1970",
+	"contactDriversLicense":"1234567",
+	"contactDriversLicenseState":"CA",
+	"bankruptcy":false
+}

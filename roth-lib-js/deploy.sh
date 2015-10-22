@@ -28,7 +28,7 @@ do
 		repo_dest="$REPO_DIR/$group/$artifact/$version";
 		ssh -o "ControlPath=$CTL_PATH" -p "$REPO_PORT" "$REPO_USER@$REPO_HOST" "mkdir -p \"$repo_dest\"";
 		scp -o "ControlPath=$CTL_PATH" -P "$REPO_PORT" -r "$target"/* "$REPO_USER@$REPO_HOST":"$repo_dest";
-		
+		rm -rf "$target/"*;
 	fi
 	
 done

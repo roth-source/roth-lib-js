@@ -1,0 +1,45 @@
+{
+	"processorTypes":
+	[
+		"PRO_PAY",
+		"BANK_SERV"
+	],
+	
+	"amountTypeMap":
+	{
+		"ANY":"Any Amount",
+		"BALANCE_ONLY":"Current Balance",
+		"OVERPAY":"Overpay/Prepay"
+	},
+	"balanceTypeMap":
+	{
+		"CURRENT":"Current Balance",
+		"LINE_ITEMS":"Line Item Detail",
+		"BALANCE_FORWARD":"Balance Forward + Current Month Line Item Detail"
+	},
+	"scheduleTypeMap":
+	{
+		"BOTH":"Both",
+		"BALANCE":"Balance",
+		"FIXED":"Fixed"
+	},
+	"searchTypeMap":
+	{
+		"UNIT":"Unit Number",
+		"ADDRESS":"Address",
+		"CODE":"Resident Code"
+	},
+	"amountType":"BALANCE_ONLY",
+	"balanceType":"BALANCE_FORWARD",
+	"paymentBlackoutStart":"20",
+	"paymentBlackoutEnd":"24",
+	"eCheckBlackoutStart":"18",
+	"eCheckBlackoutEnd":"22",
+	"scheduleType":"FIXED",
+	"scheduleBlackoutStart":"15",
+	"scheduleBlackoutEnd":"18",
+	"searchType":"CODE",
+	"searchResultLimit":"30",
+	"securityDeposit":true,
+	"application":true
+}

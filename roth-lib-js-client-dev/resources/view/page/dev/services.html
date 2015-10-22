@@ -1,76 +1,83 @@
-<style>
-	textarea
-	{
-		-moz-tab-size : 4;
-		-o-tab-size : 4;
-		tab-size : 4;
-		font-family : courier;
-		resize : none;
-	}
-</style>
-<div class="container-fluid">
-	<div class="input-group">
-		<span class="input-group-addon">endpoint</span>
-		<input id="dev-endpoint" class="form-control" type="text" />
-	</div>
-	<br/>
-	{% for(var service in config.dev.service) {
-		var methods = config.dev.service[service]; %}
-	<div class="panel panel-default">
-		<div class="panel-heading">
-			<h3 class="panel-title">{{ service }}</h3>
-		</div>
-		<div class="panel-body">
-			<div id="{{ service }}-group" class="panel-group " role="tablist" aria-multiselectable="true">
-				{% for(var method in methods) {
-					var scenarios = config.getDevServiceRequestScenarios(service, method);
-					scenarios = scenarios.length > 0 ? scenarios : [null];
-					for(var i in scenarios) {
-						var scenario = scenarios[i]; 
-						var id = IdUtil.generate(); %}
-				<div class="panel panel-default">
-					<div class="panel-heading" role="tab">
-						<h4 class="panel-title">
-							<a data-toggle="collapse" data-target="#{{ id }}" data-parent="#{{ service }}-group" aria-expanded="false" aria-controls="{{ id }}">{{ method.replace("_", " ") }} {{ isValidString(scenario) ? "- " + scenario : "" }}
-							</a>
-						</h4>
-					</div>
-					<div id="{{ id }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="">
-						<div class="panel-body">
-							<div class="input-group input-group-lg">
-								<textarea id="{{ id }}-request" class="form-control" spellcheck="false" style="height:300px;font-size:12px;" data-request="{{ config.getDevServiceRequestPath(service, method, scenario) }}"></textarea>
-								<span class="input-group-addon">
-									<strong style="margin-right:15px;"><i class="glyphicon glyphicon-menu-left"></i>REQUEST</strong>
-									<br/>
-									<button class="btn btn-primary btn-lg" type="submit" style="margin:15px;" onclick="client.page.call('{{ id }}', '{{ config.getServicePath(service, method) }}');">call</button>
-									<br/>
-									<strong style="margin-left:15px;">RESPONSE<i class="glyphicon glyphicon-menu-right"></i></strong>
-								</span>
-								<textarea id="{{ id }}-response" class="form-control" spellcheck="false" style="height:300px;font-size:12px;"></textarea>
+<div class="roth-dev-endpoint">
+	<span class="roth-dev-endpoint-label">endpoint</span>
+	<input id="dev-endpoint" class="roth-dev-endpoint-input" type="text" />
+</div>
+{% forEach(config.dev, function(data, service) { %}
+{% if(isNotEmpty(data.service)) { %}
+<div class="roth-dev-panel">
+	<div class="roth-dev-panel-header">{{ service }}</div>
+	<div class="roth-dev-panel-body">
+		<div id="{{ service }}-group" class="panel-group " role="tablist" aria-multiselectable="true">
+			{% forEach(data.service, function(model, method) { 
+				var id = IdUtil.generate(); %}
+			<div class="roth-dev-panel">
+				<div class="roth-dev-panel-header roth-dev-panel-header-method" onclick="client.page.togglePanel(this);">{{ method }}</div>
+				<div class="roth-dev-panel-body roth-dev-panel-body-method" style="display:none;">
+					<div class="roth-dev-method">
+						<div class="roth-dev-request">
+							<ul class="roth-dev-tabs">
+								{% if(isEmpty(model.request)) { %}
+								<li class="roth-dev-tab roth-dev-tab-active">default</li>
+								{% } else { %}
+								{% forEach(model.request, function(scenario, i, loop) { %}
+								<li class="roth-dev-tab {{ loop.first ? "roth-dev-tab-active" : "" }}" onclick="client.page.toggleRequest(this, '{{ scenario }}')">{{ scenario }}</li>
+								{% }); %}
+								{% } %}
+							</ul>
+							{% if(isEmpty(model.request)) { %}
+							<textarea data-name="request-default" class="roth-dev-request-textarea" spellcheck="false" data-request-path="{{ config.getDevServiceRequestPath(service, method) }}"></textarea>
+							{% } else { %}
+							{% forEach(model.request, function(scenario, i, loop) { %}
+							<textarea data-name="request-{{ scenario }}" class="roth-dev-request-textarea" style="{{ !loop.first ? "display:none;" : "" }}" spellcheck="false" data-request-path="{{ config.getDevServiceRequestPath(service, method, scenario) }}"></textarea>
+							{% }); %}
+							{% } %}
+						</div>
+						<div class="roth-dev-call">
+							<div class="roth-dev-call-spacer"></div>
+							<div class="roth-dev-call-inner">
+								<div class="roth-dev-call-request">〈 REQUEST</div>
+								<button class="roth-dev-button roth-dev-call-button" type="submit" onclick="client.page.call(this, '{{ config.getServicePath(service, method) }}');">call</button>
+								<div class="roth-dev-call-response">RESPONSE 〉</div>
 							</div>
+						</div>
+						<div class="roth-dev-response">
+							<ul class="roth-dev-tabs">
+								<li class="roth-dev-tab" data-name="call" onclick="client.page.toggleResponse(this, 'call')">response</li>
+								{% if(isEmpty(model.response)) { %}
+								<li class="roth-dev-tab roth-dev-tab-active" onclick="client.page.toggleResponse(this, 'default')">default</li>
+								{% } else { %}
+								{% forEach(model.response, function(scenario, i, loop) { %}
+								<li class="roth-dev-tab {{ loop.first ? "roth-dev-tab-active" : "" }}" onclick="client.page.toggleResponse(this, '{{ scenario }}')">{{ scenario }}</li>
+								{% }); %}
+								{% } %}
+							</ul>
+							<pre data-name="response-call" class="roth-dev-response-pre" style="display:none;"></pre>
+							{% if(isEmpty(model.response)) { %}
+							<pre data-name="response-default" class="roth-dev-response-pre" data-response-path="{{ config.getDevServiceResponsePath(service, method) }}"></pre>
+							{% } else { %}
+							{% forEach(model.response, function(scenario, i, loop) { %}
+							<pre data-name="response-{{ scenario }}" class="roth-dev-response-pre" style="{{ !loop.first ? "display:none;" : "" }}" data-response-path="{{ config.getDevServiceResponsePath(service, method, scenario) }}"></pre>
+							{% }); %}
+							{% } %}
 						</div>
 					</div>
 				</div>
-				{% } } %}
 			</div>
+			{% }); %}
 		</div>
 	</div>
-	{% } %}
 </div>
+{% } %}
+{% }); %}
 
 <script>
 (function()
 {
 	client.page.ready = function()
 	{
-		$("#dev-tabs > li").removeClass("active");
-		$("#services-tab").addClass("active");
-		$("textarea[data-request]").each(function()
-		{
-			var request = $(this);
-			var path = request.attr("data-request");
-			request.load(path);
-		});
+		$(".roth-dev-nav").removeClass("roth-dev-nav-active");
+		$("#roth-dev-nav-services").addClass("roth-dev-nav-active");
+		
 		$("#dev-endpoint").blur(function()
 		{
 			var devEndpoint = $(this).val();
@@ -88,20 +95,73 @@
 		{
 			$("#dev-endpoint").val(devEndpoint);
 		}
+		$("textarea[data-request-path]").each(function()
+		{
+			var request = $(this);
+			var path = request.attr("data-request-path");
+			$.ajax(
+			{
+				type		: "GET",
+				url			: path,
+				dataType	: "text",
+				cache		: false,
+				ifModified	: false,
+				success		: function(data)
+				{
+					request.html(data);
+				}
+			});
+		});
+		$("pre[data-response-path]").each(function()
+		{
+			var response = $(this);
+			var path = response.attr("data-response-path");
+			$.ajax(
+			{
+				type		: "GET",
+				url			: path,
+				dataType	: "text",
+				cache		: false,
+				ifModified	: false,
+				success		: function(data)
+				{
+					response.html(data);
+				}
+			});
+		});
+		$("textarea").on("keydown", function(e)
+		{
+			var keyCode = e.keyCode || e.which;
+			if(keyCode == 9)
+			{
+				e.preventDefault();
+				var element = $(this);
+				var start = this.selectionStart;
+				var end = this.selectionEnd;
+				element.val(element.val().substring(0, start) + "\t" + element.val().substring(end));
+				this.selectionStart = start + 1;
+				this.selectionEnd = start + 1;
+			}
+		});
 	};
 	
-	client.page.call = function(id, path)
+	client.page.call = function(node, path)
 	{
+		var element = $(node);
+		var methodElement = element.closest(".roth-dev-method");
+		client.page.toggleResponse(methodElement.find(".roth-dev-response .roth-dev-tab[data-name='call']").first(), 'call');
 		var endpoint = $("#dev-endpoint").val();
-		var requestElement = $("#" + id + "-request");
-		var responseElement = $("#" + id + "-response");
+		var requestElement = methodElement.find("textarea.roth-dev-request-textarea:visible");
+		var responseElement = methodElement.find("pre.roth-dev-response-pre:visible");
 		var request = requestElement.val();
-		responseElement.val("");
+		console.log(request);
+		responseElement.text("");
 		$.ajax(
 		{
 			type		: "POST",
 			url			: endpoint + path,
 			data		: request,
+			contentType	: "text/plain",
 			dataType	: "json",
 			cache		: false,
 			crossDomain	: true,
@@ -111,30 +171,82 @@
 				{
 					localStorage.setItem("csrfToken", response.csrfToken);
 				}
-				responseElement.val(JSON.stringify(response, null, '\t'));
+				responseElement.text(JSON.stringify(response, null, '\t'));
 			},
 			error		: function(jqXHR, textStatus, errorThrown)
 			{
 				if(isValidString(errorThrown))
 				{
-					responseElement.val("ERROR : " + errorThrown);
+					responseElement.text("ERROR : " + errorThrown);
 				}
 			},
 			complete	: function(jqXHR, textStatus)
 			{
 				if("success" != textStatus)
 				{
-					var text = responseElement.val();
+					var text = responseElement.text();
 					if(isValidString(text))
 					{
 						text += "\n";
 					}
 					text += "STATUS : " + textStatus;
-					responseElement.val(text);
+					responseElement.text(text);
 				}
 			}
 		});
 		
+	};
+	
+	client.page.togglePanel = function(node)
+	{
+		var element = $(node);
+		var siblingElement = element.siblings(".roth-dev-panel-body-method");
+		$(".roth-dev-panel-body-method").each(function()
+		{
+			var panelElement = $(this);
+			if(!panelElement.is(siblingElement))
+			{
+				panelElement.hide();
+			}
+			else
+			{
+				siblingElement.toggle();
+			}
+		});
+	};
+	
+	client.page.toggleRequest = function(node, scenario)
+	{
+		var element = $(node);
+		if(!element.is(".roth-dev-tab-active"))
+		{
+			var request = element.closest(".roth-dev-request");
+			var textarea = request.find("textarea.roth-dev-request-textarea[data-name='request-" + scenario + "']");
+			if(textarea.length > 0)
+			{
+				request.find(".roth-dev-tab").removeClass("roth-dev-tab-active");
+				element.addClass("roth-dev-tab-active");
+				request.find(".roth-dev-request-textarea").hide();
+				textarea.show();
+			}
+		}
+	};
+	
+	client.page.toggleResponse = function(node, scenario)
+	{
+		var element = $(node);
+		if(!element.is(".roth-dev-tab-active"))
+		{
+			var response = element.closest(".roth-dev-response");
+			var pre = response.find("pre.roth-dev-response-pre[data-name='response-" + scenario + "']");
+			if(pre.length > 0)
+			{
+				response.find(".roth-dev-tab").removeClass("roth-dev-tab-active");
+				element.addClass("roth-dev-tab-active");
+				response.find(".roth-dev-response-pre").hide();
+				pre.show();
+			}
+		}
 	};
 	
 })

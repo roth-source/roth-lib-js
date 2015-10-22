@@ -2,45 +2,72 @@
 var Protocol = Protocol ||
 {
 	FILE		: "file:",
+	DATA		: "data:",
 	HTTP		: "http:",
 	HTTPS		: "https:"
 };
 
 var Environment = Environment ||
 {
-	DEV			: "dev",
+	MOCK		: "mock",
+	LOCAL		: "local",
 	TEST		: "test",
 	DEMO		: "demo",
 	PROD		: "prod"
 };
 
-roth.lib.js.env.hosts = roth.lib.js.env.hosts || { dev : ["localhost", "127.0.0.1"] };
+roth.lib.js.env.hosts = roth.lib.js.env.hosts || { local : ["localhost", "127.0.0.1"] };
 roth.lib.js.env.environment = roth.lib.js.env.environment || null;
 roth.lib.js.env.debug = roth.lib.js.env.debug || null;
 roth.lib.js.env.compiled = roth.lib.js.env.compiled || true;
 roth.lib.js.env.dependencies = roth.lib.js.env.dependencies || [];
 
-var setHosts = function(environment, hosts)
+var setHosts = setHosts || function(environment, hosts)
 {
 	roth.lib.js.env.hosts[environment] = hosts;
 };
 
-var setEnvironment = function(environment)
+var setEnvironment = setEnvironment || function(environment)
 {
 	roth.lib.js.env.environment = environment;
 };
 
-var setDebug = function(debug)
+var setMock = setMock || function()
+{
+	setEnvironment(Environment.MOCK);
+};
+
+var setLocal = setLocal || function()
+{
+	setEnvironment(Environment.LOCAL);
+};
+
+var setTest = setTest || function()
+{
+	setEnvironment(Environment.TEST);
+};
+
+var setDemo = setDemo || function()
+{
+	setEnvironment(Environment.DEMO);
+};
+
+var setProd = setProd || function()
+{
+	setEnvironment(Environment.PROD);
+};
+
+var setDebug = setDebug || function(debug)
 {
 	roth.lib.js.env.debug = debug;
 };
 
-var setCompiled = function(compiled)
+var setCompiled = setCompiled || function(compiled)
 {
 	roth.lib.js.env.compiled = compiled;
 };
 
-var setDependencies = function(dependencies)
+var setDependencies = setDependencies || function(dependencies)
 {
 	roth.lib.js.env.dependencies = dependencies
 };
@@ -48,6 +75,11 @@ var setDependencies = function(dependencies)
 var isFileProtocol = isFileProtocol || function()
 {
 	return Protocol.FILE == window.location.protocol;
+};
+
+var isDataProtocol = isDataProtocol || function()
+{
+	return Protocol.DATA == window.location.protocol;
 };
 
 var isHttpProtocol = isHttpProtocol || function()
@@ -72,13 +104,13 @@ var getEnvironment = getEnvironment || function()
 		if(isHyperTextProtocol())
 		{
 			var host = window.location.hostname.toLowerCase();
-			for(var env in roth.lib.js.env.hosts)
+			for(var environment in roth.lib.js.env.hosts)
 			{
-				if(Array.isArray(roth.lib.js.env.hosts[env]))
+				if(Array.isArray(roth.lib.js.env.hosts[environment]))
 				{
-					if(roth.lib.js.env.hosts[env].indexOf(host) != -1)
+					if(roth.lib.js.env.hosts[environment].indexOf(host) != -1)
 					{
-						roth.lib.js.env.environment = env;
+						roth.lib.js.env.environment = environment;
 						break;
 					}
 				}
@@ -90,7 +122,7 @@ var getEnvironment = getEnvironment || function()
 		}
 		else
 		{
-			roth.lib.js.env.environment = Environment.DEV;
+			roth.lib.js.env.environment = Environment.MOCK;
 		}
 	}
 	return roth.lib.js.env.environment;
@@ -101,9 +133,19 @@ var isEnvironment = isEnvironment || function(environment)
 	return getEnvironment() == environment;
 };
 
+var isMock = isMock || function()
+{
+	return isEnvironment(Environment.MOCK);
+};
+
+var isLocal = isLocal || function()
+{
+	return isEnvironment(Environment.LOCAL);
+};
+
 var isDev = isDev || function()
 {
-	return isEnvironment(Environment.DEV);
+	return isMock() || isLocal();
 };
 
 var isTest = isTest || function()
@@ -165,7 +207,7 @@ var loadDependencies = loadDependencies || function(compiled)
 		var dependency = roth.lib.js.env.dependencies[i];
 		if(dependency)
 		{
-			if(!((dependency.exclude === true) || (!isDev() && dependency.dev === true) || (isDev() && dependency.dev === false)))
+			if(!((dependency.exclude === true) || (!isDev()  && dependency.dev === true) || (isDev() && dependency.dev === false)))
 			{
 				if((compiled === undefined && dependency.compiled === undefined) || (compiled === true && dependency.compiled === true) || (compiled === false && dependency.compiled === false))
 				{

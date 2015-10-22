@@ -1,38 +1,80 @@
-<div class="container-fluid">
-	{% for(var module in config.dev.link) {
-		var pages = config.dev.link[module]; %}
-	<div class="panel panel-default">
-		<div class="panel-heading">
-			<h3 class="panel-title">{{ module }}</h3>
-		</div>
-		<div class="panel-body">
-			{% for(var page in pages) { 
-				var links = pages[page]; %}
-			<div class="form-horizontal">
-				<div class="form-group">
-					<label class="col-sm-2 control-label">{{ page }}</label>
-					<div class="col-sm-10 form-control-static">
-						{% for(var i in links) { 
-							var link = links[i]; %}
-						<a href="{{ link }}">{{ link }}</a><br/>
-						{% } %}
-					</div>
+{% forEach(config.dev, function(data, module) { %}
+{% if(isNotEmpty(data.link)) { %}
+<div class="roth-dev-panels-link">
+	<div class="roth-dev-panel {{ isNotEmpty(data.param) ? "roth-dev-panel-link-param" : "" }}">
+		<div class="roth-dev-panel-header">{{ module }}</div>
+		<div class="roth-dev-panel-body">
+			{% forEach(data.link, function(links, page) { %}
+			<div style="display:table;width:100%;box-sizing:border-box;">
+				<label class="roth-dev-link-label">{{ page }}</label>
+				<div class="roth-dev-links">
+					{% forEach(links, function(link) { %}
+					<a class="roth-dev-link" href="{{ link }}" data-link="{{ link }}">{{ link }}</a><br/>
+					{% }); %}
 				</div>
 			</div>
-			{% } %}
+			{% }); %}
+		</div>
+	</div>
+	{% if(isNotEmpty(data.param)) { %}
+	<div class="roth-dev-panel roth-dev-panel-param">
+		<div class="roth-dev-panel-header">param</div>
+		<div class="roth-dev-panel-body" style=";">
+			{% forEach(data.param, function(value, name) { %}
+			<label class="roth-dev-param-name">{{ name }}</label>
+			<input class="roth-dev-param-value" type="text" name="{{ name }}" value="{{ value }}" data-update-value="{{ value }}" onblur="client.page.checkUpdate(this);" />
+			{% }); %}
 		</div>
 	</div>
 	{% } %}
 </div>
+{% } %}
+{% }); %}
 
 <script>
 (function()
 {
+	var updateRegExp = new RegExp("\\{\\{\\\\s?(\\\\S+?)\\\\s?\\}\\}", "g");
+	
 	client.page.ready = function()
 	{
-		$("#dev-tabs > li").removeClass("active");
-		$("#links-tab").addClass("active");
+		$(".roth-dev-nav").removeClass("roth-dev-nav-active");
+		$("#roth-dev-nav-links").addClass("roth-dev-nav-active");
+		client.page.updateLinks();
 	};
-})
-();
+	
+	client.page.checkUpdate = function(node)
+	{
+		var element = $(node);
+		var value = element.val();
+		var updateValue = element.attr("data-update-value");
+		if(value != updateValue)
+		{
+			element.attr("data-update-value", value);
+			client.page.updateLinks(element);
+		}
+	};
+	
+	client.page.updateLinks = function(inputElement)
+	{
+		var links = isSet(inputElement) ? inputElement.closest(".roth-dev-panels-link").find("a[data-link]") : $("a[data-link]");
+		links.each(function()
+		{
+			var element = $(this);
+			var link = element.attr("data-link");
+			link = link.replace(updateRegExp, function(match, capture)
+			{
+				var value = capture;
+				var param = element.closest(".roth-dev-panels-link").find("input[name='" + capture + "']");
+				if(param.length > 0)
+				{
+					value = param.val();
+				}
+				return value;
+			});
+			element.attr("href", link).text(link);
+		});
+	};
+
+})();
 </script>

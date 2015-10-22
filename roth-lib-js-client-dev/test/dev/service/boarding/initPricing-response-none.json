@@ -1,0 +1,20 @@
+{
+	"packageTypeMap":
+	{
+		"BUNDLED" : "Bundled Pricing",
+		"PRODUCT" : "Product Pricing"
+	},
+	"priceTypeMap":
+	{
+		"PER_UNIT" : "Per Unit",
+		"PER_BED" : "Per Bed",
+		"PER_PROPERTY" : "Per Property"
+	},
+	"processorTypes":
+	[
+		"PRO_PAY",
+		"BANK_SERV"
+	],
+	"packageMap":{}
+	
+}

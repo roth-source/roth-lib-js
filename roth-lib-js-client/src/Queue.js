@@ -4,7 +4,7 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 	var Event =
 	{
 		ENDPOINTS		: "endpoints",
-		INITIALIZER		: "initializer",
+		INIT			: "init",
 		TEXT			: "text",
 		LAYOUT			: "layout",
 		PAGE			: "page",
@@ -22,8 +22,8 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 	var Order = {};
 	Order[Event.ENDPOINTS] 		= [];
 	Order[Event.TEXT] 			= [];
-	Order[Event.INITIALIZER] 	= [Event.ENDPOINTS];
-	Order[Event.LAYOUT] 		= [Event.TEXT, Event.INITIALIZER];
+	Order[Event.INIT] 			= [Event.ENDPOINTS];
+	Order[Event.LAYOUT] 		= [Event.TEXT, Event.INIT];
 	Order[Event.PAGE] 			= [Event.LAYOUT];
 	Order[Event.SECTIONS] 		= [Event.PAGE];
 	Order[Event.SECTION] 		= [Event.SECTIONS];
@@ -31,7 +31,7 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 	Order[Event.COMPONENT] 		= [Event.COMPONENTS];
 	Order[Event.TRANSLATION] 	= [Event.SECTION, Event.COMPONENT, Event.TEXT];
 	Order[Event.FIELDS] 		= [Event.TRANSLATION];
-	Order[Event.READY] 			= [Event.INITIALIZER, Event.FIELDS];
+	Order[Event.READY] 			= [Event.INIT, Event.FIELDS];
 	Order[Event.SHOW] 			= [Event.READY];
 	Order[Event.CALLBACK] 		= [Event.SHOW];
 	
@@ -42,9 +42,9 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 		this.add(id, Event.ENDPOINTS, callback);
 	};
 	
-	this.initializer = function(id, callback)
+	this.init = function(id, callback)
 	{
-		this.add(id, Event.INITIALIZER, callback);
+		this.add(id, Event.INIT, callback);
 	};
 	
 	this.text = function(id, callback)
@@ -179,6 +179,11 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 			}
 		}
 		return false;
+	};
+	
+	this.stop = function()
+	{
+		this.task = {};
 	};
 	
 };
