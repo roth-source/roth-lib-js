@@ -1,32 +1,31 @@
-{% forEach(config.dev, function(data, module) { %}
-{% if(isNotEmpty(data.link)) { %}
+{% forEach(config.module, function(moduleData, module) { %}
+{% if(isNotEmpty(moduleData.page) && module != "dev") { %}
 <div class="roth-dev-panels-link">
 	<div class="roth-dev-panel {{ isNotEmpty(data.param) ? "roth-dev-panel-link-param" : "" }}">
 		<div class="roth-dev-panel-header">{{ module }}</div>
 		<div class="roth-dev-panel-body">
-			{% forEach(data.link, function(links, page) { %}
+			{% forEach(moduleData.page, function(pageData, page) { 
+				var params = config.getParams(module, page); %}
+			{% if(isNotEmpty(params)) { %}
 			<div style="display:table;width:100%;box-sizing:border-box;">
 				<label class="roth-dev-link-label">{{ page }}</label>
 				<div class="roth-dev-links">
-					{% forEach(links, function(link) { %}
-					<a class="roth-dev-link" href="{{ link }}" data-link="{{ link }}">{{ link }}</a><br/>
+					{% forEach(params, function(param) { %}
+						<div>
+							<a class="roth-dev-link" href="javascript:;">#/{{ module }}/{{ page }}/{% 
+							forEach(param, function(value, name)
+							{ 
+								%}{{ name }}/</a><span class="roth-dev-param-value" contenteditable="true">{{ value }}</span><a class="roth-dev-link" href="javascript:;">/{% 
+							});
+							%}</a>
+						</div>
 					{% }); %}
 				</div>
 			</div>
+			{% } %}
 			{% }); %}
 		</div>
 	</div>
-	{% if(isNotEmpty(data.param)) { %}
-	<div class="roth-dev-panel roth-dev-panel-param">
-		<div class="roth-dev-panel-header">param</div>
-		<div class="roth-dev-panel-body" style=";">
-			{% forEach(data.param, function(value, name) { %}
-			<label class="roth-dev-param-name">{{ name }}</label>
-			<input class="roth-dev-param-value" type="text" name="{{ name }}" value="{{ value }}" data-update-value="{{ value }}" onblur="client.page.checkUpdate(this);" />
-			{% }); %}
-		</div>
-	</div>
-	{% } %}
 </div>
 {% } %}
 {% }); %}
@@ -34,47 +33,37 @@
 <script>
 (function()
 {
-	var updateRegExp = new RegExp("\\{\\{\\\\s?(\\\\S+?)\\\\s?\\}\\}", "g");
 	
 	client.page.ready = function()
 	{
 		$(".roth-dev-nav").removeClass("roth-dev-nav-active");
 		$("#roth-dev-nav-links").addClass("roth-dev-nav-active");
-		client.page.updateLinks();
-	};
-	
-	client.page.checkUpdate = function(node)
-	{
-		var element = $(node);
-		var value = element.val();
-		var updateValue = element.attr("data-update-value");
-		if(value != updateValue)
+		
+		$("span.roth-dev-param-value").dblclick(function(e)
 		{
-			element.attr("data-update-value", value);
-			client.page.updateLinks(element);
-		}
-	};
-	
-	client.page.updateLinks = function(inputElement)
-	{
-		var links = isSet(inputElement) ? inputElement.closest(".roth-dev-panels-link").find("a[data-link]") : $("a[data-link]");
-		links.each(function()
+			var selection = window.getSelection();
+			var range = document.createRange();
+			range.setStart(this, 0);
+			range.setEnd(this, 1);
+			selection.removeAllRanges();
+			selection.addRange(range);
+		});
+		var setLink = function()
 		{
 			var element = $(this);
-			var link = element.attr("data-link");
-			link = link.replace(updateRegExp, function(match, capture)
+			var parent = element.parent();
+			var link = parent.text();
+			parent.children("a").attr("href", link);
+		}
+		$("a.roth-dev-link").each(setLink);
+		$("span.roth-dev-param-value").blur(setLink).keypress(function(e)
+		{
+			if(e.keyCode == 10 || e.keyCode == 13)
 			{
-				var value = capture;
-				var param = element.closest(".roth-dev-panels-link").find("input[name='" + capture + "']");
-				if(param.length > 0)
-				{
-					value = param.val();
-				}
-				return value;
-			});
-			element.attr("href", link).text(link);
+				e.preventDefault();
+			}
 		});
 	};
-
+	
 })();
 </script>

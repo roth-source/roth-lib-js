@@ -9,3 +9,5 @@ FILES=(
 	"ObjectUtil.js"
 	"StringUtil.js"
 );
+
+COPY=("../../roth-lib-java/roth-lib-java-template/src/main/resources/");

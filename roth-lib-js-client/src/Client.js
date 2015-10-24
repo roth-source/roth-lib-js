@@ -29,11 +29,14 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			if(!inited)
 			{
 				inited = true;
-				self.initConsole();
-				self.initJquery();
-				self.initConfig();
-				self.initDev();
-				self.load();
+				self.loadConfig(function()
+				{
+					self.initConsole();
+					self.initJquery();
+					self.initConfig();
+					self.initDev();
+					self.load();
+				});
 			}
 		});
 	};
@@ -59,11 +62,78 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 				document.write('<link href="' + this.config.getDevStyle() + '" rel="stylesheet" type="text/css" />');
 				document.write('<script src="' + this.config.getDevScript() + '"></script>');
 			}
-			if(isSet(this.config.devConfigScript))
-			{
-				document.write('<script src="' + this.config.devConfigScript + '"></script>');
-			}
 		}
+	};
+	
+	this.loadConfig = function(init)
+	{
+		var configId = IdUtil.generate();
+		this.queue.config(configId, function()
+		{
+			self.loadResource(self.config.getConfigDataPath(), "json",
+			function(data)
+			{
+				if(isObject(data))
+				{
+					if(isObject(data.endpoint))
+					{
+						$.extend(true, self.config.endpoint, data.endpoint);
+					}
+					if(isObject(data.text))
+					{
+						$.extend(true, self.config.text, data.text);
+					}
+					if(isObject(data.layout))
+					{
+						$.extend(true, self.config.layout, data.layout);
+					}
+					if(isObject(data.module))
+					{
+						$.extend(true, self.config.module, data.module);
+					}
+					if(isObject(data.section))
+					{
+						$.extend(true, self.config.section, data.section);
+					}
+					if(isObject(data.component))
+					{
+						$.extend(true, self.config.component, data.component);
+					}
+				}
+				self.queue.complete(configId);
+			},
+			function(errors)
+			{
+				self.queue.complete(configId);
+			});
+		});
+		if(isDev())
+		{
+			var devConfigId = IdUtil.generate();
+			this.queue.config(devConfigId, function()
+			{
+				self.loadResource(self.config.getDevConfigDataPath(), "json",
+				function(data)
+				{
+					if(isObject(data))
+					{
+						self.config.dev = data;
+					}
+					self.queue.complete(devConfigId);
+				},
+				function(errors)
+				{
+					self.queue.complete(devConfigId);
+				});
+			});
+		}
+		var initId = IdUtil.generate();
+		this.queue.callback(initId, function()
+		{
+			self.queue.complete(initId);
+			init();
+		});
+		this.queue.execute();
 	};
 	
 	this.initConsole = function()
@@ -131,7 +201,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		{
 			this.hide();
 			this.queueEndpoints();
-			this.queueText();
+			//this.queueText();
 			if(this.hash.isNewLayout())
 			{
 				this.queueLayoutInit();
@@ -185,9 +255,10 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 					localStorage.setItem(this.hash.langStorage, lang);
 				}
 			}
-			var param = this.config.getParam(module, page, layout);
-			if(isNotEmpty(param.change))
+			var changeParams = this.config.getChangeParams(module, page);
+			if(isNotEmpty(changeParams))
 			{
+				/*
 				var changed = false;
 				var loadedParam = this.hash.cloneLoadedParam();
 				for(var name in this.hash.param)
@@ -226,38 +297,45 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 					}
 					loadable = false;
 				}
+				*/
 			}
-			var errorParamsRedirector = this.config.getErrorParamsRedirector(module, page, layout);
-			if(isFunction(errorParamsRedirector))
+			var params = this.config.getParams(module, page);
+			if(isNotEmpty(params))
 			{
-				if(loadable && isNotEmpty(param.required))
+				var errorParamsRedirector = this.config.getErrorParamsRedirector(module, page);
+				if(isFunction(errorParamsRedirector))
 				{
-					for(var i = 0; i < param.required.length; i++)
+					/*
+					if(loadable && isNotEmpty(param.required))
 					{
-						if(!this.hash.hasParam(param.required[i]))
+						for(var i = 0; i < param.required.length; i++)
+						{
+							if(!this.hash.hasParam(param.required[i]))
+							{
+								errorParamsRedirector();
+								loadable = false;
+								break;
+							}
+						}
+					}
+					if(loadable && isNotEmpty(param.any))
+					{
+						var found = false;
+						for(var i = 0; i < param.any.length; i++)
+						{
+							if(self.hash.hasParam(param.any[i]))
+							{
+								found = true;
+								break;
+							}
+						}
+						if(!found)
 						{
 							errorParamsRedirector();
 							loadable = false;
-							break;
 						}
 					}
-				}
-				if(loadable && isNotEmpty(param.any))
-				{
-					var found = false;
-					for(var i = 0; i < param.any.length; i++)
-					{
-						if(self.hash.hasParam(param.any[i]))
-						{
-							found = true;
-							break;
-						}
-					}
-					if(!found)
-					{
-						errorParamsRedirector();
-						loadable = false;
-					}
+					*/
 				}
 			}
 		}

@@ -19,7 +19,7 @@ var Environment = Environment ||
 roth.lib.js.env.hosts = roth.lib.js.env.hosts || { local : ["localhost", "127.0.0.1"] };
 roth.lib.js.env.environment = roth.lib.js.env.environment || null;
 roth.lib.js.env.debug = roth.lib.js.env.debug || null;
-roth.lib.js.env.compiled = roth.lib.js.env.compiled || true;
+roth.lib.js.env.compiled = roth.lib.js.env.compiled || false;
 roth.lib.js.env.dependencies = roth.lib.js.env.dependencies || [];
 
 var setHosts = setHosts || function(environment, hosts)
@@ -59,17 +59,17 @@ var setProd = setProd || function()
 
 var setDebug = setDebug || function(debug)
 {
-	roth.lib.js.env.debug = debug;
+	roth.lib.js.env.debug = debug !== false ? true : false;
 };
 
 var setCompiled = setCompiled || function(compiled)
 {
-	roth.lib.js.env.compiled = compiled;
+	roth.lib.js.env.compiled = compiled !== false ? true : false;
 };
 
 var setDependencies = setDependencies || function(dependencies)
 {
-	roth.lib.js.env.dependencies = dependencies
+	roth.lib.js.env.dependencies = dependencies;
 };
 
 var isFileProtocol = isFileProtocol || function()
@@ -175,7 +175,7 @@ var isDebug = isDebug || function()
 
 var checkSecure = checkSecure || function()
 {
-	if(!isDev())
+	if(!isDev() && isHttpProtocol())
 	{
 		var url = Protocol.HTTPS + "//";
 		url += window.location.host;

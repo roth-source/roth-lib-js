@@ -1,7 +1,6 @@
 #!/bin/bash
 
 VERSION="0.1.5-SNAPSHOT";
-GROUP="roth.lib.js";
 ARTIFACTS=(
 	"roth-lib-js-env"
 	"roth-lib-js"
@@ -10,11 +9,6 @@ ARTIFACTS=(
 	"roth-lib-js-client-dev"
 	"roth-lib-js-framework"
 );
-PROJECT="project.sh";
-SRC="src";
-RESOURCES="resources";
-TARGET="target";
-NAMESPACE="_namespace.js";
 
 while getopts "v:" opt;
 do
@@ -24,16 +18,23 @@ do
 			;;
 	esac
 done
+version="$VERSION";
 
 for ARTIFACT in "${ARTIFACTS[@]}";
 do
+	GROUP="roth.lib.js";
+	PROJECT="project.sh";
+	SRC="src";
+	RESOURCES="resources";
+	TARGET="target";
+	COPY=();
+	NAMESPACE="_namespace.js";
 	
 	cd ../"$ARTIFACT";
 	if [ -f "$PROJECT" ];
 	then
 		
 		source "$PROJECT";
-		version="$VERSION";
 		group=${GROUP//./\/};
 		artifact="$ARTIFACT";
 		files=("${FILES[@]}");
@@ -41,6 +42,7 @@ do
 		resources="$RESOURCES";
 		target="$TARGET";
 		namespace="$NAMESPACE";
+		copy=("${COPY[@]}");
 		
 		echo "Packaging $artifact";
 		
@@ -61,6 +63,13 @@ do
 			cp -r "$resources/." "$target";
 		fi
 		
+		for dest in "${copy[@]}";
+		do
+			cp -rf "$target/"* "$dest"
+		done
+		
 	fi
 	
 done
+
+

@@ -2,13 +2,12 @@
 	<span class="roth-dev-endpoint-label">endpoint</span>
 	<input id="dev-endpoint" class="roth-dev-endpoint-input" type="text" />
 </div>
-{% forEach(config.dev, function(data, service) { %}
-{% if(isNotEmpty(data.service)) { %}
+{% forEach(config.dev.service, function(data, service) { %}
 <div class="roth-dev-panel">
 	<div class="roth-dev-panel-header">{{ service }}</div>
 	<div class="roth-dev-panel-body">
 		<div id="{{ service }}-group" class="panel-group " role="tablist" aria-multiselectable="true">
-			{% forEach(data.service, function(model, method) { 
+			{% forEach(data, function(model, method) { 
 				var id = IdUtil.generate(); %}
 			<div class="roth-dev-panel">
 				<div class="roth-dev-panel-header roth-dev-panel-header-method" onclick="client.page.togglePanel(this);">{{ method }}</div>
@@ -67,7 +66,6 @@
 		</div>
 	</div>
 </div>
-{% } %}
 {% }); %}
 
 <script>

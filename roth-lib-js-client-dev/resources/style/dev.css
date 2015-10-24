@@ -253,25 +253,18 @@ a.roth-dev-link:hover, a.roth-dev-link:active
 {
 	text-decoration:underline;
 }
-.roth-dev-param-name
+.roth-dev-param-value
 {
-	display: block;
-	font-weight: 700;
+	color: #47acc3;
+	margin:0;
+	padding:0;
+	border: none;
 }
-input.roth-dev-param-value
-{
-	width:100%;
-	margin-bottom:5px;
-	border: 1px solid #ccc;
-	padding: 5px 5px;
-	color: #555;
-	font-size: 12px;
-	border-radius: 3px;
-}
-input.roth-dev-param-value:focus
+.roth-dev-param-value:focus
 {
 	outline: 0 none;
-	border-color: #94d6e9;
+	margin: -3px 0;
+	padding: 3px 0;
 	box-shadow: 0 0 12px rgba(148, 214, 233, 0.8);
 }
 .roth-dev-endpoint

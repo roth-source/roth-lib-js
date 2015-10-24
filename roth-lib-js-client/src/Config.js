@@ -7,10 +7,12 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.jqueryVersion					= "1.11.2";
 	
 	this.devTemplateScript				= "http://dist.roth.cm/roth/js/roth-lib-js-template/" + this.versionToken + "/roth-lib-js-template.js";
-	this.devPath						= "http://dist.roth.cm/roth/js/roth-lib-js-client-dev/" + this.versionToken + "/";
+	this.devAppPath						= "http://dist.roth.cm/roth/js/roth-lib-js-client-dev/" + this.versionToken + "/";
 	this.devScript						= "roth-lib-js-client-dev.js";
 	this.devStyle						= "style/dev.css";
-	this.devConfigScript				= null;
+	this.devDataPath					= "dev/"
+	this.devConfigData					= "dev";
+	this.devConfigExtension				= ".json";
 	this.devViewPath					= "view/";
 	this.devViewExtension				= ".html";
 	this.devLayoutPath					= "layout/";
@@ -23,7 +25,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.devLinksPage					= "links";
 	this.devServicesPage				= "services";
 	this.devConfigPage					= "config";
-	this.devServicePath					= "dev/service/";
+	this.devServicePath					= "service/";
 	this.devServiceRequest				= "request";
 	this.devServiceResponse				= "response";
 	this.devServiceExtension			= ".json";
@@ -40,6 +42,9 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	
 	this.langStorage					= "lang";
 	this.langAttribute					= "lang";
+	
+	this.configData						= "config";
+	this.configExtension				= ".json";
 	
 	this.textPath						= "text/";
 	this.textExtension					= ".json";
@@ -123,6 +128,23 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.validator 						= {};
 	this.feedbacker 					= {};
 	this.disabler						= {};
+	
+	this.getConfigDataPath = function()
+	{
+		var path = "";
+		path += this.configData;
+		path += this.configExtension;
+		return path;
+	};
+	
+	this.getDevConfigDataPath = function()
+	{
+		var path = "";
+		path += this.devDataPath;
+		path += this.devConfigData;
+		path += this.devConfigExtension;
+		return path;
+	};
 	
 	this.isValidLang = function(lang)
 	{
@@ -241,13 +263,9 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 		return isValidString(layout) ? layout : module;
 	};
 	
-	this.getErrorParamsRedirector = function(module, page, layout)
+	this.getErrorParamsRedirector = function(module, page)
 	{
 		var redirector = this.getPageConfig(module, page, "errorParamsRedirector");
-		if(!isSet(redirector))
-		{
-			redirector = this.getLayoutConfig(layout, "errorParamsRedirector");
-		}
 		if(!isSet(redirector))
 		{
 			redirector = this.errorParamsRedirector;
@@ -275,42 +293,16 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 		return isString(redirector) ? this.redirector[redirector] : redirector;
 	};
 	
-	this.getParam = function(module, page, layout)
+	this.getParams = function(module, page)
 	{
-		var param = {};
-		this.getMergeParam(param, this.getLayoutParam(layout));
-		this.getMergeParam(param, this.getPageParam(module, page));
-		return param;
+		var params = this.getPageConfig(module, page, "params");
+		return isArray(params) ? params : [];
 	};
 	
-	this.getMergeParam = function(param, mergeParam)
+	this.getChangeParams = function(module, page)
 	{
-		if(isObject(mergeParam))
-		{
-			var fields = ["change", "required", "any"];
-			for(var i in fields)
-			{
-				var field = fields[i];
-				if(isArray(mergeParam[field]))
-				{
-					if(!isArray(param[field]))
-					{
-						param[field] = [];
-					}
-					param[field].concat(mergeParam[field]);
-				}
-			}
-		}
-	};
-	
-	this.getLayoutParam = function(layout)
-	{
-		return this.getLayoutConfig(layout, "param");
-	};
-	
-	this.getPageParam = function(module, page)
-	{
-		return this.getPageConfig(module, page, "param");
+		var changeParams = this.getPageConfig(module, page, "changeParams");
+		return isArray(changeParams) ? changeParams : [];
 	};
 	
 	this.getLayoutRenderer = function(layout)
@@ -420,6 +412,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.getDevServicePath = function(service, method)
 	{
 		var path = "";
+		path += this.devDataPath;
 		path += this.devServicePath;
 		path += service;
 		path += "/";
@@ -463,9 +456,9 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.getDevServiceRequestScenarios = function(service, method)
 	{
 		var scenarios = [];
-		if(isObject(this.dev[service]) && isObject(this.dev[service].service) && isObject(this.dev[service].service[method]) && isArray(this.dev[service].service[method].request))
+		if(isObject(this.dev.service) && isObject(this.dev.service[service]) && isObject(this.dev.service[service][method]) && isArray(this.dev.service[service][method].request))
 		{
-			scenarios = this.dev[service].service[method].request;
+			scenarios = this.dev.service[service][method].request;
 		}
 		return scenarios;
 	};
@@ -473,9 +466,9 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.getDevServiceResponseScenarios = function(service, method)
 	{
 		var scenarios = [];
-		if(isObject(this.dev[service]) && isObject(this.dev[service].service) && isObject(this.dev[service].service[method]) && isArray(this.dev[service].service[method].response))
+		if(isObject(this.dev.service) && isObject(this.dev.service[service]) && isObject(this.dev.service[service][method]) && isArray(this.dev.service[service][method].response))
 		{
-			scenarios = this.dev[service].service[method].response;
+			scenarios = this.dev.service[service][method].response;
 		}
 		return scenarios;
 	};
@@ -512,29 +505,29 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 		return this.devTemplateScript.replace(this.getVersionRegExp(), roth.lib.js.client.version);
 	};
 	
-	this.getDevPath = function()
+	this.getDevAppPath = function()
 	{
-		return this.devPath.replace(this.getVersionRegExp(), roth.lib.js.client.version);
+		return this.devAppPath.replace(this.getVersionRegExp(), roth.lib.js.client.version);
 	};
 	
 	this.getDevScript = function()
 	{
-		return this.getDevPath() + this.devScript;
+		return this.getDevAppPath() + this.devScript;
 	};
 	
 	this.getDevStyle = function()
 	{
-		return this.getDevPath() + this.devStyle;
+		return this.getDevAppPath() + this.devStyle;
 	};
 	
 	this.getDevLayoutPath = function()
 	{
-		return this.getDevPath() + this.devViewPath + this.devLayoutPath + this.devLayout + this.devViewExtension;
+		return this.getDevAppPath() + this.devViewPath + this.devLayoutPath + this.devLayout + this.devViewExtension;
 	};
 	
 	this.getDevModulePath = function()
 	{
-		return this.getDevPath() + this.devViewPath + this.devPagePath + this.devModule + "/";
+		return this.getDevAppPath() + this.devViewPath + this.devPagePath + this.devModule + "/";
 	};
 	
 	this.getDevLinksPath = function()
@@ -554,12 +547,12 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	
 	this.getDevSelectsPath = function()
 	{
-		return this.getDevPath() + this.devViewPath + this.devComponentPath + this.devSelectsComponent + this.devViewExtension;
+		return this.getDevAppPath() + this.devViewPath + this.devComponentPath + this.devSelectsComponent + this.devViewExtension;
 	};
 	
 	this.getDevSelectPath = function()
 	{
-		return this.getDevPath() + this.devViewPath + this.devComponentPath + this.devSelectComponent + this.devViewExtension;
+		return this.getDevAppPath() + this.devViewPath + this.devComponentPath + this.devSelectComponent + this.devViewExtension;
 	};
 	
 	this.isFieldKeep = function(element)
