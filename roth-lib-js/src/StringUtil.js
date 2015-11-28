@@ -34,6 +34,16 @@ var StringUtil = StringUtil || (function()
 			}
 		},
 		
+		repeat : function(value, length)
+		{
+			var repeated = "";
+			for(var i = 0; i < length; i++)
+			{
+				repeated += value;
+			}
+			return repeated;
+		},
+		
 		equals : function(value1, value2, caseInsensitive)
 		{
 			caseInsensitive = isSet(caseInsensitive) ? caseInsensitive : true;

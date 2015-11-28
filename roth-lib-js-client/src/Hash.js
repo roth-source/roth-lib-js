@@ -14,6 +14,8 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 	this.module = null;
 	this.page = null;
 	this.param = {};
+	this.search = null;
+	this.context = null;
 	
 	this.defaultModule = "index";
 	this.defaultPage = "index";	
@@ -240,6 +242,45 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 					hash += name + "/";
 					hash += values[i] + "/";
 					name = null;
+				}
+			}
+		}
+		if(isNull(this.search))
+		{
+			this.search = {};
+			var nameValues = window.location.search.substr(1).split("&");
+			for(var i = 0; i < nameValues.length; i++)
+			{
+				var nameValue = nameValues[i].split("=", 2);
+				if(nameValue.length == 2)
+				{
+					var name = nameValue[0];
+					var value = nameValue[1];
+					this.search[name] = decodeURIComponent(value.replace(/\+/g, " "));
+				}
+			}
+		}
+		if(isNull(this.context))
+		{
+			this.context = getContext();
+			if(isNull(this.context))
+			{
+				if(isSet(this.search.context))
+				{
+					this.context = this.search.context;
+				}
+				if(isNull(this.context))
+				{
+					if(isHyperTextProtocol())
+					{
+						var path = window.location.pathname.substr(1);
+						var index = path.lastIndexOf("/");
+						if(index > -1)
+						{
+							path = path.slice(0, index);
+						}
+						this.context = path;
+					}
 				}
 			}
 		}

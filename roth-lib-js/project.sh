@@ -6,6 +6,7 @@ FILES=(
 	"CurrencyUtil.js"
 	"DateUtil.js"
 	"IdUtil.js"
+	"NumberUtil.js"
 	"ObjectUtil.js"
 	"StringUtil.js"
 );

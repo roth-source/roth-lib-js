@@ -45,7 +45,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	{
 		if(!isSet(jQuery))
 		{
-			document.write('<script src="' + this.config.jgetJqueryScript() + '"></script>');
+			document.write('<script src="' + this.config.getJqueryScript() + '"></script>');
 		}
 	};
 	
@@ -820,16 +820,16 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 
-	this.queueComponent = function(element, component, data)
+	this.queueComponent = function(element, component, data, callback)
 	{
 		var id = IdUtil.generate();
 		this.queue.component(id, function()
 		{
-			self.loadComponent(element, component, data, id);
+			self.loadComponent(element, component, data, callback, id);
 		});
 	};
 	
-	this.loadComponent = function(element, component, data, id)
+	this.loadComponent = function(element, component, data, callback, id)
 	{
 		var success = function(html)
 		{
@@ -851,6 +851,10 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			if(!self.config.isFieldKeep(element))
 			{
 				element.removeAttr(self.config.componentAttribute);
+			}
+			if(isFunction(callback))
+			{
+				callback();
 			}
 			self.queue.complete(id);
 		};

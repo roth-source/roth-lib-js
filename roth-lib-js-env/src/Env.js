@@ -20,6 +20,7 @@ roth.lib.js.env.hosts = roth.lib.js.env.hosts || { local : ["localhost", "127.0.
 roth.lib.js.env.environment = roth.lib.js.env.environment || null;
 roth.lib.js.env.debug = roth.lib.js.env.debug || null;
 roth.lib.js.env.compiled = roth.lib.js.env.compiled || false;
+roth.lib.js.env.context = roth.lib.js.env.context || null;
 roth.lib.js.env.dependencies = roth.lib.js.env.dependencies || [];
 
 var setHosts = setHosts || function(environment, hosts)
@@ -42,19 +43,22 @@ var setLocal = setLocal || function()
 	setEnvironment(Environment.LOCAL);
 };
 
-var setTest = setTest || function()
+var setTest = setTest || function(context)
 {
 	setEnvironment(Environment.TEST);
+	setContext(context);
 };
 
-var setDemo = setDemo || function()
+var setDemo = setDemo || function(context)
 {
 	setEnvironment(Environment.DEMO);
+	setContext(context);
 };
 
-var setProd = setProd || function()
+var setProd = setProd || function(context)
 {
 	setEnvironment(Environment.PROD);
+	setContext(context);
 };
 
 var setDebug = setDebug || function(debug)
@@ -65,6 +69,14 @@ var setDebug = setDebug || function(debug)
 var setCompiled = setCompiled || function(compiled)
 {
 	roth.lib.js.env.compiled = compiled !== false ? true : false;
+};
+
+var setContext = setContext || function(context)
+{
+	if(context !== undefined)
+	{
+		roth.lib.js.env.context = context;
+	}
 };
 
 var setDependencies = setDependencies || function(dependencies)
@@ -171,6 +183,11 @@ var isDebug = isDebug || function()
 		roth.lib.js.env.debug = search.indexOf("debug") != -1;
 	}
 	return roth.lib.js.env.debug;
+};
+
+var getContext = getContext || function()
+{
+	return roth.lib.js.env.context;
 };
 
 var checkSecure = checkSecure || function()

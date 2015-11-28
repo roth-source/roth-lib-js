@@ -188,7 +188,11 @@ var DateUtil = DateUtil || (function()
 					case "zz":
 					case "z":
 					{
-						replacement = /\((\w*)\)/.exec(date.toString())[1];
+						var matcher = /\((\w*)\)/.exec(date.toString());
+						if(!isNull(matcher))
+						{
+							replacement = matcher[1];
+						}
 						break;
 					}
 					case "Z":
