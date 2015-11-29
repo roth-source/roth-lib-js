@@ -258,12 +258,11 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			var changeParams = this.config.getChangeParams(module, page);
 			if(isNotEmpty(changeParams))
 			{
-				/*
 				var changed = false;
 				var loadedParam = this.hash.cloneLoadedParam();
 				for(var name in this.hash.param)
 				{
-					changed = param.change.indexOf(name) > -1;
+					changed = changeParams.indexOf(name) > -1;
 					if(!changed)
 					{
 						changed = this.hash.param[name] == loadedParam[name];
@@ -297,7 +296,6 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 					}
 					loadable = false;
 				}
-				*/
 			}
 			var params = this.config.getParams(module, page);
 			if(isNotEmpty(params))
