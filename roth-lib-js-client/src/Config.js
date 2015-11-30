@@ -36,8 +36,6 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.defaultModule					= "index";
 	this.defaultPage					= "index";
 	
-	this.endpointStorage				= "endpoint";
-	
 	this.langStorage					= "lang";
 	this.langAttribute					= "lang";
 	
@@ -106,6 +104,8 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.fieldCheckboxValueAttribute	= "data-checkbox-value";
 	this.fieldFileValueAttribute		= "data-file-value";
 	
+	this.endpointStorage				= "endpoint";
+	this.endpointPath					= "endpoint/";
 	this.servicePath					= "service/";
 	this.csrfTokenParam					= "csrfToken";
 	this.csrfTokenStorage				= "csrfToken";

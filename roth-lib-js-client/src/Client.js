@@ -1443,7 +1443,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			if(isArray(endpoints) && isNotEmpty(endpoints))
 			{
 				endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];
-				localStorage.setItem(this.config.getEndpointStorage());
+				localStorage.setItem(this.config.getEndpointStorage(), endpoint);
 			}
 		}
 		return endpoint;
@@ -1509,7 +1509,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			var endpoint = this.getEndpoint();
 			if(isSet(endpoint))
 			{
-				url = "https://" + endpoint + "/" + this.hash.context + "/" + url;
+				url = "https://" + endpoint + "/" + this.hash.context + "/" + this.config.endpointPath + url;
 			}
 			else
 			{
