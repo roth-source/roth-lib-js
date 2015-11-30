@@ -1437,7 +1437,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	this.getEndpoint = function()
 	{
 		var endpoint = localStorage.getItem(this.config.getEndpointStorage());
-		if(isNotSet(endpoint))
+		if(!isSet(endpoint))
 		{
 			var endpoints = this.config.endpoint[getEnvironment()];
 			if(isArray(endpoints) && isNotEmpty(endpoints))
