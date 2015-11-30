@@ -6,7 +6,6 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	
 	this.config = new roth.lib.js.client.Config();
 	this.hash = new roth.lib.js.client.Hash();
-	this.endpoint = new roth.lib.js.client.Endpoint();
 	this.queue = new roth.lib.js.client.Queue();
 	this.dev = null;
 	
@@ -176,15 +175,6 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		this.hash.defaultModule = this.config.defaultModule;
 		this.hash.defaultPage = this.config.defaultPage;
 		this.hash.langStorage = this.config.langStorage;
-		this.endpoint.currentStorage = this.config.endpointCurrentStorage;
-		this.endpoint.availableStorage = this.config.endpointAvailableStorage;
-		if(!isSet(this.config.endpoint[getEnvironment()]) && isHyperTextProtocol())
-		{
-			var endpoint = "https://";
-			endpoint += window.location.host;
-			endpoint += window.location.pathname.slice(0, window.location.pathname.lastIndexOf("/") + 1);
-			this.config.endpoint[getEnvironment()] = [endpoint];
-		}
 	};
 	
 	this.initDev = function()
@@ -200,8 +190,8 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		if(this.isLoadable())
 		{
 			this.hide();
-			this.queueEndpoints();
-			//this.queueText();
+			this.queueEndpoint();
+			this.queueText();
 			if(this.hash.isNewLayout())
 			{
 				this.queueLayoutInit();
@@ -297,43 +287,37 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 					loadable = false;
 				}
 			}
-			var params = this.config.getParams(module, page);
-			if(isNotEmpty(params))
+			if(loadable)
 			{
-				var errorParamsRedirector = this.config.getErrorParamsRedirector(module, page);
-				if(isFunction(errorParamsRedirector))
+				var params = this.config.getParams(module, page);
+				if(isNotEmpty(params))
 				{
-					/*
-					if(loadable && isNotEmpty(param.required))
+					var errorParamsRedirector = this.config.getErrorParamsRedirector(module, page);
+					if(isFunction(errorParamsRedirector))
 					{
-						for(var i = 0; i < param.required.length; i++)
+						for(var i in params)
 						{
-							if(!this.hash.hasParam(param.required[i]))
+							var valid = true;
+							var param = params[i];
+							for(var name in param)
 							{
-								errorParamsRedirector();
-								loadable = false;
+								if(!this.hash.hasParam(name))
+								{
+									valid = false;
+									break;
+								}
+							}
+							if(valid)
+							{
+								loadable = true;
 								break;
 							}
 						}
-					}
-					if(loadable && isNotEmpty(param.any))
-					{
-						var found = false;
-						for(var i = 0; i < param.any.length; i++)
-						{
-							if(self.hash.hasParam(param.any[i]))
-							{
-								found = true;
-								break;
-							}
-						}
-						if(!found)
+						if(!loadable)
 						{
 							errorParamsRedirector();
-							loadable = false;
 						}
 					}
-					*/
 				}
 			}
 		}
@@ -381,85 +365,6 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			this.layout = {};
 		}
 		this.page = {};
-	};
-	
-	this.queueEndpoints = function()
-	{
-		var endpoints = sessionStorage.getItem(this.config.endpointAvailableStorage);
-		var id = IdUtil.generate();
-		this.queue.endpoints(id, function()
-		{
-			self.loadEndpoints(endpoints, id);
-		});
-	};
-	
-	this.loadEndpoints = function(endpoints, id)
-	{
-		if(isMock())
-		{
-			self.endpoint.clear();
-			self.queue.complete(id);
-		}
-		else if(!isSet(endpoints))
-		{
-			self.callEndpointList(self.config.endpoint[getEnvironment()],
-			function()
-			{
-				self.queue.complete(id);
-			},
-			function()
-			{
-				console.info("error");
-			});
-		}
-		else
-		{
-			self.queue.complete(id);
-		}
-	};
-	
-	this.callEndpointList = function(endpoints, success, error)
-	{
-		if(isArray(endpoints) && endpoints.length > 0)
-		{
-			var endpoint = endpoints.shift();
-			$.ajax(
-			{
-				type		: "POST",
-				url			: this.config.getEndpointListUrl(endpoint),
-				contentType	: "text/plain",
-				dataType	: "json",
-				cache		: false,
-				success		: function(response)
-				{
-					if(isLocal())
-					{
-						self.endpoint.set([endpoint]);
-						success();
-					}
-					else if(isArray(response.endpoints))
-					{
-						self.endpoint.set(response.endpoints);
-						success();
-					}
-					else
-					{
-						self.loadEndpoint(endpoints, success, error);
-					}
-				},
-				complete	: function(jqXHR, textStatus)
-				{
-					if("success" != textStatus)
-					{
-						self.callEndpointList(endpoints, success, error);
-					}
-				}
-			});
-		}
-		else
-		{
-			error();
-		}
 	};
 	
 	this.queueLayoutInit = function()
@@ -1530,6 +1435,26 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
+	this.getEndpoint = function()
+	{
+		var endpoint = localStorage.getItem(this.config.getEndpointStorage());
+		if(isNotSet(endpoint))
+		{
+			var endpoints = this.config.endpoint[getEnvironment()];
+			if(isArray(endpoints) && isNotEmpty(endpoints))
+			{
+				endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];
+				localStorage.setItem(this.config.getEndpointStorage());
+			}
+		}
+		return endpoint;
+	};
+	
+	this.resetEndpoint = function()
+	{
+		localStorage.removeItem(this.config.getEndpointStorage());
+	};
+	
 	this.service = function(service, method, request, success, error)
 	{
 		if(isMock())
@@ -1538,8 +1463,9 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 		else
 		{
-			var url = this.endpoint.current() + this.config.getServicePath(service, method);
-			this.serviceCall(url, request, success, error);
+			var endpoint = this.getEndpoint();
+			var path = this.config.getServicePath(service, method);
+			this.serviceCall(path, request, success, error);
 		}
 	};
 	
@@ -1550,32 +1476,45 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		{
 			this.dev.select(service + "/" + method, scenarios, function(scenario)
 			{
-				var url = self.config.getDevServiceResponsePath(service, method, scenario);
-				self.serviceCall(url, request, success, error);
+				var path = self.config.getDevServiceResponsePath(service, method, scenario);
+				self.serviceCall(path, request, success, error);
 			});
 		}
 		else
 		{
-			var url = self.config.getDevServiceResponsePath(service, method);
-			self.serviceCall(url, request, success, error);
+			var path = self.config.getDevServiceResponsePath(service, method);
+			self.serviceCall(path, request, success, error);
 		}
 	};
 	
-	this.serviceCall = function(url, request, success, error)
+	this.serviceCall = function(path, request, success, error)
 	{
 		var module = this.hash.getModule();
 		var page = this.hash.getPage();
-		if(url.substring(0, 4) == "http")
+		var url = path;
+		if(!isMock())
 		{
-			var sessionId = localStorage.getItem(this.config.devSessionId);
-			if(isSet(sessionId))
+			if(isLocal())
 			{
-				url += ";" + this.config.devSessionId + "=" + encodeURIComponent(sessionId);
+				var sessionId = localStorage.getItem(this.config.devSessionId);
+				if(isSet(sessionId))
+				{
+					url += ";" + this.config.devSessionId + "=" + encodeURIComponent(sessionId);
+				}
 			}
 			var csrfToken = localStorage.getItem(this.config.csrfTokenStorage);
 			if(isSet(csrfToken))
 			{
 				url += "?" + this.config.csrfTokenParam + "=" + encodeURIComponent(csrfToken);
+			}
+			var endpoint = this.getEndpoint();
+			if(isSet(endpoint))
+			{
+				url = "https://" + endpoint + "/" + this.hash.context + "/" + url;
+			}
+			else
+			{
+				// TODO: error
 			}
 		}
 		console.info(" REQUEST : " + url, request);

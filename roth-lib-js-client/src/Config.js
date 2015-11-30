@@ -36,9 +36,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.defaultModule					= "index";
 	this.defaultPage					= "index";
 	
-	this.endpointCurrentStorage			= "endpointCurrent";
-	this.endpointAvailableStorage		= "endpointAvailable";
-	this.endpointListPath				= "service/endpoint/list"
+	this.endpointStorage				= "endpoint";
 	
 	this.langStorage					= "lang";
 	this.langAttribute					= "lang";
@@ -128,6 +126,11 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.validator 						= {};
 	this.feedbacker 					= {};
 	this.disabler						= {};
+	
+	this.getEndpointStorage = function()
+	{
+		return this.endpointStorage + "-" + getEnvironment();
+	};
 	
 	this.getConfigDataPath = function()
 	{
@@ -471,13 +474,6 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 			scenarios = this.dev.service[service][method].response;
 		}
 		return scenarios;
-	};
-	
-	this.getEndpointListUrl = function(endpoint)
-	{
-		var url = endpoint;
-		url += this.endpointListPath;
-		return url;
 	};
 	
 	this.getVersionRegExp = function()

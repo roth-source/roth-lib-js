@@ -4,7 +4,6 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 	var Event =
 	{
 		CONFIG			: "config",
-		ENDPOINTS		: "endpoints",
 		INIT			: "init",
 		TEXT			: "text",
 		LAYOUT			: "layout",
@@ -22,9 +21,8 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 	
 	var Order = {};
 	Order[Event.CONFIG] 		= [];
-	Order[Event.ENDPOINTS] 		= [Event.CONFIG];
 	Order[Event.TEXT] 			= [Event.CONFIG];
-	Order[Event.INIT] 			= [Event.ENDPOINTS];
+	Order[Event.INIT] 			= [Event.CONFIG];
 	Order[Event.LAYOUT] 		= [Event.TEXT, Event.INIT];
 	Order[Event.PAGE] 			= [Event.LAYOUT];
 	Order[Event.SECTIONS] 		= [Event.PAGE];
@@ -42,11 +40,6 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 	this.config = function(id, callback)
 	{
 		this.add(id, Event.CONFIG, callback);
-	};
-	
-	this.endpoints = function(id, callback)
-	{
-		this.add(id, Event.ENDPOINTS, callback);
 	};
 	
 	this.init = function(id, callback)
