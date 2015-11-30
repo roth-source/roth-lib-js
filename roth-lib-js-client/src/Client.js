@@ -190,7 +190,6 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		if(this.isLoadable())
 		{
 			this.hide();
-			this.queueEndpoint();
 			this.queueText();
 			if(this.hash.isNewLayout())
 			{
