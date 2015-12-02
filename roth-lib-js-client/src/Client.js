@@ -1434,7 +1434,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	this.clear = function(element)
 	{
 		this.feedback(element);
-		var tag = element.prop(`"tagName").toLowerCase();
+		var tag = element.prop("tagName").toLowerCase();
 		var type = element.attr("type");
 		element.val("");
 		if(type == "file")
