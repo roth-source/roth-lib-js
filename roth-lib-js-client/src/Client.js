@@ -758,7 +758,16 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			{
 				callback();
 			}
-			self.queue.complete(id);
+			if(isSet(id))
+			{
+				self.queue.complete(id);
+			}
+			else
+			{
+				self.queueTranslation();
+				self.queueFields();
+				self.queue.execute();
+			}
 		};
 		var error = function(jqXHR, textStatus, errorThrown)
 		{
@@ -1425,7 +1434,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	this.clear = function(element)
 	{
 		this.feedback(element);
-		var tag = element.prop("tagName").toLowerCase();
+		var tag = element.prop(`"tagName").toLowerCase();
 		var type = element.attr("type");
 		element.val("");
 		if(type == "file")
