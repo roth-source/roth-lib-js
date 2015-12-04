@@ -1406,16 +1406,16 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		this.resetGroupsValue();
 	};
 	
-	this.resetGroup = function()
+	this.resetGroup = function(element)
 	{
-		this.resetGroupValidation();
-		this.resetGroupValue();
+		this.resetGroupValidation(element);
+		this.resetGroupValue(element);
 	};
 	
-	this.reset = function()
+	this.reset = function(element)
 	{
-		this.resetValidation();
-		this.resetValue();
+		this.resetValidation(element);
+		this.resetValue(element);
 	};
 	
 	this.resetGroupsValidation = function()
