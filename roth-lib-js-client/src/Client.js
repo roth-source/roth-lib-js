@@ -1402,36 +1402,62 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	
 	this.resetGroups = function()
 	{
+		this.resetGroupsValidation();
+		this.resetGroupsValue();
+	};
+	
+	this.resetGroup = function()
+	{
+		this.resetGroupValidation();
+		this.resetGroupValue();
+	};
+	
+	this.reset = function()
+	{
+		this.resetValidation();
+		this.resetValue();
+	};
+	
+	this.resetGroupsValidation = function()
+	{
 		$("[" + this.config.fieldGroupAttribute + "]").each(function()
 		{
-			self.resetGroup($(this));
+			self.resetGroupValidation($(this));
 		});
 	};
 	
-	this.resetGroup = function(element)
+	this.resetGroupValidation = function(element)
 	{
 		element = this.getJqueryElement(element, "[" + this.config.fieldGroupAttribute + "='{name}']");
 		this.findGroupElements(element, false).each(function()
 		{
-			self.reset($(this));
+			self.resetValidation($(this));
 		});
 	};
 	
-	this.reset = function(element)
+	this.resetValidation = function(element)
 	{
 		this.feedback(element);
 	};
 	
-	this.clearGroup = function(element)
+	this.resetGroupsValue = function()
+	{
+		$("[" + this.config.fieldGroupAttribute + "]").each(function()
+		{
+			self.resetGroupValue($(this));
+		});
+	};
+	
+	this.resetGroupValue = function(element)
 	{
 		element = this.getJqueryElement(element, "[" + this.config.fieldGroupAttribute + "='{name}']");
 		this.findGroupElements(element, false).each(function()
 		{
-			self.clear($(this));
+			self.resetValue($(this));
 		});
 	};
 	
-	this.clear = function(element)
+	this.resetValue = function(element)
 	{
 		this.feedback(element);
 		var tag = element.prop("tagName").toLowerCase();
