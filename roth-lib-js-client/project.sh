@@ -1,8 +1,10 @@
 #!/bin/bash
 
-FILES=(
+
+files=(
 	"Client.js"
 	"Config.js"
 	"Hash.js"
 	"Queue.js"
 );
+

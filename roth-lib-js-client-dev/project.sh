@@ -1,3 +1,5 @@
 #!/bin/bash
 
-FILES=("Dev.js");
+
+files=("Dev.js");
+

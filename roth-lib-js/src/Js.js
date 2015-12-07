@@ -1,4 +1,8 @@
 
+/**
+ * Javascript variable type enum
+ * @enum {string}
+ */
 var Type = Type ||
 {
 	UNDEFINED 	: "undefined",

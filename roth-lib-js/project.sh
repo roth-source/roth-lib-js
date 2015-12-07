@@ -1,6 +1,7 @@
 #!/bin/bash
 
-FILES=(
+
+files=(
 	"Js.js"
 	"CookieUtil.js"
 	"CurrencyUtil.js"
@@ -10,5 +11,5 @@ FILES=(
 	"ObjectUtil.js"
 	"StringUtil.js"
 );
+copy=("../../roth-lib-java/roth-lib-java-template/src/main/resources/");
 
-COPY=("../../roth-lib-java/roth-lib-java-template/src/main/resources/");

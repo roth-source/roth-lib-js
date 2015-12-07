@@ -1,36 +1,27 @@
 #!/bin/bash
 
-REPO_USER="root";
-REPO_HOST="dist.roth.cm";
-REPO_PORT="22";
-REPO_DIR="/opt/nginx/base/apps/dist";
-CTL_DIR="$HOME/.ssh/ctl";
-CTL_PATH="$CTL_DIR/%L-%r@%h:%p";
 
+repo_user="root";
+repo_host="dist.roth.cm";
+repo_port="22";
+repo_dir="/opt/nginx/base/apps/dist";
+ctl_dir="$HOME/.ssh/ctl";
+ctl_path="$ctl_dir/%L-%r@%h:%p";
 source "package.sh";
-
-mkdir -p "$CTL_DIR";
-ssh -nNf -o "ControlMaster=yes" -o "ControlPath=$CTL_PATH" -p "$REPO_PORT" "$REPO_USER@$REPO_HOST";
-
-for ARTIFACT in "${ARTIFACTS[@]}";
+mkdir -p "$ctl_dir";
+ssh -nNf -o "ControlMaster=yes" -o "ControlPath=$ctl_path" -p "$repo_port" "$repo_user@$repo_host";
+for artifact in "${artifacts[@]}";
 do
-	
-	cd ../"$ARTIFACT";
-	if [ -f "$PROJECT" ];
+	group="roth/lib/js";
+	cd ../"$artifact";
+	if [ -f "project.sh" ];
 	then
-		
-		source "$PROJECT";
-		version="$VERSION";
-		group=${GROUP//./\/};
-		artifact="$ARTIFACT";
-		target="$TARGET";
-		
-		repo_dest="$REPO_DIR/$group/$artifact/$version";
-		ssh -o "ControlPath=$CTL_PATH" -p "$REPO_PORT" "$REPO_USER@$REPO_HOST" "mkdir -p \"$repo_dest\"";
-		scp -o "ControlPath=$CTL_PATH" -P "$REPO_PORT" -r "$target"/* "$REPO_USER@$REPO_HOST":"$repo_dest";
-		rm -rf "$target/"*;
+		source "project.sh";
+		repo_dest="$repo_dir/$group/$artifact/$version";
+		ssh -o "ControlPath=$ctl_path" -p "$repo_port" "$repo_user@$repo_host" "mkdir -p \"$repo_dest\"";
+		scp -o "ControlPath=$ctl_path" -P "$repo_port" -r "target"/* "$repo_user@$repo_host":"$repo_dest";
+		rm -rf "target/"*;
 	fi
-	
 done
+ssh -O exit -o "ControlPath=$ctl_path" -p "$repo_port" "$repo_user@$repo_host";
 
-ssh -O exit -o "ControlPath=$CTL_PATH" -p "$REPO_PORT" "$REPO_USER@$REPO_HOST";
