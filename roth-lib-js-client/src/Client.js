@@ -1684,7 +1684,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	 * read file contents into a base64 string
 	 * @method
 	 * @param {Node|jQuery|String} element
-	 * @param {Function} callback
+	 * @param {Function} [callback]
 	 */
 	this.file = function(element, callback)
 	{

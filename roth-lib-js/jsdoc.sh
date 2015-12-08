@@ -16,3 +16,8 @@ done
 -d ../../roth-lib-js-doc/jsdoc \
 $src;
 
+cd ../../roth-lib-js-doc/;
+git add .;
+git commit -m "update";
+git push;
+

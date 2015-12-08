@@ -1,8 +1,11 @@
 
 
-/**
- * @namespace roth.lib.js.env
- */
+roth.lib.js.env.hosts = roth.lib.js.env.hosts || { local : ["localhost", "127.0.0.1"] };
+roth.lib.js.env.environment = roth.lib.js.env.environment || null;
+roth.lib.js.env.debug = roth.lib.js.env.debug || null;
+roth.lib.js.env.compiled = roth.lib.js.env.compiled || false;
+roth.lib.js.env.context = roth.lib.js.env.context || null;
+roth.lib.js.env.dependencies = roth.lib.js.env.dependencies || [];
 
 /**
  * enum of web protocols
@@ -28,48 +31,6 @@ var Environment = Environment ||
 	DEMO		: "demo",
 	PROD		: "prod"
 };
-
-/**
- * map of environment keys to array of hosts
- * @memberof roth.lib.js.env
- * @type {Object}
- */
-roth.lib.js.env.hosts = roth.lib.js.env.hosts || { local : ["localhost", "127.0.0.1"] };
-
-/**
- * current environment
- * @memberof roth.lib.js.env
- * @type {String}
- */
-roth.lib.js.env.environment = roth.lib.js.env.environment || null;
-
-/**
- * if debugging is turned on
- * @memberof roth.lib.js.env
- * @type {Boolean}
- */
-roth.lib.js.env.debug = roth.lib.js.env.debug || null;
-
-/**
- * if compiled assets should be used
- * @memberof roth.lib.js.env
- * @type {Boolean}
- */
-roth.lib.js.env.compiled = roth.lib.js.env.compiled || false;
-
-/**
- * the context path of the endpoint
- * @memberof roth.lib.js.env
- * @type {String}
- */
-roth.lib.js.env.context = roth.lib.js.env.context || null;
-
-/**
- * list of static dependency objects
- * @memberof roth.lib.js.env
- * @type {Array}
- */
-roth.lib.js.env.dependencies = roth.lib.js.env.dependencies || [];
 
 /**
  * adds an array of hosts to the map
