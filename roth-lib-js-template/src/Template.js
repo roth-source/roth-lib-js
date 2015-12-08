@@ -181,8 +181,7 @@ roth.lib.js.template.Template = roth.lib.js.template.Template || function(config
 	 */
 	this.renderParsed = function(parsedSource, scope)
 	{
-		parsedSource = self.parseScope(scope) + parsedSource;
-		return new Function(config.scopeVar, parsedSource)(scope);
+		return new Function(config.scopeVar, self.parseScope(scope) + parsedSource)(scope);
 	};
 	
 	/**

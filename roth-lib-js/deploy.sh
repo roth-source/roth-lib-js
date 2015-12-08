@@ -20,7 +20,6 @@ do
 		repo_dest="$repo_dir/$group/$artifact/$version";
 		ssh -o "ControlPath=$ctl_path" -p "$repo_port" "$repo_user@$repo_host" "mkdir -p \"$repo_dest\"";
 		scp -o "ControlPath=$ctl_path" -P "$repo_port" -r "target"/* "$repo_user@$repo_host":"$repo_dest";
-		rm -rf "target/"*;
 	fi
 done
 ssh -O exit -o "ControlPath=$ctl_path" -p "$repo_port" "$repo_user@$repo_host";

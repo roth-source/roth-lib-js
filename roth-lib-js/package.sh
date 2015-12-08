@@ -22,11 +22,16 @@ do
 		rm -rf "target/"*;
 		mkdir -p "target";
 		touch "target/$artifact.js";
-		if [ -f "src/_namespace.js" ];
-		then
-			cat "src/_namespace.js" >> "target/$artifact.js";
-			echo -e "${artifact//-/.}.version = \"$version\";" >> "target/$artifact.js";
-		fi
+		echo -n "var " >> "target/$artifact.js";
+		namespace="";
+		seperator="";
+		for name in ${artifact//-/ };
+		do
+			namespace="$namespace$seperator$name";
+			seperator=".";
+			echo -e "$namespace = $namespace || {};" >> "target/$artifact.js";
+		done
+		echo -e "$namespace.version = \"$version\";" >> "target/$artifact.js";
 		cat $(printf "src/%s " "${files[@]}") >> "target/$artifact.js";
 		if [ -d "resources" ];
 		then
