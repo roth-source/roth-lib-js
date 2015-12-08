@@ -1,19 +1,69 @@
 
+
+/**
+ * @class
+ */
 roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 {
+	/**
+	 * @lends Client.prototype
+	 */
+	
 	var self = this;
 	var inited = false;
 	
+	/**
+	 * The clients instance of the config.
+	 * @member {Config}
+	 */
 	this.config = new roth.lib.js.client.Config();
+	
+	/**
+	 * The clients instance of the current hash.
+	 * @member {Hash}
+	 */
 	this.hash = new roth.lib.js.client.Hash();
+	
+	/**
+	 * The clients instance of the queue.
+	 * @member {Queue}
+	 */
 	this.queue = new roth.lib.js.client.Queue();
+	
+	/**
+	 * The clients instance of the dev only class.
+	 * @member {Dev}
+	 */
 	this.dev = null;
 	
+	/**
+	 * A scope object for storing text for current lang translation
+	 * @member {Object}
+	 */
 	this.text = {};
+	
+	/**
+	 * A scope object for functions and variables in the current layout scope.
+	 * @member {Object}
+	 */
 	this.layout = {};
+	
+	/**
+	 * A scope object for functions and variables in the current page scope.
+	 * @member {Object}
+	 */
 	this.page = {};
+	
+	/**
+	 * A scope object for functions and variables manually managed by the application.
+	 * @member {Object}
+	 */
 	this.context = {};
 	
+	/**
+	 * inits the client framework
+	 * @method
+	 */
 	this.init = function()
 	{
 		this.checkJquery();
@@ -38,8 +88,12 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 				});
 			}
 		});
-	};
+	}
 	
+	/**
+	 * loads jquery if not loaded
+	 * @method
+	 */
 	this.checkJquery = function()
 	{
 		if(!isSet(jQuery))
@@ -48,6 +102,10 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
+	/**
+	 * loads dev related assets if dev environment
+	 * @method
+	 */
 	this.checkDev = function()
 	{
 		if(isDev())
@@ -64,10 +122,14 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
+	/**
+	 * loads the application config.json data into framework and loads init callback
+	 * @method
+	 * @param {Function} init
+	 */
 	this.loadConfig = function(init)
 	{
-		var configId = IdUtil.generate();
-		this.queue.config(configId, function()
+		var configId = this.queue.config(function()
 		{
 			self.loadResource(self.config.getConfigDataPath(), "json",
 			function(data)
@@ -108,8 +170,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 		if(isDev())
 		{
-			var devConfigId = IdUtil.generate();
-			this.queue.config(devConfigId, function()
+			var devConfigId = this.queue.config(function()
 			{
 				self.loadResource(self.config.getDevConfigDataPath(), "json",
 				function(data)
@@ -126,8 +187,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 				});
 			});
 		}
-		var initId = IdUtil.generate();
-		this.queue.callback(initId, function()
+		var initId = this.queue.callback(function()
 		{
 			self.queue.complete(initId);
 			init();
@@ -135,6 +195,10 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		this.queue.execute();
 	};
 	
+	/**
+	 * removes console functions if not a dev or debug env
+	 * @method
+	 */
 	this.initConsole = function()
 	{
 		var console = window.console;
@@ -157,6 +221,10 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
+	/**
+	 * customizes jquery
+	 * @method
+	 */
 	this.initJquery = function()
 	{
 		jQuery.expr[":"].notInitedValue = function(node, index, match)
@@ -170,6 +238,10 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		};
 	};
 	
+	/**
+	 * sets defaults from config object to other objects
+	 * @method
+	 */
 	this.initConfig = function()
 	{
 		this.hash.defaultModule = this.config.defaultModule;
@@ -177,6 +249,10 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		this.hash.langStorage = this.config.langStorage;
 	};
 	
+	/**
+	 * creates instance of dev object if dev environment
+	 * @method
+	 */
 	this.initDev = function()
 	{
 		if(isDev())
@@ -185,6 +261,10 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
+	/**
+	 * loads the application if it is determined to be loadable based on parsed hash and config
+	 * @method
+	 */
 	this.load = function()
 	{
 		if(this.isLoadable())
@@ -209,6 +289,11 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
+	/**
+	 * checks valid hash, sets lang, checks changed params, and validates param scenarios
+	 * @method
+	 * @returns {Boolean}
+	 */
 	this.isLoadable = function()
 	{
 		var loadable = this.hash.isValid();
@@ -323,16 +408,30 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		return loadable;
 	};
 	
+	/**
+	 * gets the jquery layout container
+	 * @method
+	 * @returns {jQuery}
+	 */
 	this.getLayoutElement = function()
 	{
 		return $("#" + this.config.layoutId);
 	};
 	
+	/**
+	 * gets the jquery page container
+	 * @method
+	 * @returns {jQuery}
+	 */
 	this.getPageElement = function()
 	{
 		return $("#" + this.config.pageId);
 	};
 	
+	/**
+	 * hides and empties the portion of the app that will be changed
+	 * @method
+	 */
 	this.hide = function()
 	{
 		this.hash.log();
@@ -366,15 +465,23 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		this.page = {};
 	};
 	
+	/**
+	 * queues loading of layout init
+	 * @method
+	 */
 	this.queueLayoutInit = function()
 	{
-		var id = IdUtil.generate();
-		this.queue.init(id, function()
+		var id = this.queue.init(function()
 		{
 			self.loadLayoutInit(id);
 		});
 	};
 	
+	/**
+	 * calls the layout init method and saves response to layout.init
+	 * @method
+	 * @param {String} id
+	 */
 	this.loadLayoutInit = function(id)
 	{
 		var init = this.config.getLayoutInit(this.hash.layout);
@@ -407,15 +514,23 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
+	/**
+	 * queues loading of page init
+	 * @method
+	 */
 	this.queuePageInit = function()
 	{
-		var id = IdUtil.generate();
-		this.queue.init(id, function()
+		var id = this.queue.init(function()
 		{
 			self.loadPageInit(id);
 		});
 	};
 	
+	/**
+	 * calls the page init method and saves response to page.init
+	 * @method
+	 * @param {String} id
+	 */
 	this.loadPageInit = function(id)
 	{
 		var module = this.hash.getModule();
@@ -450,6 +565,14 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
+	/**
+	 * an ajax call to load a static resource
+	 * @method
+	 * @param {String} path
+	 * @param {String} dataType
+	 * @param {Function} success
+	 * @param {Function} error
+	 */
 	this.loadResource = function(path, dataType, success, error)
 	{
 		$.ajax(
@@ -464,18 +587,26 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
+	/**
+	 * queues loading of text translation
+	 * @method
+	 */
 	this.queueText = function()
 	{
 		if(this.hash.isNewLang())
 		{
-			var id = IdUtil.generate();
-			this.queue.text(id, function()
+			var id = this.queue.text(function()
 			{
 				self.loadText(id);
 			});
 		}
 	};
 	
+	/**
+	 * loads language translation file into text scope object
+	 * @method
+	 * @param {String} id
+	 */
 	this.loadText = function(id)
 	{
 		var success = function(text)
@@ -491,20 +622,35 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		this.loadTextResource(this.hash.lang, success, error);
 	};
 	
+	/**
+	 * convenience function for loading text resource
+	 * @method
+	 * @param {String} lang
+	 * @param {Function} success
+	 * @param {Function} error
+	 */
 	this.loadTextResource = function(lang, success, error)
 	{
 		this.loadResource(this.config.getTextPath(lang), "json", success, error);
 	};
 	
+	/**
+	 * queues loading of layout template
+	 * @method
+	 */
 	this.queueLayout = function()
 	{
-		var id = IdUtil.generate();
-		this.queue.layout(id, function()
+		var id = this.queue.layout(function()
 		{
 			self.loadLayout(id);
 		});
 	};
 	
+	/**
+	 * gets layout template, renders it and loads into dom
+	 * @method
+	 * @param {String} id
+	 */
 	this.loadLayout = function(id)
 	{
 		var layout = this.hash.layout;
@@ -545,20 +691,35 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
+	/**
+	 * convenience function for loading layout resource
+	 * @method
+	 * @param {String} layout
+	 * @param {Function} success
+	 * @param {Function} error
+	 */
 	this.loadLayoutResource = function(layout, success, error)
 	{
 		this.loadResource(this.config.getLayoutPath(layout), "text", success, error);
 	};
 	
+	/**
+	 * queues loading of page template
+	 * @method
+	 */
 	this.queuePage = function()
 	{
-		var id = IdUtil.generate();
-		this.queue.page(id, function()
+		var id = this.queue.page(function()
 		{
 			self.loadPage(id);
 		});
 	};
 	
+	/**
+	 * gets page template, renders it and loads into dom
+	 * @method
+	 * @param {String} id
+	 */
 	this.loadPage = function(id)
 	{
 		var module = this.hash.getModule();
@@ -595,16 +756,27 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		};
 		this.loadPageResource(module, page, success, error);
 	};
-	
+
+	/**
+	 * convenience function for loading page resource
+	 * @method
+	 * @param {String} module
+	 * @param {String} page
+	 * @param {Function} success
+	 * @param {Function} error
+	 */
 	this.loadPageResource = function(module, page, success, error)
 	{
 		this.loadResource(this.config.getPagePath(module, page), "text", success, error);
 	};
-	
+
+	/**
+	 * queues loading of sections
+	 * @method
+	 */
 	this.queueSections = function()
 	{
-		var id = IdUtil.generate();
-		this.queue.sections(id, function()
+		var id = this.queue.sections(function()
 		{
 			$("[" + self.config.sectionAttribute + "]").each(function()
 			{
@@ -615,7 +787,11 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			self.queue.complete(id);
 		});
 	};
-	
+
+	/**
+	 * searches dom for section attributes to load
+	 * @method
+	 */
 	this.loadSections = function()
 	{
 		$("[" + this.config.sectionAttribute + "]").each(function()
@@ -625,16 +801,26 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			self.loadSection(element, section);
 		});
 	};
-	
+
+	/**
+	 * queues section loading
+	 * @method
+	 */
 	this.queueSection = function(element, section)
 	{
-		var id = IdUtil.generate();
-		this.queue.section(id, function()
+		var id = this.queue.section(function()
 		{
 			self.loadSection(element, section, id);
 		});
 	};
-	
+
+	/**
+	 * loads a section template into jquery element
+	 * @method
+	 * @param {jQuery} element
+	 * @param {String} section
+	 * @param {String} [id]
+	 */
 	this.loadSection = function(element, section, id)
 	{
 		var section = isValidString(section) ? section : element.attr(this.config.sectionAttribute);
@@ -675,12 +861,25 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		};
 		this.loadSectionResource(section, success, error);
 	};
-	
+
+	/**
+	 * convenience for loading section resource
+	 * @method
+	 * @param {String} section
+	 * @param {Function} success
+	 * @param {Function} error
+	 */
 	this.loadSectionResource = function(section, success, error)
 	{
 		this.loadResource(this.config.getSectionPath(section), "text", success, error);
 	};
-	
+
+	/**
+	 * queues loading of components
+	 * @method
+	 * @param {jQuery} element
+	 * @param {Object} data
+	 */
 	this.queueComponents = function(element, data)
 	{
 		if(!isSet(element))
@@ -691,8 +890,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		{
 			data = {};
 		}
-		var id = IdUtil.generate();
-		this.queue.components(id, function()
+		var id = this.queue.components(function()
 		{
 			element.find("[" + self.config.componentAttribute + "]").each(function()
 			{
@@ -703,7 +901,13 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			self.queue.complete(id);
 		});
 	};
-	
+
+	/**
+	 * searches dom for component attributes to load
+	 * @method
+	 * @param {jQuery} element
+	 * @param {Object} data
+	 */
 	this.loadComponents = function(element, data)
 	{
 		if(!isSet(element))
@@ -721,16 +925,32 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			self.loadComponent(fieldElement, component, data);
 		});
 	};
-
+	
+	/**
+	 * queues loading of component
+	 * @method
+	 * @param {jQuery} element
+	 * @param {String} component
+	 * @param {Object} data
+	 * @param {Function} callback
+	 */
 	this.queueComponent = function(element, component, data, callback)
 	{
-		var id = IdUtil.generate();
-		this.queue.component(id, function()
+		var id = this.queue.component(function()
 		{
 			self.loadComponent(element, component, data, callback, id);
 		});
 	};
 	
+	/**
+	 * loads component into template into jquery element
+	 * @method
+	 * @param {jQuery} element
+	 * @param {String} component
+	 * @param {Object} data
+	 * @param {Function} callback
+	 * @param {String} [id]
+	 */
 	this.loadComponent = function(element, component, data, callback, id)
 	{
 		var success = function(html)
@@ -777,21 +997,35 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		this.loadComponentResource(component, success, error);
 	};
 	
+	/**
+	 * convenience for loading component resource
+	 * @method
+	 * @param {String} component
+	 * @param {Function} success
+	 * @param {Function} error
+	 */
 	this.loadComponentResource = function(component, success, error)
 	{
 		this.loadResource(this.config.getComponentPath(component), "text", success, error);
 	};
 	
+	/**
+	 * queues loading of translation
+	 * @method
+	 */
 	this.queueTranslation = function()
 	{
-		var id = IdUtil.generate();
-		this.queue.translation(id, function()
+		var id = this.queue.translation(function()
 		{
 			self.loadTranslation();
 			self.queue.complete(id);
 		});
 	};
 	
+	/**
+	 * loads translations into dom elements
+	 * @method
+	 */
 	this.loadTranslation = function()
 	{
 		var module = this.hash.getModule();
@@ -831,7 +1065,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 				var path = element.attr(self.config.textAttribute);
 				if(path != "true")
 				{
-					var value = ObjectUtil.getValue(self.text, path);
+					var value = ObjectUtil.find(self.text, path);
 					value = isSet(value) ? value : "";
 					element.append("<span lang=\"" + self.hash.lang + "\">" + value + "</span>");
 				}
@@ -858,7 +1092,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 							var value = element.attr("data-" + attr + "-" + self.hash.lang);
 							if(!isValidString(value) && path != "true")
 							{
-								var value = ObjectUtil.getValue(self.text, path);
+								var value = ObjectUtil.find(self.text, path);
 								value = isSet(value) ? value : "";
 							}
 							element.attr(attr, value);
@@ -870,16 +1104,23 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		self.hash.loadedLang();
 	};
 	
+	/**
+	 * queues the loading of fields
+	 * @method
+	 */
 	this.queueFields = function()
 	{
-		var id = IdUtil.generate();
-		this.queue.fields(id, function()
+		var id = this.queue.fields(function()
 		{
 			self.loadFields();
 			self.queue.complete(id);
 		});
 	};
 	
+	/**
+	 * adds default value to select, radio, and checkbox, and add placeholder to select
+	 * @method
+	 */
 	this.loadFields = function()
 	{
 		// select value
@@ -948,16 +1189,23 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
+	/**
+	 * queues loading of layout ready function
+	 * @method
+	 */
 	this.queueLayoutReady = function()
 	{
-		var id = IdUtil.generate();
-		this.queue.ready(id, function()
+		var id = this.queue.ready(function()
 		{
 			self.loadLayoutReady();
 			self.queue.complete(id);
 		});
 	};
 	
+	/**
+	 * calls layout ready function if set
+	 * @method
+	 */
 	this.loadLayoutReady = function()
 	{
 		if(isFunction(self.layout.ready))
@@ -966,16 +1214,23 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
+	/**
+	 * queues loading of page ready function
+	 * @method
+	 */
 	this.queuePageReady = function()
 	{
-		var id = IdUtil.generate();
-		this.queue.ready(id, function()
+		var id = this.queue.ready(function()
 		{
 			self.loadPageReady();
 			self.queue.complete(id);
 		});
 	};
 	
+	/**
+	 * calls page ready function if set
+	 * @method
+	 */
 	this.loadPageReady = function()
 	{
 		if(isFunction(self.page.ready))
@@ -984,16 +1239,23 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
+	/**
+	 * queues showing of dom elements
+	 * @method
+	 */
 	this.queueShow = function()
 	{
-		var id = IdUtil.generate();
-		this.queue.show(id, function()
+		var id = this.queue.show(function()
 		{
 			self.show();
 			self.queue.complete(id);
 		});
 	};
 	
+	/**
+	 * shows dom elements after all manipulation is done
+	 * @method
+	 */
 	this.show = function()
 	{
 		var module = this.hash.getModule();
@@ -1012,10 +1274,14 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		self.hash.state = null;
 	};
 	
+	/**
+	 * adds a callback to the execution queue
+	 * @method
+	 * @param {Function} callback
+	 */
 	this.queueCallback = function(callback)
 	{
-		var id = IdUtil.generate();
-		this.queue.callback(id, function()
+		var id = this.queue.callback(function()
 		{
 			if(isFunction(callback))
 			{
@@ -1025,6 +1291,12 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
+	/**
+	 * creates a jquery selector for finding request fields and execute search
+	 * @method
+	 * @param {jQuery} element
+	 * @returns {jQuery}
+	 */
 	this.findGroupElements = function(element, active)
 	{
 		active = isSet(active) ? active : true;
@@ -1037,6 +1309,12 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		return element.find(selector);
 	}
 	
+	/**
+	 * create a json request object based on url param and form fields for service call
+	 * @method
+	 * @param {jQuery} element
+	 * @returns {object}
+	 */
 	this.createRequest = function(element)
 	{
 		var elementRegExp = new RegExp("^(\\w+)(?:\\[|$)");
@@ -1141,10 +1419,18 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 				}
 			}
 		});
-		//console.json(request);
+		if(isDebug())
+		{
+			console.json(request);
+		}
 		return { request : request, valid : valid };
 	};
 	
+	/**
+	 * call a service method to update the value of a single field
+	 * @method
+	 * @param {Node|jQuery|String} element
+	 */
 	this.update = function(element)
 	{
 		element = this.getJqueryElement(element);
@@ -1169,6 +1455,14 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
+	/**
+	 * creates a request and submits form to service call
+	 * @method
+	 * @param {Node|jQuery|String} element
+	 * @param {Object} [request]
+	 * @param {Function} [success]
+	 * @param {Function} [error]
+	 */
 	this.submit = function(element, request, success, error)
 	{
 		element = this.getJqueryElement(element);
@@ -1242,6 +1536,12 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
+	/**
+	 * turns a string or dom node into a jquery element
+	 * @method
+	 * @param {Node|jQuery|String} element
+	 * @param {String} [selector]
+	 */
 	this.getJqueryElement = function(element, selector)
 	{
 		if(element instanceof jQuery)
@@ -1269,6 +1569,11 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
+	/**
+	 * calls filters for a request field and creates a field object for tracking state
+	 * @method
+	 * @param {Node|jQuery|String} element
+	 */
 	this.filter = function(element)
 	{
 		element = this.getJqueryElement(element);
@@ -1321,6 +1626,11 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		return field;
 	};
 	
+	/**
+	 * validate a group of fields
+	 * @method
+	 * @param {jQuery} element
+	 */
 	this.validateGroup = function(element)
 	{
 		var validGroup = true;
@@ -1335,6 +1645,11 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		return validGroup;
 	};
 	
+	/**
+	 * validate a field value and add to the field object for tracking state
+	 * @method
+	 * @param {Node|jQuery|String} element
+	 */
 	this.validate = function(element)
 	{
 		element = this.getJqueryElement(element);
@@ -1365,6 +1680,12 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		return field;
 	};
 	
+	/**
+	 * read file contents into a base64 string
+	 * @method
+	 * @param {Node|jQuery|String} element
+	 * @param {Function} callback
+	 */
 	this.file = function(element, callback)
 	{
 		element = this.getJqueryElement(element);
@@ -1388,6 +1709,12 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
+	/**
+	 * applies validation feedback to the field
+	 * @method
+	 * @param {Node|jQuery|String} element
+	 * @param {String} field
+	 */
 	this.feedback = function(element, field)
 	{
 		element = this.getJqueryElement(element);
@@ -1400,24 +1727,42 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
+	/**
+	 * calls resetGroupsValidation and resetGroupsValue
+	 * @method
+	 */
 	this.resetGroups = function()
 	{
 		this.resetGroupsValidation();
 		this.resetGroupsValue();
 	};
 	
+	/**
+	 * calls resetGroupValidation and resetGroupValue
+	 * @method
+	 * @param {Node|jQuery|String} element
+	 */
 	this.resetGroup = function(element)
 	{
 		this.resetGroupValidation(element);
 		this.resetGroupValue(element);
 	};
 	
+	/**
+	 * calls resetValidation and resetValue
+	 * @method
+	 * @param {Node|jQuery|String} element
+	 */
 	this.reset = function(element)
 	{
 		this.resetValidation(element);
 		this.resetValue(element);
 	};
 	
+	/**
+	 * resets all groups validation
+	 * @method
+	 */
 	this.resetGroupsValidation = function()
 	{
 		$("[" + this.config.fieldGroupAttribute + "]").each(function()
@@ -1426,6 +1771,11 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
+	/**
+	 * resets a groups validation
+	 * @method
+	 * @param {Node|jQuery|String} element
+	 */
 	this.resetGroupValidation = function(element)
 	{
 		element = this.getJqueryElement(element, "[" + this.config.fieldGroupAttribute + "='{name}']");
@@ -1435,11 +1785,21 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
+	/**
+	 * resets a fields validation
+	 * @method
+	 * @param {Node|jQuery|String} element
+	 */
 	this.resetValidation = function(element)
 	{
 		this.feedback(element);
 	};
 	
+	/**
+	 * resets all groups values
+	 * @method
+	 * @param {Node|jQuery|String} element
+	 */
 	this.resetGroupsValue = function()
 	{
 		$("[" + this.config.fieldGroupAttribute + "]").each(function()
@@ -1448,6 +1808,11 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
+	/**
+	 * resets a groups values
+	 * @method
+	 * @param {Node|jQuery|String} element
+	 */
 	this.resetGroupValue = function(element)
 	{
 		element = this.getJqueryElement(element, "[" + this.config.fieldGroupAttribute + "='{name}']");
@@ -1457,6 +1822,11 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
+	/**
+	 * resets a fields value
+	 * @method
+	 * @param {Node|jQuery|String} element
+	 */
 	this.resetValue = function(element)
 	{
 		this.feedback(element);
@@ -1469,6 +1839,11 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
+	/**
+	 * finds the endpoint for the current environment
+	 * @method
+	 * @returns {String}
+	 */
 	this.getEndpoint = function()
 	{
 		var endpoint = localStorage.getItem(this.config.getEndpointStorage());
@@ -1484,11 +1859,24 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		return endpoint;
 	};
 	
+	/**
+	 * removes the current endpoint from local storage
+	 * @method
+	 */
 	this.resetEndpoint = function()
 	{
 		localStorage.removeItem(this.config.getEndpointStorage());
 	};
 	
+	/**
+	 * calls service file if mock env or calls service endpoint
+	 * @method
+	 * @param {String} service
+	 * @param {String} method
+	 * @param {Object} request
+	 * @param {Function} success
+	 * @param {Function} [error]
+	 */
 	this.service = function(service, method, request, success, error)
 	{
 		if(isMock())
@@ -1503,6 +1891,15 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
+	/**
+	 * creates select modal for choosing response scenario
+	 * @method
+	 * @param {String} service
+	 * @param {String} method
+	 * @param {Object} request
+	 * @param {Function} success
+	 * @param {Function} [error]
+	 */
 	this.serviceFile = function(service, method, request, success, error)
 	{
 		var scenarios = this.config.getDevServiceResponseScenarios(service, method);
@@ -1521,6 +1918,14 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
+	/**
+	 * calls the endpoint or file to get a json response
+	 * @method
+	 * @param {String} path
+	 * @param {Object} request
+	 * @param {Function} success
+	 * @param {Function} [error]
+	 */
 	this.serviceCall = function(path, request, success, error)
 	{
 		var module = this.hash.getModule();

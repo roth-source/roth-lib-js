@@ -1,6 +1,14 @@
 
+
+/**
+ * @class
+ */
 roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 {
+	/**
+	 * @lends Config.prototype
+	 */
+	
 	this.versionToken					= "{version}";
 	
 	this.jqueryScript					= "https://cdnjs.cloudflare.com/ajax/libs/jquery/" + this.versionToken + "/jquery.min.js";

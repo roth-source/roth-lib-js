@@ -1,6 +1,14 @@
 
+
+/**
+ * @class
+ */
 roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 {
+	/**
+	 * @lends Queue.prototype
+	 */
+	
 	var Event =
 	{
 		CONFIG			: "config",
@@ -35,80 +43,176 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 	Order[Event.SHOW] 			= [Event.READY];
 	Order[Event.CALLBACK] 		= [Event.SHOW];
 	
+	/**
+	 * the task queue holding callbacks of certain event types
+	 * @member {Object}
+	 */
 	this.task = {};
 	
-	this.config = function(id, callback)
+	/**
+	 * queues config event callback
+	 * @method
+	 * @param {Function} callback
+	 * @returns {String}
+	 */
+	this.config = function(callback)
 	{
-		this.add(id, Event.CONFIG, callback);
+		return this.add(Event.CONFIG, callback);
 	};
 	
-	this.init = function(id, callback)
+	/**
+	 * queues init event callback
+	 * @method
+	 * @param {Function} callback
+	 * @returns {String}
+	 */
+	this.init = function(callback)
 	{
-		this.add(id, Event.INIT, callback);
+		return this.add(Event.INIT, callback);
 	};
 	
-	this.text = function(id, callback)
+	/**
+	 * queues text event callback
+	 * @method
+	 * @param {Function} callback
+	 * @returns {String}
+	 */
+	this.text = function(callback)
 	{
-		this.add(id, Event.TEXT, callback);
+		return this.add(Event.TEXT, callback);
 	};
 	
-	this.layout = function(id, callback)
+	/**
+	 * queues layout event callback
+	 * @method
+	 * @param {Function} callback
+	 * @returns {String}
+	 */
+	this.layout = function(callback)
 	{
-		this.add(id, Event.LAYOUT, callback);
+		return this.add(Event.LAYOUT, callback);
 	};
 	
-	this.page = function(id, callback)
+	/**
+	 * queues page event callback
+	 * @method
+	 * @param {Function} callback
+	 * @returns {String}
+	 */
+	this.page = function(callback)
 	{
-		this.add(id, Event.PAGE, callback);
+		return this.add(Event.PAGE, callback);
 	};
 	
-	this.sections = function(id, callback)
+	/**
+	 * queues sections event callback
+	 * @method
+	 * @param {Function} callback
+	 * @returns {String}
+	 */
+	this.sections = function(callback)
 	{
-		this.add(id, Event.SECTIONS, callback);
+		return this.add(Event.SECTIONS, callback);
 	};
 	
-	this.section = function(id, callback)
+	/**
+	 * queues section event callback
+	 * @method
+	 * @param {Function} callback
+	 * @returns {String}
+	 */
+	this.section = function(callback)
 	{
-		this.add(id, Event.SECTION, callback);
+		return this.add(Event.SECTION, callback);
 	};
 	
-	this.components = function(id, callback)
+	/**
+	 * queues components event callback
+	 * @method
+	 * @param {Function} callback
+	 * @returns {String}
+	 */
+	this.components = function(callback)
 	{
-		this.add(id, Event.COMPONENTS, callback);
+		return this.add(Event.COMPONENTS, callback);
 	};
 	
-	this.component = function(id, callback)
+	/**
+	 * queues component event callback
+	 * @method
+	 * @param {Function} callback
+	 * @returns {String}
+	 */
+	this.component = function(callback)
 	{
-		this.add(id, Event.COMPONENT, callback);
+		return this.add(Event.COMPONENT, callback);
 	};
 	
-	this.translation = function(id, callback)
+	/**
+	 * queues translation event callback
+	 * @method
+	 * @param {Function} callback
+	 * @returns {String}
+	 */
+	this.translation = function(callback)
 	{
-		this.add(id, Event.TRANSLATION, callback);
+		return this.add(Event.TRANSLATION, callback);
 	};
 	
-	this.fields = function(id, callback)
+	/**
+	 * queues fields event callback
+	 * @method
+	 * @param {Function} callback
+	 * @returns {String}
+	 */
+	this.fields = function(callback)
 	{
-		this.add(id, Event.FIELDS, callback);
+		return this.add(Event.FIELDS, callback);
 	};
 	
-	this.ready = function(id, callback)
+	/**
+	 * queues ready event callback
+	 * @method
+	 * @param {Function} callback
+	 * @returns {String}
+	 */
+	this.ready = function(callback)
 	{
-		this.add(id, Event.READY, callback);
+		return this.add(Event.READY, callback);
 	};
 	
-	this.show = function(id, callback)
+	/**
+	 * queues show event callback
+	 * @method
+	 * @param {Function} callback
+	 * @returns {String}
+	 */
+	this.show = function(callback)
 	{
-		this.add(id, Event.SHOW, callback);
+		return this.add(Event.SHOW, callback);
 	};
 	
-	this.callback = function(id, callback)
+	/**
+	 * queues callback event callback
+	 * @method
+	 * @param {Function} callback
+	 * @returns {String}
+	 */
+	this.callback = function(callback)
 	{
-		this.add(id, Event.CALLBACK, callback);
+		return this.add(Event.CALLBACK, callback);
 	};
 	
-	this.add = function(id, event, callback)
+	/**
+	 * queues the event callback
+	 * @method
+	 * @param {String} event
+	 * @param {Function} callback
+	 * @returns {String}
+	 */
+	this.add = function(event, callback)
 	{
+		var id = IdUtil.generate();
 		if(isFunction(callback))
 		{
 			this.task[id] =
@@ -118,8 +222,14 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 				started 	: false
 			};
 		}
+		return id;
 	};
 	
+	/**
+	 * completes the task and runs execute
+	 * @method
+	 * @param {String} id
+	 */
 	this.complete = function(id)
 	{
 		if(isSet(id))
@@ -133,6 +243,10 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 		}
 	};
 	
+	/**
+	 * executes the next available task
+	 * @method
+	 */
 	this.execute = function()
 	{
 		for(var id in this.task)
@@ -150,6 +264,12 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 		}
 	};
 	
+	/**
+	 * checks if task is ready for execution
+	 * @method
+	 * @param {Object} task
+	 * @returns {Boolean}
+	 */
 	this.isTaskReady = function(task)
 	{
 		for(var id in this.task)
@@ -162,6 +282,13 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 		return true;
 	};
 	
+	/**
+	 * checks if the event is in the order list
+	 * @method
+	 * @param {String} event
+	 * @param {String} order
+	 * @returns {Boolean}
+	 */
 	this.hasEvent = function(event, order)
 	{
 		if(isSet(order) && order.length > 0)
@@ -181,6 +308,10 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 		return false;
 	};
 	
+	/**
+	 * clears the task object to stop execution
+	 * @method
+	 */
 	this.stop = function()
 	{
 		this.task = {};

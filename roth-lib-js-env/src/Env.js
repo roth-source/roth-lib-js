@@ -1,4 +1,13 @@
 
+
+/**
+ * @namespace roth.lib.js.env
+ */
+
+/**
+ * enum of web protocols
+ * @enum {String}
+ */
 var Protocol = Protocol ||
 {
 	FILE		: "file:",
@@ -7,6 +16,10 @@ var Protocol = Protocol ||
 	HTTPS		: "https:"
 };
 
+/**
+ * enum of environments
+ * @enum {String}
+ */
 var Environment = Environment ||
 {
 	MOCK		: "mock",
@@ -16,61 +29,145 @@ var Environment = Environment ||
 	PROD		: "prod"
 };
 
+/**
+ * map of environment keys to array of hosts
+ * @memberof roth.lib.js.env
+ * @type {Object}
+ */
 roth.lib.js.env.hosts = roth.lib.js.env.hosts || { local : ["localhost", "127.0.0.1"] };
+
+/**
+ * current environment
+ * @memberof roth.lib.js.env
+ * @type {String}
+ */
 roth.lib.js.env.environment = roth.lib.js.env.environment || null;
+
+/**
+ * if debugging is turned on
+ * @memberof roth.lib.js.env
+ * @type {Boolean}
+ */
 roth.lib.js.env.debug = roth.lib.js.env.debug || null;
+
+/**
+ * if compiled assets should be used
+ * @memberof roth.lib.js.env
+ * @type {Boolean}
+ */
 roth.lib.js.env.compiled = roth.lib.js.env.compiled || false;
+
+/**
+ * the context path of the endpoint
+ * @memberof roth.lib.js.env
+ * @type {String}
+ */
 roth.lib.js.env.context = roth.lib.js.env.context || null;
+
+/**
+ * list of static dependency objects
+ * @memberof roth.lib.js.env
+ * @type {Array}
+ */
 roth.lib.js.env.dependencies = roth.lib.js.env.dependencies || [];
 
+/**
+ * adds an array of hosts to the map
+ * @function
+ * @param {String} environment
+ * @param {Array} hosts
+ */
 var setHosts = setHosts || function(environment, hosts)
 {
 	roth.lib.js.env.hosts[environment] = hosts;
 };
 
+/**
+ * sets the current environment
+ * @function
+ * @param {String} environment
+ */
 var setEnvironment = setEnvironment || function(environment)
 {
 	roth.lib.js.env.environment = environment;
 };
 
+/**
+ * sets the environment to mock
+ * @function
+ */
 var setMock = setMock || function()
 {
 	setEnvironment(Environment.MOCK);
 };
 
+/**
+ * sets the environment to local
+ * @function
+ */
 var setLocal = setLocal || function()
 {
 	setEnvironment(Environment.LOCAL);
 };
 
+/**
+ * sets the environment to test with an optional context path
+ * @function
+ * @param {String} context
+ */
 var setTest = setTest || function(context)
 {
 	setEnvironment(Environment.TEST);
 	setContext(context);
 };
 
+/**
+ * sets the environment to demo with an optional context path
+ * @function
+ * @param {String} context
+ */
 var setDemo = setDemo || function(context)
 {
 	setEnvironment(Environment.DEMO);
 	setContext(context);
 };
 
+/**
+ * sets the environment to prod with an optional context path
+ * @function
+ * @param {String} context
+ */
 var setProd = setProd || function(context)
 {
 	setEnvironment(Environment.PROD);
 	setContext(context);
 };
 
+/**
+ * sets the debug value
+ * @function
+ * @param {Boolean} debug
+ */
 var setDebug = setDebug || function(debug)
 {
 	roth.lib.js.env.debug = debug !== false ? true : false;
 };
 
+/**
+ * sets the compiled value
+ * @function
+ * @param {Boolean} compiled
+ */
 var setCompiled = setCompiled || function(compiled)
 {
 	roth.lib.js.env.compiled = compiled !== false ? true : false;
 };
 
+/**
+ * sets the context path for endpoint
+ * @function
+ * @param {String} context
+ */
 var setContext = setContext || function(context)
 {
 	if(context !== undefined)
@@ -79,36 +176,71 @@ var setContext = setContext || function(context)
 	}
 };
 
+/**
+ * set the dependencies array
+ * @function
+ * @param {Array} dependencies
+ */
 var setDependencies = setDependencies || function(dependencies)
 {
 	roth.lib.js.env.dependencies = dependencies;
 };
 
+/**
+ * is url a file protocol
+ * @function
+ * @returns {Boolean}
+ */
 var isFileProtocol = isFileProtocol || function()
 {
 	return Protocol.FILE == window.location.protocol;
 };
 
+/**
+ * is url a data protocol
+ * @function
+ * @returns {Boolean}
+ */
 var isDataProtocol = isDataProtocol || function()
 {
 	return Protocol.DATA == window.location.protocol;
 };
 
+/**
+ * is url a http protocol
+ * @function
+ * @returns {Boolean}
+ */
 var isHttpProtocol = isHttpProtocol || function()
 {
 	return Protocol.HTTP == window.location.protocol;
 };
 
+/**
+ * is url a https protocol
+ * @function
+ * @returns {Boolean}
+ */
 var isHttpsProtocol = isHttpsProtocol || function()
 {
 	return Protocol.HTTPS == window.location.protocol;
 };
 
+/**
+ * is url a http or https protocol
+ * @function
+ * @returns {Boolean}
+ */
 var isHyperTextProtocol = isHyperTextProtocol || function()
 {
 	return isHttpProtocol() || isHttpsProtocol();
 };
 
+/**
+ * returns environment or parses if not set yet
+ * @function
+ * @returns {String}
+ */
 var getEnvironment = getEnvironment || function()
 {
 	if(roth.lib.js.env.environment == null)
@@ -140,41 +272,82 @@ var getEnvironment = getEnvironment || function()
 	return roth.lib.js.env.environment;
 };
 
+/**
+ * checks if current environment is passed in value
+ * @function
+ * @param {String} environment
+ * @returns {Boolean}
+ */
 var isEnvironment = isEnvironment || function(environment)
 {
 	return getEnvironment() == environment;
 };
 
+/**
+ * is mock environment
+ * @function
+ * @returns {Boolean}
+ */
 var isMock = isMock || function()
 {
 	return isEnvironment(Environment.MOCK);
 };
 
+/**
+ * is local environment
+ * @function
+ * @returns {Boolean}
+ */
 var isLocal = isLocal || function()
 {
 	return isEnvironment(Environment.LOCAL);
 };
 
+/**
+ * is mock or local environment
+ * @function
+ * @returns {Boolean}
+ */
 var isDev = isDev || function()
 {
 	return isMock() || isLocal();
 };
 
+/**
+ * is test environment
+ * @function
+ * @returns {Boolean}
+ */
 var isTest = isTest || function()
 {
 	return isEnvironment(Environment.TEST);
 };
 
+/**
+ * is demo environment
+ * @function
+ * @returns {Boolean}
+ */
 var isDemo = isDemo || function()
 {
 	return isEnvironment(Environment.DEMO);
 };
 
+/**
+ * is prod environment
+ * @function
+ * @returns {Boolean}
+ */
 var isProd = isProd || function()
 {
 	return isEnvironment(Environment.PROD);
 };
 
+/**
+ * is debug turned on
+ * @function
+ * @returns {Boolean}
+ */
 var isDebug = isDebug || function()
 {
 	if(roth.lib.js.env.debug == null)
@@ -185,11 +358,21 @@ var isDebug = isDebug || function()
 	return roth.lib.js.env.debug;
 };
 
+/**
+ * returns context path
+ * @function
+ * @returns {String}
+ */
 var getContext = getContext || function()
 {
 	return roth.lib.js.env.context;
 };
 
+
+/**
+ * redirects http protocol to https
+ * @function
+ */
 var checkSecure = checkSecure || function()
 {
 	if(!isDev() && isHttpProtocol())
@@ -204,11 +387,20 @@ var checkSecure = checkSecure || function()
 	}
 };
 
+/**
+ * loads compiled dependencies into browser
+ * @function
+ */
 var loadCompiledDependencies = loadCompiledDependencies || function()
 {
 	loadDependencies(roth.lib.js.env.compiled);
 };
 
+/**
+ * loads dependendies into browser
+ * @function
+ * @param {Boolean} [compiled]
+ */
 var loadDependencies = loadDependencies || function(compiled)
 {
 	var writeTag = function(tag)
@@ -278,6 +470,11 @@ var loadDependencies = loadDependencies || function(compiled)
 	}
 };
 
+/**
+ * returns json string of dependencies
+ * @function
+ * @returns {String}
+ */
 var getDependencies = getDependencies || function()
 {
 	return JSON.stringify(roth.lib.js.env.dependencies);
