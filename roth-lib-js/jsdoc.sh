@@ -19,9 +19,9 @@ mkdir -p "$jsdoc";
 $src;
 
 cd ..;
+git stash;
 git checkout gh-pages;
 rm -r jsdoc;
-mkdir -p jsdoc;
 mv "$jsdoc" "jsdoc";
 git add .;
 git commit -m "jsdoc";
