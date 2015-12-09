@@ -1,6 +1,7 @@
 #!/bin/bash
 
 
+jsdoc="$HOME/.jsdoc";
 source "artifacts.sh";
 src="";
 for artifact in "${artifacts[@]}";
@@ -11,13 +12,19 @@ do
 		src="$src$(printf "../$artifact/src/%s " "${files[@]}")";
 	fi
 done
+mkdir -p "$jsdoc";
 /usr/local/bin/jsdoc \
 -t "$HOME/node_modules/minami" \
--d ../../roth-lib-js-doc/jsdoc \
+-d "$jsdoc" \
 $src;
 
-cd ../../roth-lib-js-doc/;
+cd ..;
+git checkout gh-pages;
+rm -r jsdoc;
+mkdir -p jsdoc;
+mv "$jsdoc" "jsdoc";
 git add .;
-git commit -m "update";
+git commit -m "jsdoc";
 git push;
+git checkout master;
 
