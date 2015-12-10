@@ -270,7 +270,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		if(this.isLoadable())
 		{
 			this.hide();
-			this.queueText();
+			this.queueTexts();
 			if(this.hash.isNewLayout())
 			{
 				this.queueLayoutInit();
@@ -588,16 +588,48 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	};
 	
 	/**
-	 * queues loading of text translation
+	 * queues the text paths for loading
 	 * @method
 	 */
-	this.queueText = function()
+	this.queueTexts = function()
+	{
+		if(this.hash.isNewLang())
+		{
+			this.text = {};
+			var paths = this.config.getTextPaths(this.hash.lang);
+			for(var i in paths)
+			{
+				this.queueText(paths[i]);
+			}
+		}
+	};
+	
+	/**
+	 * loads text for translation
+	 * @method
+	 */
+	this.loadTexts = function()
+	{
+		this.text = {};
+		var paths = this.config.getTextPaths(this.hash.lang);
+		for(var i in paths)
+		{
+			this.loadText(paths[i]);
+		}
+	};
+	
+	/**
+	 * queues loading of text translation
+	 * @method
+	 * @param {String} path
+	 */
+	this.queueText = function(path)
 	{
 		if(this.hash.isNewLang())
 		{
 			var id = this.queue.text(function()
 			{
-				self.loadText(id);
+				self.loadText(path, id);
 			});
 		}
 	};
@@ -605,21 +637,27 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	/**
 	 * loads language translation file into text scope object
 	 * @method
-	 * @param {String} id
+	 * @param {String} path
+	 * @param {String} [id]
 	 */
-	this.loadText = function(id)
+	this.loadText = function(path, id)
 	{
 		var success = function(text)
 		{
-			self.text = text;
-			self.queue.complete(id);
+			$.extend(true, self.text, text);
+			if(isSet(id))
+			{
+				self.queue.complete(id);
+			}
 		};
 		var error = function(jqXHR, textStatus, errorThrown)
 		{
-			self.text = {};
-			self.queue.complete(id);
+			if(isSet(id))
+			{
+				self.queue.complete(id);
+			}
 		};
-		this.loadTextResource(this.hash.lang, success, error);
+		this.loadTextResource(path, success, error);
 	};
 	
 	/**
@@ -629,9 +667,9 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	 * @param {Function} success
 	 * @param {Function} error
 	 */
-	this.loadTextResource = function(lang, success, error)
+	this.loadTextResource = function(path, success, error)
 	{
-		this.loadResource(this.config.getTextPath(lang), "json", success, error);
+		this.loadResource(path, "json", success, error);
 	};
 	
 	/**
@@ -1493,7 +1531,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 		if(valid)
 		{
-			request = $.extend(request, ObjectUtil.parse(element.attr(this.config.fieldRequestAttribute)));
+			$.extend(true, request, ObjectUtil.parse(element.attr(this.config.fieldRequestAttribute)));
 			if(isValidString(presubmit))
 			{
 				if(new Function("request", "element", "return " + presubmit)(request, element) === false)

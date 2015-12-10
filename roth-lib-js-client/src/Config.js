@@ -162,13 +162,22 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 		return isSet(this.text[lang]);
 	};
 	
-	this.getTextPath = function(lang)
+	this.getTextPaths = function(lang)
 	{
-		var path = "";
-		path += this.textPath;
-		path += this.text[lang];
-		path += this.textExtension;
-		return path;
+		var paths = [];
+		var langTexts = this.text[lang];
+		if(isArray(langTexts))
+		{
+			for(var i in langTexts)
+			{
+				var path = "";
+				path += this.textPath;
+				path += langTexts[i];
+				path += this.textExtension;
+				paths.push(path);
+			}
+		}
+		return paths;
 	};
 	
 	this.getLayoutPath = function(layout)
