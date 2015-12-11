@@ -54,6 +54,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.textExtension					= ".json";
 	this.textAttribute					= "data-text";
 	this.textAttrAttribute				= "data-text-attr";
+	this.textOverride					= null;
 	
 	this.viewPath						= "view/";
 	this.viewExtension					= ".html";
@@ -119,12 +120,10 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.csrfTokenStorage				= "csrfToken";
 	this.csrfTokenHeader				= "X-Csrf-Token";
 	
+	this.langs							= [];
 	this.endpoint 						= {};
-	this.text 							= {};
 	this.layout 						= {};
 	this.module 						= {};
-	this.section 						= {};
-	this.component 						= {};
 	this.dev							= {};
 	
 	// registries
@@ -159,25 +158,46 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	
 	this.isValidLang = function(lang)
 	{
-		return isSet(this.text[lang]);
+		return inArray(lang, this.langs);
 	};
 	
-	this.getTextPaths = function(lang)
+	this.validateLangs = function()
 	{
-		var paths = [];
-		var langTexts = this.text[lang];
-		if(isArray(langTexts))
+		if(!this.isValidLang(this.defaultLang))
 		{
-			for(var i in langTexts)
-			{
-				var path = "";
-				path += this.textPath;
-				path += langTexts[i];
-				path += this.textExtension;
-				paths.push(path);
-			}
+			this.langs.push(this.defaultLang);
 		}
-		return paths;
+	};
+	
+	this.getModuleText = function(module)
+	{
+		var text = this.getModuleConfig(module, "text");
+		return isSet(text) ? text : "";
+	};
+	
+	this.getModuleTextPath = function(module, lang)
+	{
+		return this.getTextPath(this.getModuleText(module), lang);
+	};
+	
+	this.getTextPath = function(text, lang)
+	{
+		var path = undefined;
+		if(isValidString(text))
+		{
+			path = "";
+			path += this.textPath;
+			path += text;
+			path += "_";
+			path += lang;
+			if(isSet(this.textOverride))
+			{
+				path += "_";
+				path += this.textOverride;
+			}
+			path += this.textExtension;
+		}
+		return path;
 	};
 	
 	this.getLayoutPath = function(layout)
@@ -248,6 +268,16 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.getComponentExtension = function()
 	{
 		return isSet(this.componentExtension) ? this.componentExtension : this.viewExtension;
+	};
+	
+	this.getModuleConfig = function(module, config)
+	{
+		var value = undefined;
+		if(isSet(this.module[module]) && isDefined(this.module[module][config]))
+		{
+			value = this.module[module][config];
+		}
+		return value
 	};
 	
 	this.getPageConfig = function(module, page, config)

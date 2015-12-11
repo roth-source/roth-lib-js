@@ -136,13 +136,14 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			{
 				if(isObject(data))
 				{
+					if(isArray(data.langs))
+					{
+						self.config.langs = data.langs.concat(self.config.langs);
+						self.config.validateLangs();
+					}
 					if(isObject(data.endpoint))
 					{
 						$.extend(true, self.config.endpoint, data.endpoint);
-					}
-					if(isObject(data.text))
-					{
-						$.extend(true, self.config.text, data.text);
 					}
 					if(isObject(data.layout))
 					{
@@ -151,14 +152,6 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 					if(isObject(data.module))
 					{
 						$.extend(true, self.config.module, data.module);
-					}
-					if(isObject(data.section))
-					{
-						$.extend(true, self.config.section, data.section);
-					}
-					if(isObject(data.component))
-					{
-						$.extend(true, self.config.component, data.component);
 					}
 				}
 				self.queue.complete(configId);
@@ -270,7 +263,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		if(this.isLoadable())
 		{
 			this.hide();
-			this.queueTexts();
+			this.queueText();
 			if(this.hash.isNewLayout())
 			{
 				this.queueLayoutInit();
@@ -303,6 +296,8 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			var page = this.hash.getPage();
 			var layout = this.config.getLayout(module, page);
 			this.hash.setLayout(layout);
+			var text = this.config.getModuleText(module);
+			this.hash.setText(text);
 			if(!(isSet(this.hash.lang) && this.config.isValidLang(this.hash.lang)))
 			{
 				var lang = localStorage.getItem(this.hash.langStorage);
@@ -329,46 +324,49 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 					localStorage.setItem(this.hash.langStorage, lang);
 				}
 			}
-			var changeParams = this.config.getChangeParams(module, page);
-			if(isNotEmpty(changeParams))
+			if(!this.hash.isNewModule() && !this.hash.isNewPage())
 			{
-				var changed = false;
-				var loadedParam = this.hash.cloneLoadedParam();
-				for(var name in this.hash.param)
+				var changeParams = this.config.getChangeParams(module, page);
+				if(isNotEmpty(changeParams))
 				{
-					changed = changeParams.indexOf(name) > -1;
-					if(!changed)
+					var changed = false;
+					var loadedParam = this.hash.cloneLoadedParam();
+					for(var name in this.hash.param)
 					{
-						changed = this.hash.param[name] == loadedParam[name];
+						changed = changeParams.indexOf(name) > -1;
 						if(!changed)
 						{
-							break;
+							changed = this.hash.param[name] == loadedParam[name];
+							if(!changed)
+							{
+								break;
+							}
+							else
+							{
+								delete loadedParam[name];
+							}
 						}
 						else
 						{
 							delete loadedParam[name];
 						}
 					}
-					else
+					if(changed)
 					{
-						delete loadedParam[name];
+						changed = Object.keys(loadedParam).length == 0;
 					}
-				}
-				if(changed)
-				{
-					changed = Object.keys(loadedParam).length == 0;
-				}
-				if(changed)
-				{
-					if(isFunction(this.layout.change))
+					if(changed)
 					{
-						this.layout.change(this.layout.init);
+						if(isFunction(this.layout.change))
+						{
+							this.layout.change(this.layout.init);
+						}
+						if(isFunction(this.page.change))
+						{
+							this.page.change(this.page.init);
+						}
+						loadable = false;
 					}
-					if(isFunction(this.page.change))
-					{
-						this.page.change(this.page.init);
-					}
-					loadable = false;
 				}
 			}
 			if(loadable)
@@ -588,48 +586,16 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	};
 	
 	/**
-	 * queues the text paths for loading
-	 * @method
-	 */
-	this.queueTexts = function()
-	{
-		if(this.hash.isNewLang())
-		{
-			this.text = {};
-			var paths = this.config.getTextPaths(this.hash.lang);
-			for(var i in paths)
-			{
-				this.queueText(paths[i]);
-			}
-		}
-	};
-	
-	/**
-	 * loads text for translation
-	 * @method
-	 */
-	this.loadTexts = function()
-	{
-		this.text = {};
-		var paths = this.config.getTextPaths(this.hash.lang);
-		for(var i in paths)
-		{
-			this.loadText(paths[i]);
-		}
-	};
-	
-	/**
 	 * queues loading of text translation
 	 * @method
-	 * @param {String} path
 	 */
-	this.queueText = function(path)
+	this.queueText = function()
 	{
-		if(this.hash.isNewLang())
+		if(this.hash.isNewText() || this.hash.isNewLang())
 		{
 			var id = this.queue.text(function()
 			{
-				self.loadText(path, id);
+				self.loadText(id);
 			});
 		}
 	};
@@ -637,23 +603,52 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	/**
 	 * loads language translation file into text scope object
 	 * @method
-	 * @param {String} path
 	 * @param {String} [id]
 	 */
-	this.loadText = function(path, id)
+	this.loadText = function(id)
 	{
-		var success = function(text)
+		var modulePath = this.config.getModuleTextPath(this.hash.module, this.hash.lang);
+		var moduleSuccess = function(text)
 		{
 			$.extend(true, self.text, text);
 			if(isSet(id))
 			{
+				self.hash.loadedText();
+				self.queue.complete(id);
+			}
+		};
+		var moduleError = function(jqXHR, textStatus, errorThrown)
+		{
+			if(isSet(id))
+			{
+				self.hash.loadedText();
+				self.queue.complete(id);
+			}
+		};
+		var path = this.config.getTextPath("text", this.hash.lang);
+		var success = function(text)
+		{
+			self.text = text;
+			if(isSet(modulePath))
+			{
+				self.loadTextResource(modulePath, moduleSuccess, moduleError);
+			}
+			else if(isSet(id))
+			{
+				self.hash.loadedText();
 				self.queue.complete(id);
 			}
 		};
 		var error = function(jqXHR, textStatus, errorThrown)
 		{
-			if(isSet(id))
+			self.text = {};
+			if(isSet(modulePath))
 			{
+				self.loadTextResource(modulePath, moduleSuccess, moduleError);
+			}
+			else if(isSet(id))
+			{
+				self.hash.loadedText();
 				self.queue.complete(id);
 			}
 		};
@@ -711,13 +706,13 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 					});
 				}
 				self.getLayoutElement().html(html);
-				self.hash.loadedLayout(layout);
+				self.hash.loadedLayout();
 				self.queue.complete(id);
 			};
 			var error = function(jqXHR, textStatus, errorThrown)
 			{
 				self.getLayoutElement().html("<div id=\"" + self.config.pageId + "\"></div");
-				self.hash.loadedLayout(layout);
+				self.hash.loadedLayout();
 				self.queue.complete(id);
 			};
 			this.loadLayoutResource(layout, success, error);
@@ -725,7 +720,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		else
 		{
 			this.getLayoutElement().html("<div id=\"" + this.config.pageId + "\"></div");
-			this.hash.loadedLayout(layout);
+			this.hash.loadedLayout();
 		}
 	};
 	
@@ -779,8 +774,8 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 				});
 			}
 			self.getPageElement().html(html);
-			self.hash.loadedModule(module);
-			self.hash.loadedPage(page);
+			self.hash.loadedModule();
+			self.hash.loadedPage();
 			self.hash.loadedValue();
 			self.queue.complete(id);
 		};
@@ -915,8 +910,8 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	/**
 	 * queues loading of components
 	 * @method
-	 * @param {jQuery} element
-	 * @param {Object} data
+	 * @param {jQuery} [element]
+	 * @param {Object} [data]
 	 */
 	this.queueComponents = function(element, data)
 	{
@@ -943,8 +938,8 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	/**
 	 * searches dom for component attributes to load
 	 * @method
-	 * @param {jQuery} element
-	 * @param {Object} data
+	 * @param {jQuery} [element]
+	 * @param {Object} [data]
 	 */
 	this.loadComponents = function(element, data)
 	{
@@ -960,7 +955,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		{
 			var fieldElement = $(this);
 			var component = fieldElement.attr(self.config.componentAttribute);
-			self.loadComponent(fieldElement, component, data);
+			self.loadComponentInit(fieldElement, component, data);
 		});
 	};
 	
@@ -969,24 +964,65 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	 * @method
 	 * @param {jQuery} element
 	 * @param {String} component
-	 * @param {Object} data
-	 * @param {Function} callback
+	 * @param {Object} [data]
+	 * @param {Function} [callback]
 	 */
 	this.queueComponent = function(element, component, data, callback)
 	{
 		var id = this.queue.component(function()
 		{
-			self.loadComponent(element, component, data, callback, id);
+			self.loadComponentInit(element, component, data, callback, null, null, null, id);
 		});
 	};
 	
 	/**
-	 * loads component into template into jquery element
+	 * call init service then load component template into jquery element
 	 * @method
 	 * @param {jQuery} element
 	 * @param {String} component
-	 * @param {Object} data
-	 * @param {Function} callback
+	 * @param {Object} [data]
+	 * @param {Function} [callback]
+	 * @param {String} [service]
+	 * @param {String} [method]
+	 * @param {Object} [request]
+	 * @param {String} [id]
+	 */
+	this.loadComponentInit = function(element, component, data, callback, service, method, request, id)
+	{
+		if(!isSet(data))
+		{
+			data = {};
+		}
+		var service = isValidString(service) ? service : element.attr(this.config.fieldServiceAttribute);
+		var method = isValidString(method) ? method : element.attr(this.config.fieldMethodAttribute);
+		if(isValidString(service) && isValidString(method))
+		{
+			var request = isObject(request) ? request : {};
+			$.extend(true, request, this.hash.cloneParam(), ObjectUtil.parse(element.attr(this.config.fieldRequestAttribute)));
+			var success = function(response)
+			{
+				$.extend(true, data, response);
+				self.loadComponent(element, component, data, callback, id);
+			};
+			var error = function(errors)
+			{
+				self.loadComponent(element, component, data, callback, id);
+			};
+			this.service(service, method, request, success, error);
+		}
+		else
+		{
+			this.loadComponent(element, component, data, callback, id);
+		}
+	};
+	
+	/**
+	 * loads component template into jquery element
+	 * @method
+	 * @param {jQuery} element
+	 * @param {String} component
+	 * @param {Object} [data]
+	 * @param {Function} [callback]
 	 * @param {String} [id]
 	 */
 	this.loadComponent = function(element, component, data, callback, id)
@@ -1087,6 +1123,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			$("select[" + self.config.textAttribute + "]").each(function()
 			{
 				var element = $(this);
+				var path = element.attr(self.config.textAttribute);
 				element.find("option").each(function()
 				{
 					var optionElement = $(this);
@@ -1096,6 +1133,26 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 						return false;
 					}
 				});
+				if(path != "true")
+				{
+					var options = ObjectUtil.find(self.text, path);
+					if(isObject(options))
+					{
+						for(var value in options)
+						{
+							var text = options[value];
+							var option = element.find("option[" + self.config.langAttribute + "='" + self.hash.lang + "'][value='" + value + "']");
+							if(option.length == 0)
+							{
+								option = $("<option />");
+								option.attr(self.config.langAttribute, self.hash.lang);
+								option.val(value);
+								option.text(text);
+								element.append(option);
+							}
+						}
+					}
+				}
 			});
 			$("[" + self.config.textAttribute + "]:not([" + self.config.textAttribute + "]:has(> [" + self.config.langAttribute + "='" + self.hash.lang + "']))").each(function()
 			{
@@ -1353,7 +1410,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	 * @param {jQuery} element
 	 * @returns {object}
 	 */
-	this.createRequest = function(element)
+	this.request = function(element)
 	{
 		var elementRegExp = new RegExp("^(\\w+)(?:\\[|$)");
 		var indexRegExp = new RegExp("\\[(\\d+)?\\]", "g");
@@ -1525,7 +1582,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		if(!isObject(request))
 		{
 			submitGroup = isValidString(submitGroup) ? submitGroup : method;
-			var result = this.createRequest($("[" + this.config.fieldGroupAttribute + "='" + submitGroup + "']"));
+			var result = this.request($("[" + this.config.fieldGroupAttribute + "='" + submitGroup + "']"));
 			valid = result.valid;
 			request = result.request;
 		}
@@ -1697,7 +1754,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		field.defined = isNotEmpty(field.value);
 		field.valid = !(field.required && !field.defined) ? true : false;
 		field.validate = element.attr(this.config.fieldValidateAttribute);
-		if(field.visible && field.valid)
+		if(field.visible && (field.required || field.defined))
 		{
 			if(isValidString(field.validate))
 			{

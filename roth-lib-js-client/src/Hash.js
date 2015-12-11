@@ -33,31 +33,37 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 	 * @member {String}
 	 */
 	this.layout = null;
-
+	
 	/**
 	 * the current module
 	 * @member {String}
 	 */
 	this.module = null;
-
+	
 	/**
 	 * the current page
 	 * @member {String}
 	 */
 	this.page = null;
-
+	
 	/**
 	 * the current param object
 	 * @member {Object}
 	 */
 	this.param = {};
-
+	
+	/**
+	 * the current text
+	 * @member {String}
+	 */
+	this.text = null;
+	
 	/**
 	 * the current search object
 	 * @member {Object}
 	 */
 	this.search = null;
-
+	
 	/**
 	 * the current context path
 	 * @member {String}
@@ -69,25 +75,25 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 	 * @member {String}
 	 */
 	this.defaultModule = "index";
-
+	
 	/**
 	 * the default page copied from the config
 	 * @member {String}
 	 */
 	this.defaultPage = "index";	
-
+	
 	/**
 	 * the lang storage key
 	 * @member {String}
 	 */
 	this.langStorage = "lang";
-
+	
 	/**
 	 * the state of the history--next, replace, back
 	 * @member {String}
 	 */
 	this.state = null;
-
+	
 	/**
 	 * the previously loaded lang, layout, module, page, param
 	 * @member {Object}
@@ -99,30 +105,36 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 	 * @member {Boolean}
 	 */
 	this.newValue = false;
-
+	
 	/**
 	 * is a new lang
 	 * @member {Boolean}
 	 */
 	this.newLang = false;
-
+	
 	/**
 	 * is a new layout
 	 * @member {Boolean}
 	 */
 	this.newLayout = false;
-
+	
 	/**
 	 * is a new module
 	 * @member {Boolean}
 	 */
 	this.newModule = false;
-
+	
 	/**
 	 * is a new page
 	 * @member {Boolean}
 	 */
 	this.newPage = false;
+	
+	/**
+	 * is a new text
+	 * @member {Boolean}
+	 */
+	this.newText = false;
 	
 	/**
 	 * check existence of param on hash
@@ -244,6 +256,17 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 	};
 	
 	/**
+	 * sets the text value and checks for change
+	 * @method
+	 * @param {String} page
+	 */
+	this.setText = function(text)
+	{
+		this.text = text;
+		this.newText = this.text != this.loaded.text;
+	};
+	
+	/**
 	 * is a new value
 	 * @method
 	 * @returns {Boolean}
@@ -294,6 +317,16 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 	}
 	
 	/**
+	 * is a new text
+	 * @method
+	 * @returns {Boolean}
+	 */
+	this.isNewText = function()
+	{
+		return this.newText;
+	}
+	
+	/**
 	 * is history state of next
 	 * @method
 	 * @returns {Boolean}
@@ -331,7 +364,7 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 	this.changeLang = function(lang)
 	{
 		this.setLang(lang);
-		this.reload();
+		this.refresh();
 	};
 	
 	/**
@@ -552,51 +585,55 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 	/**
 	 * sets the current hash value to the loaded object
 	 * @method
-	 * @param {String} value
 	 */
-	this.loadedValue = function(value)
+	this.loadedValue = function()
 	{
-		this.loaded.value = isSet(value) ? value : this.value;
+		this.loaded.value = this.value;
 	};
 	
 	/**
 	 * sets the current lang to the loaded object
 	 * @method
-	 * @param {String} lang
 	 */
-	this.loadedLang = function(lang)
+	this.loadedLang = function()
 	{
-		this.loaded.lang = isSet(lang) ? lang : this.lang;
+		this.loaded.lang = this.lang;
 	};
 	
 	/**
 	 * sets the current layout to the loaded object
 	 * @method
-	 * @param {String} layout
 	 */
-	this.loadedLayout = function(layout)
+	this.loadedLayout = function()
 	{
-		this.loaded.layout = layout;
+		this.loaded.layout = this.layout;
 	};
 	
 	/**
 	 * sets the current module to the loaded object
 	 * @method
-	 * @param {String} module
 	 */
-	this.loadedModule = function(module)
+	this.loadedModule = function()
 	{
-		this.loaded.module = module;
+		this.loaded.module = this.module;
 	};
 	
 	/**
 	 * sets the current page to the loaded object
 	 * @method
-	 * @param {String} page
 	 */
-	this.loadedPage = function(page)
+	this.loadedPage = function()
 	{
-		this.loaded.page = page;
+		this.loaded.page = this.page;
+	};
+	
+	/**
+	 * sets the current page to the loaded object
+	 * @method
+	 */
+	this.loadedText = function()
+	{
+		this.loaded.text = this.text;
 	};
 	
 	/**
