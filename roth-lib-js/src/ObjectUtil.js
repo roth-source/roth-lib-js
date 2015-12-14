@@ -48,7 +48,7 @@ var ObjectUtil = ObjectUtil ||
 		var paths = path.split(".");
 		for(var i in paths)
 		{
-			if(object[paths[i]])
+			if(isSet(object[paths[i]]))
 			{
 				object = object[paths[i]];
 			}

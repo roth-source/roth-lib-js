@@ -16,12 +16,8 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 		TEXT			: "text",
 		LAYOUT			: "layout",
 		PAGE			: "page",
-		SECTIONS		: "sections",
 		SECTION			: "section",
-		COMPONENTS		: "components",
 		COMPONENT		: "component",
-		TRANSLATION		: "translation",
-		FIELDS			: "fields",
 		READY			: "ready",
 		SHOW			: "show",
 		CALLBACK		: "callback"
@@ -33,13 +29,9 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 	Order[Event.INIT] 			= [Event.CONFIG];
 	Order[Event.LAYOUT] 		= [Event.TEXT, Event.INIT];
 	Order[Event.PAGE] 			= [Event.LAYOUT];
-	Order[Event.SECTIONS] 		= [Event.PAGE];
-	Order[Event.SECTION] 		= [Event.SECTIONS];
-	Order[Event.COMPONENTS] 	= [Event.PAGE];
-	Order[Event.COMPONENT] 		= [Event.COMPONENTS];
-	Order[Event.TRANSLATION] 	= [Event.SECTION, Event.COMPONENT, Event.TEXT];
-	Order[Event.FIELDS] 		= [Event.TRANSLATION];
-	Order[Event.READY] 			= [Event.INIT, Event.FIELDS];
+	Order[Event.SECTION] 		= [Event.PAGE];
+	Order[Event.COMPONENT] 		= [Event.PAGE];
+	Order[Event.READY] 			= [Event.PAGE, Event.SECTION, Event.COMPONENT];
 	Order[Event.SHOW] 			= [Event.READY];
 	Order[Event.CALLBACK] 		= [Event.SHOW];
 	
@@ -105,17 +97,6 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 	};
 	
 	/**
-	 * queues sections event callback
-	 * @method
-	 * @param {Function} callback
-	 * @returns {String}
-	 */
-	this.sections = function(callback)
-	{
-		return this.add(Event.SECTIONS, callback);
-	};
-	
-	/**
 	 * queues section event callback
 	 * @method
 	 * @param {Function} callback
@@ -127,17 +108,6 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 	};
 	
 	/**
-	 * queues components event callback
-	 * @method
-	 * @param {Function} callback
-	 * @returns {String}
-	 */
-	this.components = function(callback)
-	{
-		return this.add(Event.COMPONENTS, callback);
-	};
-	
-	/**
 	 * queues component event callback
 	 * @method
 	 * @param {Function} callback
@@ -146,28 +116,6 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 	this.component = function(callback)
 	{
 		return this.add(Event.COMPONENT, callback);
-	};
-	
-	/**
-	 * queues translation event callback
-	 * @method
-	 * @param {Function} callback
-	 * @returns {String}
-	 */
-	this.translation = function(callback)
-	{
-		return this.add(Event.TRANSLATION, callback);
-	};
-	
-	/**
-	 * queues fields event callback
-	 * @method
-	 * @param {Function} callback
-	 * @returns {String}
-	 */
-	this.fields = function(callback)
-	{
-		return this.add(Event.FIELDS, callback);
 	};
 	
 	/**
