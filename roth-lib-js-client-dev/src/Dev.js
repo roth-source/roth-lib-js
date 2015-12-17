@@ -10,29 +10,21 @@ roth.lib.js.client.dev.Dev = roth.lib.js.client.dev.Dev || function(config)
 	 */
 	
 	var self = this;
-	var template = new roth.lib.js.template.Template();
 	var selects = $('<div class="roth-dev-selects"></div>');
 	selects.appendTo("body");
 	
 	(function()
 	{
-		var devRenderer = function(html)
-		{
-			return template.render(html, { config : config });
-		};
-		config.renderer.devRenderer = devRenderer;
 		config.layout = isSet(config.layout) ? config.layout : {};
 		config.layout[config.devLayout] =
 		{
 			init : false,
-			path : config.getDevLayoutPath(),
-			renderer : "devRenderer"
+			path : config.getDevLayoutPath()
 		};
 		config.module[config.devModule] =
 		{
 			init : false,
 			layout : config.devLayout,
-			renderer : "devRenderer",
 			page : {}
 		};
 		config.module[config.devModule].page[config.devLinksPage] =

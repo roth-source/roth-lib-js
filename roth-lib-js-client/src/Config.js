@@ -54,31 +54,24 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.textExtension					= ".json";
 	this.textAttribute					= "data-text";
 	this.textAttrAttribute				= "data-text-attr";
+	this.textParamAttribute				= "data-text-param";
 	this.textOverride					= null;
 	
 	this.viewPath						= "view/";
 	this.viewExtension					= ".html";
-	this.viewRenderer					= null;
 	
 	this.layoutPath						= "layout/";
 	this.layoutExtension				= null;
 	this.layoutId						= "layout";
-	this.layoutRenderer					= null;
 	
 	this.pagePath						= "page/";
 	this.pageExtension					= null;
 	this.pageId							= "page";
-	this.pageRenderer					= null;
-	
-	this.sectionPath					= "section/";
-	this.sectionExtension				= null;
-	this.sectionAttribute				= "data-section";
-	this.sectionRenderer				= null;
+	this.pageLoader						= null;
 	
 	this.componentPath					= "component/";
 	this.componentExtension				= null;
 	this.componentAttribute				= "data-component";
-	this.componentRenderer				= null;
 	
 	this.errorEndpointRedirector		= null;
 	this.errorParamsRedirector			= null;
@@ -102,7 +95,6 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.fieldErrorAttribute			= "data-error";
 	this.fieldRequestAttribute			= "data-request";
 	this.fieldUpdateValueAttribute		= "data-update-value";
-	this.fieldKeepAttribute				= "data-keep";
 	this.fieldEditableAttribute			= "data-editable";
 	this.fieldNameAttribute				= "data-name";
 	this.fieldKeyAttribute				= "data-key";
@@ -127,7 +119,6 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.dev							= {};
 	
 	// registries
-	this.renderer						= {};
 	this.redirector						= {};
 	this.filterer 						= {};
 	this.validator 						= {};
@@ -230,16 +221,6 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 		return path;
 	};
 	
-	this.getSectionPath = function(section)
-	{
-		var path = "";
-		path += this.viewPath;
-		path += this.sectionPath;
-		path += section;
-		path += this.getSectionExtension();
-		return path;
-	};
-	
 	this.getComponentPath = function(component)
 	{
 		var path = "";
@@ -258,11 +239,6 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.getPageExtension = function()
 	{
 		return isSet(this.pageExtension) ? this.pageExtension : this.viewExtension;
-	};
-	
-	this.getSectionExtension = function()
-	{
-		return isSet(this.sectionExtension) ? this.sectionExtension : this.viewExtension;
 	};
 	
 	this.getComponentExtension = function()
@@ -353,38 +329,6 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	{
 		var changeParams = this.getPageConfig(module, page, "changeParams");
 		return isArray(changeParams) ? changeParams : [];
-	};
-	
-	this.getLayoutRenderer = function(layout)
-	{
-		var renderer = this.getLayoutConfig(layout, "renderer");
-		if(isUndefined(renderer))
-		{
-			renderer = isSet(this.layoutRenderer) ? this.layoutRenderer : this.viewRenderer;
-		}
-		return isString(renderer) ? this.renderer[renderer] : renderer;
-	};
-	
-	this.getPageRenderer = function(module, page)
-	{
-		var renderer = this.getPageConfig(module, page, "renderer");
-		if(isUndefined(renderer))
-		{
-			renderer = isSet(this.pageRenderer) ? this.pageRenderer : this.viewRenderer;
-		}
-		return isString(renderer) ? this.renderer[renderer] : renderer;
-	};
-	
-	this.getSectionRenderer = function()
-	{
-		var renderer = isSet(this.sectionRenderer) ? this.sectionRenderer : this.viewRenderer;
-		return isString(renderer) ? this.renderer[renderer] : renderer;
-	};
-	
-	this.getComponentRenderer = function()
-	{
-		var renderer = isSet(this.componentRenderer) ? this.componentRenderer : this.viewRenderer;
-		return isString(renderer) ? this.renderer[renderer] : renderer;
 	};
 	
 	this.getLayoutInit = function(layout)
@@ -596,12 +540,6 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.getDevSelectPath = function()
 	{
 		return this.getDevAppPath() + this.devViewPath + this.devComponentPath + this.devSelectComponent + this.devViewExtension;
-	};
-	
-	this.isFieldKeep = function(element)
-	{
-		var keep = element.attr(this.fieldKeepAttribute);
-		return "true" == keep;
 	};
 	
 	this.isTranslated = function(module, page)

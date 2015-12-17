@@ -87,7 +87,7 @@
 		var devEndpoint = sessionStorage.getItem("devEndpoint");
 		if(!isSet(devEndpoint))
 		{
-			devEndpoint = client.getEndpoint();
+			devEndpoint = client.endpoint();
 		}
 		if(isSet(devEndpoint))
 		{

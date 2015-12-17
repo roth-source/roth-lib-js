@@ -11,57 +11,33 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 	
 	var Event =
 	{
-		CONFIG			: "config",
-		INIT			: "init",
-		TEXT			: "text",
-		LAYOUT			: "layout",
-		PAGE			: "page",
-		SECTION			: "section",
-		COMPONENT		: "component",
-		READY			: "ready",
-		SHOW			: "show",
-		CALLBACK		: "callback"
+		TEXT				: "text",
+		LAYOUT_INIT			: "layoutInit",
+		LAYOUT_RESOURCE		: "layoutResource",
+		LAYOUT_COMPONENT	: "layoutComponent",
+		LAYOUT_READY		: "layoutReady",
+		PAGE_INIT			: "pageInit",
+		PAGE_RESOURCE		: "pageResource",
+		PAGE_COMPONENT		: "pageComponent",
+		PAGE_READY			: "pageReady"
 	};
 	
 	var Order = {};
-	Order[Event.CONFIG] 		= [];
-	Order[Event.TEXT] 			= [Event.CONFIG];
-	Order[Event.INIT] 			= [Event.CONFIG];
-	Order[Event.LAYOUT] 		= [Event.TEXT, Event.INIT];
-	Order[Event.PAGE] 			= [Event.LAYOUT];
-	Order[Event.SECTION] 		= [Event.PAGE];
-	Order[Event.COMPONENT] 		= [Event.PAGE];
-	Order[Event.READY] 			= [Event.PAGE, Event.SECTION, Event.COMPONENT];
-	Order[Event.SHOW] 			= [Event.READY];
-	Order[Event.CALLBACK] 		= [Event.SHOW];
+	Order[Event.TEXT] 				= [];
+	Order[Event.LAYOUT_INIT] 		= [];
+	Order[Event.LAYOUT_RESOURCE] 	= [Event.TEXT, Event.LAYOUT_INIT];
+	Order[Event.LAYOUT_COMPONENT] 	= [Event.LAYOUT_RESOURCE];
+	Order[Event.LAYOUT_READY] 		= [Event.LAYOUT_COMPONENT];
+	Order[Event.PAGE_INIT] 			= [];
+	Order[Event.PAGE_RESOURCE] 		= [Event.TEXT, Event.LAYOUT_INIT, Event.PAGE_INIT];
+	Order[Event.PAGE_COMPONENT] 	= [Event.PAGE_RESOURCE];
+	Order[Event.PAGE_READY] 		= [Event.LAYOUT_READY, Event.PAGE_COMPONENT];
 	
 	/**
 	 * the task queue holding callbacks of certain event types
 	 * @member {Object}
 	 */
 	this.task = {};
-	
-	/**
-	 * queues config event callback
-	 * @method
-	 * @param {Function} callback
-	 * @returns {String}
-	 */
-	this.config = function(callback)
-	{
-		return this.add(Event.CONFIG, callback);
-	};
-	
-	/**
-	 * queues init event callback
-	 * @method
-	 * @param {Function} callback
-	 * @returns {String}
-	 */
-	this.init = function(callback)
-	{
-		return this.add(Event.INIT, callback);
-	};
 	
 	/**
 	 * queues text event callback
@@ -75,36 +51,25 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 	};
 	
 	/**
+	 * queues init event callback
+	 * @method
+	 * @param {Function} callback
+	 * @returns {String}
+	 */
+	this.layoutInit = function(callback)
+	{
+		return this.add(Event.LAYOUT_INIT, callback);
+	};
+	
+	/**
 	 * queues layout event callback
 	 * @method
 	 * @param {Function} callback
 	 * @returns {String}
 	 */
-	this.layout = function(callback)
+	this.layoutResource = function(callback)
 	{
-		return this.add(Event.LAYOUT, callback);
-	};
-	
-	/**
-	 * queues page event callback
-	 * @method
-	 * @param {Function} callback
-	 * @returns {String}
-	 */
-	this.page = function(callback)
-	{
-		return this.add(Event.PAGE, callback);
-	};
-	
-	/**
-	 * queues section event callback
-	 * @method
-	 * @param {Function} callback
-	 * @returns {String}
-	 */
-	this.section = function(callback)
-	{
-		return this.add(Event.SECTION, callback);
+		return this.add(Event.LAYOUT_RESOURCE, callback);
 	};
 	
 	/**
@@ -113,9 +78,9 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 	 * @param {Function} callback
 	 * @returns {String}
 	 */
-	this.component = function(callback)
+	this.layoutComponent = function(callback)
 	{
-		return this.add(Event.COMPONENT, callback);
+		return this.add(Event.LAYOUT_COMPONENT, callback);
 	};
 	
 	/**
@@ -124,31 +89,53 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 	 * @param {Function} callback
 	 * @returns {String}
 	 */
-	this.ready = function(callback)
+	this.layoutReady = function(callback)
 	{
-		return this.add(Event.READY, callback);
+		return this.add(Event.LAYOUT_READY, callback);
 	};
 	
 	/**
-	 * queues show event callback
+	 * queues init event callback
 	 * @method
 	 * @param {Function} callback
 	 * @returns {String}
 	 */
-	this.show = function(callback)
+	this.pageInit = function(callback)
 	{
-		return this.add(Event.SHOW, callback);
+		return this.add(Event.PAGE_INIT, callback);
 	};
 	
 	/**
-	 * queues callback event callback
+	 * queues layout event callback
 	 * @method
 	 * @param {Function} callback
 	 * @returns {String}
 	 */
-	this.callback = function(callback)
+	this.pageResource = function(callback)
 	{
-		return this.add(Event.CALLBACK, callback);
+		return this.add(Event.PAGE_RESOURCE, callback);
+	};
+	
+	/**
+	 * queues component event callback
+	 * @method
+	 * @param {Function} callback
+	 * @returns {String}
+	 */
+	this.pageComponent = function(callback)
+	{
+		return this.add(Event.PAGE_COMPONENT, callback);
+	};
+	
+	/**
+	 * queues ready event callback
+	 * @method
+	 * @param {Function} callback
+	 * @returns {String}
+	 */
+	this.pageReady = function(callback)
+	{
+		return this.add(Event.PAGE_READY, callback);
 	};
 	
 	/**

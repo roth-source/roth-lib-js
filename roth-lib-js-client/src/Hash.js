@@ -9,13 +9,6 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 	 * @lends Hash.prototype
 	 */
 	
-	var State =
-	{
-		NEXT 	: "next",
-		REPLACE : "replace",
-		BACK 	: "back"
-	};
-	
 	/**
 	 * the current location hash value
 	 * @member {String}
@@ -87,12 +80,6 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 	 * @member {String}
 	 */
 	this.langStorage = "lang";
-	
-	/**
-	 * the state of the history--next, replace, back
-	 * @member {String}
-	 */
-	this.state = null;
 	
 	/**
 	 * the previously loaded lang, layout, module, page, param
@@ -327,36 +314,6 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 	}
 	
 	/**
-	 * is history state of next
-	 * @method
-	 * @returns {Boolean}
-	 */
-	this.isNext = function()
-	{
-		return this.state == State.NEXT;
-	};
-	
-	/**
-	 * is history state of back
-	 * @method
-	 * @returns {Boolean}
-	 */
-	this.isBack = function()
-	{
-		return this.state == State.BACK;
-	};
-	
-	/**
-	 * is history state of replace
-	 * @method
-	 * @returns {Boolean}
-	 */
-	this.isReplace = function()
-	{
-		return this.state == State.REPLACE || isNull(this.state);
-	};
-	
-	/**
 	 * changes the lang and reloads page
 	 * @method
 	 * @param {String} lang
@@ -373,7 +330,6 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 	 */
 	this.back = function()
 	{
-		this.state = State.BACK;
 		window.history.back();
 	};
 	
@@ -386,7 +342,6 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 	 */
 	this.next = function(module, page, param)
 	{
-		this.state = State.NEXT;
 		if(!isValidString(page))
 		{
 			window.location.assign(module);
@@ -406,7 +361,6 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 	 */
 	this.replace = function(module, page, param)
 	{
-		this.state = State.REPLACE;
 		if(!isValidString(page))
 		{
 			window.location.replace(module);
@@ -423,7 +377,6 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 	 */
 	this.refresh = function()
 	{
-		this.state = State.REPLACE;
 		window.location.replace(this.build(this.module, this.page, this.param));
 	};
 	
@@ -455,7 +408,27 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 				param = isObject(param) ? param : this.param;
 				for(var name in param)
 				{
-					hash += encodeURIComponent(name) + "/" + encodeURIComponent(param[name]) + "/";
+					var value = param[name];
+					if(isSet(value))
+					{
+						hash += encodeURIComponent(name) + "/";
+						if(isArray(value))
+						{
+							hash += "[";
+							var seperator = "";
+							for(var i in value)
+							{
+								hash += seperator;
+								hash += encodeURIComponent(value[i]);
+								seperator = ",";
+							}
+							hash += "]/";
+						}
+						else
+						{
+							hash += encodeURIComponent(value) + "/";
+						}
+					}
 				}
 			}
 		}
@@ -507,7 +480,16 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 				}
 				else
 				{
-					this.param[name] = decodeURIComponent(values[i]);
+					var value = decodeURIComponent(values[i]);
+					var matches = value.match(/^\[(.*?)\]$/);
+					if(isNotEmpty(matches))
+					{
+						this.param[name] = matches[1].split(",");
+					}
+					else
+					{
+						this.param[name] = value;
+					}
 					hash += name + "/";
 					hash += values[i] + "/";
 					name = null;
