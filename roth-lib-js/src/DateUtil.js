@@ -609,6 +609,26 @@ var DateUtil = DateUtil ||
 			date = new Date(year, month, day, hours, minutes, seconds, milliseconds);
 		}
 		return date;
+	},
+	
+	/**
+	 * Parses a date string into a date object
+	 * @memberof DateUtil
+	 * @method
+	 * @param {String} parsePattern
+	 * @param {String} formatPattern
+	 * @param {String} value
+	 * @param {String} [lang]
+	 * @returns {Date}
+	 */
+	reformat : function(parsePattern, formatPattern, value, lang)
+	{
+		var date = parse(parsePattern, value, lang);
+		if(isSet(date))
+		{
+			value = format(formatPattern, date, lang);
+		}
+		return value;
 	}
 	
 };
