@@ -1848,7 +1848,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		else
 		{
 			path = this.config.getServicePath(service, method);
-			if(isLocal())
+			if(isFileProtocol())
 			{
 				var sessionId = localStorage.getItem(this.config.devSessionId);
 				if(isSet(sessionId))
@@ -1881,6 +1881,10 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			contentType	: "text/plain",
 			dataType	: "json",
 			cache		: false,
+			xhrFields	:
+			{
+				withCredentials : true
+			},
 			success		: function(response, textStatus, jqXHR)
 			{
 				if(isSet(response.dev))
@@ -1899,9 +1903,9 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 				{
 					localStorage.setItem(self.config.csrfTokenStorage, csrfTokenHeader);
 				}
+				self.serviceLog(service, method, url, request, response);
 				if(isSet(response.errors) && response.errors.length > 0)
 				{
-					console.info("RESPONSE : " + url, response.errors);
 					forEach(response.errors, function(error)
 					{
 						switch(error.type)
@@ -1923,7 +1927,6 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 				}
 				else
 				{
-					self.serviceLog(service, method, url, request, response);
 					success(response);
 				}
 			},

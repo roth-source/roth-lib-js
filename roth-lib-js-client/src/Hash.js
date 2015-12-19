@@ -626,6 +626,7 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 	{
 		console.groupEnd();
 		var group = "";
+		group += "PAGE : ";
 		group += this.lang + " / ";
 		group += this.getModule() + " / ";
 		group += this.getPage() + " / ";
