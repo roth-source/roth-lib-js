@@ -677,7 +677,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	{
 		var id = this.queue.layoutComponent(function()
 		{
-			self.loadComponentInit(element, component, null, null, null, function() { self.queueLayoutComponents(); }, id);
+			self.loadComponentInit(element, component, null, null, null, null, function() { self.queueLayoutComponents(); }, id);
 		});
 	};
 	
@@ -866,7 +866,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	{
 		var id = this.queue.pageComponent(function()
 		{
-			self.loadComponentInit(element, component, null, null, null, function() { self.queuePageComponents(); }, id);
+			self.loadComponentInit(element, component, null, null, null, null, function() { self.queuePageComponents(); }, id);
 		});
 	};
 	
@@ -918,10 +918,11 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	 * @param {String} [service]
 	 * @param {String} [method]
 	 * @param {Object} [request]
+	 * @param {Object} [data]
 	 * @param {Function} [callback]
 	 * @param {String} [id]
 	 */
-	this.loadComponentInit = function(element, component, service, method, request, callback, id)
+	this.loadComponentInit = function(element, component, service, method, request, data, callback, id)
 	{
 		var service = isValidString(service) ? service : element.attr(this.config.fieldServiceAttribute);
 		var method = isValidString(method) ? method : element.attr(this.config.fieldMethodAttribute);
@@ -929,8 +930,10 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		{
 			var request = isObject(request) ? request : {};
 			$.extend(true, request, this.hash.cloneParam(), ObjectUtil.parse(element.attr(this.config.fieldRequestAttribute)));
-			var success = function(data)
+			var success = function(response)
 			{
+				var data = isObject(data) ? data : {};
+				$.extend(true, data, response);
 				self.loadComponent(element, component, data, callback, id);
 			};
 			var error = function(errors)
