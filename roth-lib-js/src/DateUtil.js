@@ -623,10 +623,10 @@ var DateUtil = DateUtil ||
 	 */
 	reformat : function(parsePattern, formatPattern, value, lang)
 	{
-		var date = parse(parsePattern, value, lang);
+		var date = this.parse(parsePattern, value, lang);
 		if(isSet(date))
 		{
-			value = format(formatPattern, date, lang);
+			value = this.format(formatPattern, date, lang);
 		}
 		return value;
 	}

@@ -337,8 +337,8 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 	 * assigns location hash to new page
 	 * @method
 	 * @param {String} module
-	 * @param {String} page
-	 * @param {Object} param
+	 * @param {String} [page]
+	 * @param {Object} [param]
 	 */
 	this.next = function(module, page, param)
 	{
@@ -356,8 +356,8 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 	 * replaces the location of new page
 	 * @method
 	 * @param {String} module
-	 * @param {String} page
-	 * @param {Object} param
+	 * @param {String} [page]
+	 * @param {Object} [param]
 	 */
 	this.replace = function(module, page, param)
 	{
@@ -368,6 +368,62 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 		else
 		{
 			window.location.replace(this.build(module, page, param));
+		}
+	};
+	
+	/**
+	 * changes the current location
+	 * @method
+	 * @param {Object} changeParam
+	 * @param {String} [page]
+	 * @param {String} [module]
+	 */
+	this.change = function(changeParam, page, module)
+	{
+		if(isObject(changeParam))
+		{
+			var param = this.cloneParam();
+			forEach(changeParam, function(value, name)
+			{
+				param[name] = value;
+			});
+			if(!isValidString(page))
+			{
+				page = this.page;
+			}
+			if(!isValidString(module))
+			{
+				module = this.module;
+			}
+			this.next(module, page, param);
+		}
+	};
+	
+	/**
+	 * update the current location
+	 * @method
+	 * @param {Object} changeParam
+	 * @param {String} [page]
+	 * @param {String} [module]
+	 */
+	this.update = function(changeParam, page, module)
+	{
+		if(isObject(changeParam))
+		{
+			var param = this.cloneParam();
+			forEach(changeParam, function(value, name)
+			{
+				param[name] = value;
+			});
+			if(!isValidString(page))
+			{
+				page = this.page;
+			}
+			if(!isValidString(module))
+			{
+				module = this.module;
+			}
+			this.replace(module, page, param);
 		}
 	};
 	

@@ -313,8 +313,14 @@ var isDebug = isDebug || function()
 {
 	if(roth.lib.js.env.debug == null)
 	{
-		var search = window.location.search.toLowerCase();
-		roth.lib.js.env.debug = search.indexOf("debug") != -1;
+		if(isFileProtocol())
+		{
+			setDebug(true);
+		}
+		else
+		{
+			setDebug(window.location.search.toLowerCase().indexOf("debug") != -1);
+		}
 	}
 	return roth.lib.js.env.debug;
 };

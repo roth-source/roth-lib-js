@@ -928,11 +928,11 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		var method = isValidString(method) ? method : element.attr(this.config.fieldMethodAttribute);
 		if(isValidString(service) && isValidString(method))
 		{
-			var request = isObject(request) ? request : {};
+			request = isObject(request) ? request : {};
 			$.extend(true, request, this.hash.cloneParam(), ObjectUtil.parse(element.attr(this.config.fieldRequestAttribute)));
 			var success = function(response)
 			{
-				var data = isObject(data) ? data : {};
+				data = isObject(data) ? data : {};
 				$.extend(true, data, response);
 				self.loadComponent(element, component, data, callback, id);
 			};
@@ -1895,10 +1895,6 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 					if(isSet(response.dev[self.config.devSessionId]))
 					{
 						localStorage.setItem(self.config.devSessionId, response.dev[self.config.devSessionId]);
-					}
-					if(isSet(response.dev[self.config.devCsrfToken]))
-					{
-						localStorage.setItem(self.config.csrfTokenStorage, response.dev[self.config.devCsrfToken]);
 					}
 				}
 				var csrfTokenHeader = jqXHR.getResponseHeader(self.config.csrfTokenHeader);
