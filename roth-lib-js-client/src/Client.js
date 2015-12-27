@@ -132,7 +132,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	 */
 	this.checkDev = function()
 	{
-		if(isDev())
+		if(isFileProtocol())
 		{
 			if(typeof roth.lib.js.client.dev == "undefined" || typeof roth.lib.js.client.dev.Dev == "undefined")
 			{
@@ -263,7 +263,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	 */
 	this.initDev = function()
 	{
-		if(isDev())
+		if(isFileProtocol())
 		{
 			this.dev = new roth.lib.js.client.dev.Dev(this.config);
 		}
@@ -328,12 +328,42 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 					{
 						lang = lang.substring(0, 2);
 					}
-					lang = this.config.isValidLang(lang) ? lang : this.config.defultLang;
+					lang = this.config.isValidLang(lang) ? lang : this.config.defaultLang;
 					this.hash.setLang(lang);
 					localStorage.setItem(this.hash.langStorage, lang);
 				}
 			}
-			if(!this.hash.isNewModule() && !this.hash.isNewPage())
+			if(loadable)
+			{
+				// SET DEFAULT PARAMS
+				forEach(this.config.getDefaultParams(module, page), function(value, name)
+				{
+					if(!self.hash.hasParam(name))
+					{
+						self.hash.param[name] = value;
+						loadable = false;
+					}
+				});
+				// CHECK FOR ALLOWED PARAMS
+				var allowedParams = this.config.getAllowedParams(module, page);
+				if(!isNull(allowedParams))
+				{
+					forEach(this.hash.param, function(value, name)
+					{
+						if(!inArray(name, allowedParams))
+						{
+							delete self.hash.param[name];
+							loadable = false;
+						}
+					});
+				}
+				if(!loadable)
+				{
+					this.hash.refresh();
+				}
+			}
+			// CHECK FOR CHANGE PARAMS
+			if(loadable && !this.hash.isNewModule() && !this.hash.isNewPage())
 			{
 				var changeParams = this.config.getChangeParams(module, page);
 				if(isNotEmpty(changeParams))
@@ -378,6 +408,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 					}
 				}
 			}
+			// CHECK FOR VALID PARAM SCENARIO
 			if(loadable)
 			{
 				var params = this.config.getParams(module, page);
@@ -567,7 +598,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	this.loadLayoutInit = function(id)
 	{
 		var init = this.config.getLayoutInit(this.hash.layout);
-		if(isObject(init))
+		if(isObject(init) && this.hash.getModule() != "dev")
 		{
 			var request = isObject(init.request) ? init.request : this.hash.param;
 			var success = function(data)
@@ -759,7 +790,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		var module = this.hash.getModule();
 		var page = this.hash.getPage();
 		var init = this.config.getPageInit(module, page);
-		if(isObject(init))
+		if(isObject(init) && module != "dev")
 		{
 			var request = isObject(init.request) ? init.request : this.hash.param;
 			var success = function(data)

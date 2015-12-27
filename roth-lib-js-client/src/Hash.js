@@ -336,13 +336,13 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 	/**
 	 * assigns location hash to new page
 	 * @method
-	 * @param {String} module
-	 * @param {String} [page]
-	 * @param {Object} [param]
+	 * @param {String|Object} module - either module or param
+	 * @param {String} page
+	 * @param {Object|String} param - either param or module
 	 */
 	this.next = function(module, page, param)
 	{
-		if(!isValidString(page))
+		if(isValidString(module) && !isValidString(page))
 		{
 			window.location.assign(module);
 		}
@@ -355,75 +355,19 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 	/**
 	 * replaces the location of new page
 	 * @method
-	 * @param {String} module
-	 * @param {String} [page]
-	 * @param {Object} [param]
+	 * @param {String|Object} module - either module or param
+	 * @param {String} page
+	 * @param {Object|String} param - either param or module
 	 */
 	this.replace = function(module, page, param)
 	{
-		if(!isValidString(page))
+		if(isValidString(module) && !isValidString(page))
 		{
 			window.location.replace(module);
 		}
 		else
 		{
 			window.location.replace(this.build(module, page, param));
-		}
-	};
-	
-	/**
-	 * changes the current location
-	 * @method
-	 * @param {Object} changeParam
-	 * @param {String} [page]
-	 * @param {String} [module]
-	 */
-	this.change = function(changeParam, page, module)
-	{
-		if(isObject(changeParam))
-		{
-			var param = this.cloneParam();
-			forEach(changeParam, function(value, name)
-			{
-				param[name] = value;
-			});
-			if(!isValidString(page))
-			{
-				page = this.page;
-			}
-			if(!isValidString(module))
-			{
-				module = this.module;
-			}
-			this.next(module, page, param);
-		}
-	};
-	
-	/**
-	 * update the current location
-	 * @method
-	 * @param {Object} changeParam
-	 * @param {String} [page]
-	 * @param {String} [module]
-	 */
-	this.update = function(changeParam, page, module)
-	{
-		if(isObject(changeParam))
-		{
-			var param = this.cloneParam();
-			forEach(changeParam, function(value, name)
-			{
-				param[name] = value;
-			});
-			if(!isValidString(page))
-			{
-				page = this.page;
-			}
-			if(!isValidString(module))
-			{
-				module = this.module;
-			}
-			this.replace(module, page, param);
 		}
 	};
 	
@@ -446,14 +390,53 @@ roth.lib.js.client.Hash = roth.lib.js.client.Hash || function()
 	};
 	
 	/**
+	 * gets the changed module, page, param
+	 * @method
+	 * @param {Object} changeParam
+	 * @param {String} [page]
+	 * @param {String} [module]
+	 */
+	this.change = function(changeParam, page, module)
+	{
+		var param = this.cloneParam();
+		if(isObject(changeParam))
+		{
+			forEach(changeParam, function(value, name)
+			{
+				param[name] = value;
+			});
+		}
+		if(!isValidString(page))
+		{
+			page = this.page;
+		}
+		if(!isValidString(module))
+		{
+			module = this.module;
+		}
+		return {
+			module : module,
+			page : page,
+			param : param
+		};
+	};
+	
+	/**
 	 * builds a module, page, and param object into a hash
 	 * @method
-	 * @param {String} module
+	 * @param {String|Object} module - either module or param
 	 * @param {String} page
-	 * @param {Object} param
+	 * @param {Object|String} param - either param or module
 	 */
 	this.build = function(module, page, param)
 	{
+		if(isObject(module))
+		{
+			var change = this.change(module, page, param);
+			module = change.module;
+			page = change.page;
+			param = change.param;
+		}
 		var hash = "#";
 		if(isValidString(module))
 		{

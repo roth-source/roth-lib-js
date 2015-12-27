@@ -207,7 +207,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	
 	this.getPagePath = function(module, page)
 	{
-		var path =  this.getPageConfig(module, page, "path");
+		var path =  this.getModulePageConfig(module, page, "path");
 		if(!isSet(path))
 		{
 			path = "";
@@ -246,9 +246,9 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 		return isSet(this.componentExtension) ? this.componentExtension : this.viewExtension;
 	};
 	
-	this.getModuleConfig = function(module, config)
+	this.getModuleConfig = function(module, config, defaultValue)
 	{
-		var value = undefined;
+		var value = defaultValue;
 		if(isSet(this.module[module]) && isDefined(this.module[module][config]))
 		{
 			value = this.module[module][config];
@@ -256,9 +256,19 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 		return value
 	};
 	
-	this.getPageConfig = function(module, page, config)
+	this.getPageConfig = function(module, page, config, defaultValue)
 	{
-		var value = undefined;
+		var value = defaultValue;
+		if(isSet(this.module[module]) && isDefined(this.module[module].page) && isDefined(this.module[module].page[page]) && isDefined(this.module[module].page[page][config]))
+		{
+			value = this.module[module].page[page][config];
+		}
+		return value
+	};
+	
+	this.getModulePageConfig = function(module, page, config, defaultValue)
+	{
+		var value = defaultValue;
 		if(isSet(this.module[module]))
 		{
 			if(isDefined(this.module[module].page) && isDefined(this.module[module].page[page]) && isDefined(this.module[module].page[page][config]))
@@ -285,13 +295,13 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	
 	this.getLayout = function(module, page)
 	{
-		var layout = this.getPageConfig(module, page, "layout");
+		var layout = this.getModulePageConfig(module, page, "layout");
 		return isValidString(layout) ? layout : module;
 	};
 	
 	this.getErrorParamsRedirector = function(module, page)
 	{
-		var redirector = this.getPageConfig(module, page, "errorParamsRedirector");
+		var redirector = this.getModulePageConfig(module, page, "errorParamsRedirector");
 		if(!isSet(redirector))
 		{
 			redirector = this.errorParamsRedirector;
@@ -301,7 +311,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	
 	this.getErrorPageRedirector = function(module, page)
 	{
-		var redirector = this.getPageConfig(module, page, "errorPageRedirector");
+		var redirector = this.getModulePageConfig(module, page, "errorPageRedirector");
 		if(!isSet(redirector))
 		{
 			redirector = this.errorPageRedirector;
@@ -311,7 +321,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	
 	this.getErrorAuthRedirector = function(module, page)
 	{
-		var redirector = this.getPageConfig(module, page, "errorAuthRedirector");
+		var redirector = this.getModulePageConfig(module, page, "errorAuthRedirector");
 		if(!isSet(redirector))
 		{
 			redirector = this.errorPageRedirector;
@@ -321,14 +331,81 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	
 	this.getParams = function(module, page)
 	{
-		var params = this.getPageConfig(module, page, "params");
-		return isArray(params) ? params : [];
+		var params = [];
+		var moduleParams = this.getModuleConfig(module, "params");
+		if(isArray(moduleParams))
+		{
+			forEach(moduleParams, function(moduleParam)
+			{
+				if(isObject(moduleParam))
+				{
+					params.push(moduleParam);
+				}
+			});
+		}
+		var pageParams = this.getPageConfig(module, page, "params");
+		if(isArray(pageParams))
+		{
+			forEach(pageParams, function(pageParam)
+			{
+				if(isObject(pageParam))
+				{
+					params.push(pageParam);
+				}
+			});
+		}
+		return params;
 	};
 	
 	this.getChangeParams = function(module, page)
 	{
-		var changeParams = this.getPageConfig(module, page, "changeParams");
+		var changeParams = this.getModulePageConfig(module, page, "changeParams");
 		return isArray(changeParams) ? changeParams : [];
+	};
+	
+	this.getDefaultParams = function(module, page)
+	{
+		var defaultParams = this.getModulePageConfig(module, page, "defaultParams");
+		return isObject(defaultParams) ? defaultParams : {};
+	};
+	
+	this.getAllowedParams = function(module, page)
+	{
+		var allowedPageParams = [];
+		var allowedParams = this.getModulePageConfig(module, page, "allowedParams");
+		if(!isNull(allowedParams))
+		{
+			if(isArray(allowedParams))
+			{
+				forEach(allowedParams, function(name)
+				{
+					allowedPageParams.push(name);
+				});
+			}
+			var params = this.getParams(module, page);
+			forEach(params, function(param)
+			{
+				forEach(param, function(value, name)
+				{
+					allowedPageParams.push(name);
+				});
+			});
+			var changeParams = this.getChangeParams(module, page);
+			forEach(changeParams, function(name)
+			{
+				allowedPageParams.push(name);
+			});
+			var defaultParams = this.getDefaultParams(module, page);
+			forEach(defaultParams, function(value, name)
+			{
+				allowedPageParams.push(name);
+			});
+		}
+		else
+		{
+			allowedPageParams = null;
+		}
+		return allowedPageParams;
 	};
 	
 	this.getLayoutInit = function(layout)
@@ -352,13 +429,13 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	
 	this.getPageInit = function(module, page)
 	{
-		var init = this.getPageConfig(module, page, "init");
+		var init = this.getModulePageConfig(module, page, "init");
 		if(!isFalse(init))
 		{
 			if(!isObject(init))
 			{
 				init = {};
-				init.service = this.getPageConfig(module, page, "service");
+				init.service = this.getModulePageConfig(module, page, "service");
 				if(!isValidString(init.service))
 				{
 					init.service = module;
@@ -374,7 +451,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 		var feedbacker = element.attr(this.fieldFeedbackAttribute);
 		if(!isValidString(feedbacker))
 		{
-			feedbacker = this.getPageConfig(module, page, "feedbacker");
+			feedbacker = this.getModulePageConfig(module, page, "feedbacker");
 			if(!isValidString(feedbacker) && !isFunction(feedbacker))
 			{
 				feedbacker = this.fieldFeedbacker;
@@ -544,7 +621,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	
 	this.isTranslated = function(module, page)
 	{
-		var translated = this.getPageConfig(module, page, "translated");
+		var translated = this.getModulePageConfig(module, page, "translated");
 		return isBoolean(translated) ? translated : false;
 	};
 	
