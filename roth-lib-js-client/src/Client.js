@@ -398,11 +398,11 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 					{
 						if(isFunction(this.layout.change))
 						{
-							this.layout.change(this.layout.init);
+							this.layout.change(this.layout.data);
 						}
 						if(isFunction(this.page.change))
 						{
-							this.page.change(this.page.init);
+							this.page.change(this.page.data);
 						}
 						loadable = false;
 					}
@@ -591,7 +591,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	};
 	
 	/**
-	 * calls the layout init method and saves response to layout.init
+	 * calls the layout init method and saves response to layout.data
 	 * @method
 	 * @param {String} id
 	 */
@@ -607,7 +607,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 				{
 					init.success(data);
 				}
-				self.layout.init = data || {};
+				self.layout.data = data || {};
 				self.queue.complete(id);
 			};
 			var error = function(errors)
@@ -616,7 +616,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 				{
 					init.error(errors);
 				}
-				self.layout.init = {};
+				self.layout.data = {};
 				self.queue.complete(id);
 			};
 			this.service(init.service, init.method, request, success, error);
@@ -653,7 +653,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			{
 				html = self.template.render(html,
 				{
-					data : self.layout.init,
+					data : self.layout.data,
 					config : self.config,
 					hash : self.hash,
 					text : self.text,
@@ -739,12 +739,12 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		layoutElement.empty().append(this._layoutElement.children().detach());
 		if(isFunction(this.layout.ready))
 		{
-			this.layout.ready(this.layout.init);
+			this.layout.ready(this.layout.data);
 		}
 		layoutElement.show();
 		if(isFunction(this.layout.show))
 		{
-			this.layout.show(this.layout.init);
+			this.layout.show(this.layout.data);
 		}
 		if(isFunction(this.config.pageLoader))
 		{
@@ -781,7 +781,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	};
 	
 	/**
-	 * calls the page init method and saves response to page.init
+	 * calls the page init method and saves response to page.data
 	 * @method
 	 * @param {String} id
 	 */
@@ -799,7 +799,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 				{
 					init.success(data);
 				}
-				self.page.init = data || {};
+				self.page.data = data || {};
 				self.queue.complete(id);
 			};
 			var error = function(errors)
@@ -808,7 +808,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 				{
 					init.error(errors);
 				}
-				self.page.init = {};
+				self.page.data = {};
 				self.queue.complete(id);
 			};
 			this.service(init.service, init.method, request, success, error);
@@ -844,7 +844,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		{
 			html = self.template.render(html,
 			{
-				data : self.page.init,
+				data : self.page.data,
 				config : self.config,
 				hash : self.hash,
 				text : self.text,
@@ -928,7 +928,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		pageElement.empty().append(this._pageElement.children().detach());
 		if(isFunction(this.page.ready))
 		{
-			this.page.ready(this.page.init);
+			this.page.ready(this.page.data);
 		}
 		if(isFunction(this.config.pageLoader))
 		{
@@ -937,7 +937,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		pageElement.show();
 		if(isFunction(this.page.show))
 		{
-			this.page.show(this.page.init);
+			this.page.show(this.page.data);
 		}
 	};
 	
@@ -992,7 +992,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	{
 		if(!isObject(data))
 		{
-			data = self.page.init;
+			data = self.page.data;
 		}
 		var success = function(html)
 		{
