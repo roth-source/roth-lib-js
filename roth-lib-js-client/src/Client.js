@@ -1013,7 +1013,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			element.removeAttr(self.config.componentAttribute);
 			if(isFunction(callback))
 			{
-				callback();
+				callback(data, element);
 			}
 			if(isSet(id))
 			{
@@ -1473,7 +1473,8 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 					{
 						new Function("errors", "request", "element", errorAttr)(errors, request, element);
 					}
-				});
+				},
+				submitGroup);
 			}
 		}
 		else
@@ -1659,7 +1660,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	 * applies validation feedback to the field
 	 * @method
 	 * @param {Node|jQuery|String} element
-	 * @param {String} field
+	 * @param {Object} field
 	 */
 	this.feedback = function(element, field)
 	{
@@ -1823,16 +1824,16 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	 * @param {Function} success
 	 * @param {Function} [error]
 	 */
-	this.service = function(service, method, request, success, error)
+	this.service = function(service, method, request, success, error, group)
 	{
 		if(isMock())
 		{
-			this.serviceFile(service, method, request, success, error);
+			this.serviceFile(service, method, request, success, error, group);
 		}
 		else
 		{
 			var endpoint = this.endpoint();
-			this.serviceCall(service, method, request, success, error);
+			this.serviceCall(service, method, request, success, error, group);
 		}
 	};
 	
@@ -1845,19 +1846,19 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	 * @param {Function} success
 	 * @param {Function} [error]
 	 */
-	this.serviceFile = function(service, method, request, success, error)
+	this.serviceFile = function(service, method, request, success, error, group)
 	{
 		var scenarios = this.config.getDevServiceResponseScenarios(service, method);
 		if(scenarios.length > 0)
 		{
 			this.dev.select(service + "/" + method, scenarios, function(scenario)
 			{
-				self.serviceCall(service, method, request, success, error, scenario);
+				self.serviceCall(service, method, request, success, error, group, scenario);
 			});
 		}
 		else
 		{
-			this.serviceCall(service, method, request, success, error);
+			this.serviceCall(service, method, request, success, error, group);
 		}
 	};
 	
@@ -1868,9 +1869,10 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	 * @param {Object} request
 	 * @param {Function} success
 	 * @param {Function} [error]
+	 * @param {Function} [group]
 	 * @param {String} [scenario]
 	 */
-	this.serviceCall = function(service, method, request, success, error, scenario)
+	this.serviceCall = function(service, method, request, success, error, group, scenario)
 	{
 		var module = this.hash.getModule();
 		var page = this.hash.getPage();
@@ -1936,6 +1938,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 				self.serviceLog(service, method, url, request, response);
 				if(isSet(response.errors) && response.errors.length > 0)
 				{
+					var groupElement = isSet(group) ? $("[" + self.config.fieldGroupAttribute + "='" + group + "']") : $();
 					forEach(response.errors, function(error)
 					{
 						switch(error.type)
@@ -1948,6 +1951,16 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 								{
 									self.queue.stop();
 									redirector();
+								}
+								break;
+							}
+							case "REQUEST_FIELD_REQUIRED":
+							case "REQUEST_FIELD_INVALID":
+							{
+								if(isSet(error.context))
+								{
+									var element = groupElement.find("[name='" + error.context + "']");
+									self.feedback(element, { valid : false });
 								}
 								break;
 							}
