@@ -1194,6 +1194,10 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			if(placeholder)
 			{
 				var color = element.css("color");
+				if(!selected)
+				{
+					selected = element.find("option[selected]").length > 0;
+				}
 				element.prepend("<option" + (!selected ? " selected=\"selected\"" : "") + " value=\"\" style=\"display:none;\">" + placeholder + "</option>");
 				var change = function()
 				{
@@ -1851,10 +1855,17 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		var scenarios = this.config.getDevServiceResponseScenarios(service, method);
 		if(scenarios.length > 0)
 		{
-			this.dev.select(service + "/" + method, scenarios, function(scenario)
+			if(isMockDemo())
 			{
-				self.serviceCall(service, method, request, success, error, group, scenario);
-			});
+				this.serviceCall(service, method, request, success, error, group, scenarios[0]);
+			}
+			else
+			{
+				this.dev.select(service + "/" + method, scenarios, function(scenario)
+				{
+					self.serviceCall(service, method, request, success, error, group, scenario);
+				});
+			}
 		}
 		else
 		{

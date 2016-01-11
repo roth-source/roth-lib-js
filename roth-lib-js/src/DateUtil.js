@@ -226,9 +226,14 @@ var DateUtil = DateUtil ||
 					replacement = StringUtil.padNumber(date.getMilliseconds(), match.length);
 					break;
 				}
-				case "a":
+				case "A":
 				{
 					replacement = date.getHours() < 12 ? "AM" : "PM";
+					break;
+				}
+				case "a":
+				{
+					replacement = date.getHours() < 12 ? "am" : "pm";
 					break;
 				}
 				case "zzz":
