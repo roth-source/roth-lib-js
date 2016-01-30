@@ -9,7 +9,7 @@
  */
 var isUndefined = isUndefined || function(value)
 {
-	return typeof(value) == "undefined";
+	return value === undefined;
 };
 
 /**

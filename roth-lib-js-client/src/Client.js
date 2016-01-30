@@ -1267,14 +1267,17 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	 * create a json request object based on url param and form fields for service call
 	 * @method
 	 * @param {jQuery} element
+	 * @param {String} [service]
+	 * @param {String} [method]
 	 * @returns {object}
 	 */
-	this.request = function(element)
+	this.request = function(element, service, method)
 	{
 		var elementRegExp = new RegExp("^(\\w+)(?:\\[|$)");
 		var indexRegExp = new RegExp("\\[(\\d+)?\\]", "g");
 		var valid = true;
 		var request = this.hash.cloneParam();
+		var fields = [];
 		this.groupElements(element).each(function()
 		{
 			var field = self.validate($(this));
@@ -1282,7 +1285,11 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			{
 				valid = false;
 			}
-			if(isValidString(field.name) && isValid(field.value))
+			if(isDebug())
+			{
+				fields.push(field);
+			}
+			if(valid && isValidString(field.name) && isValid(field.value))
 			{
 				var tempObject = request;
 				var names = field.name.split(".");
@@ -1373,7 +1380,34 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 				}
 			}
 		});
-		return { request : request, valid : valid };
+		if(valid)
+		{
+			return request;
+		}
+		else
+		{
+			if(isDebug())
+			{
+				var i = fields.length;
+				while(i--)
+				{
+					if(fields[i].valid)
+					{
+						fields.splice(i, 1);
+					}
+					else
+					{
+						delete fields[i].element;
+					}
+				}
+				var group = "INVALID" + (isValidString(service) && isValidString(method) ? " : " + service + " / " + method : "");
+				var log = "\n\n" + JSON.stringify(fields, null, 4) + "\n\n";
+				console.groupCollapsed(group);
+				console.log(log);
+				console.groupEnd();
+			}
+			return null;
+		}
 	};
 	
 	/**
@@ -1433,15 +1467,12 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 				return;
 			}
 		}
-		var valid = true;
 		if(!isObject(request))
 		{
 			submitGroup = isValidString(submitGroup) ? submitGroup : method;
-			var result = this.request($("[" + this.config.fieldGroupAttribute + "='" + submitGroup + "']"));
-			valid = result.valid;
-			request = result.request;
+			request = this.request($("[" + this.config.fieldGroupAttribute + "='" + submitGroup + "']"), service, method);
 		}
-		if(valid)
+		if(isObject(request))
 		{
 			$.extend(true, request, ObjectUtil.parse(element.attr(this.config.fieldRequestAttribute)));
 			if(isValidString(presubmit))
@@ -1530,12 +1561,12 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		element = this.element(element);
 		var field = {};
 		field.element = element;
+		field.name = element.attr(this.config.fieldRadioGroupAttribute);
+		field.value = null;
+		field.formValue = null;
 		field.tag = element.prop("tagName").toLowerCase();
 		field.type = null;
-		field.name = element.attr(this.config.fieldRadioGroupAttribute);
 		field.filter = element.attr(this.config.fieldFilterAttribute);
-		field.formValue = null;
-		field.value = null;
 		if(field.name)
 		{
 			field.formValue = element.find("input[type=radio][name='" + field.name + "']:include:checked").val();
@@ -1547,7 +1578,15 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 			field.type = element.attr("type");
 			if(field.type == "checkbox")
 			{
-				field.value = element.is(":checked");
+				var value = element.val();
+				if(isSet(value))
+				{
+					field.value = element.is(":checked") ? value : null;
+				}
+				else
+				{
+					field.value = element.is(":checked");
+				}
 			}
 			else if(field.type == "file")
 			{
@@ -2016,16 +2055,19 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	 */
 	this.serviceLog = function(service, method, url, request, response)
 	{
-		var group = "SERVICE : " + service + " / " + method;
-		var log = "";
-		log += url + "\n\n";
-		log += "REQUEST" + "\n";
-		log += JSON.stringify(request, null, 4) + "\n\n";
-		log += "RESPONSE" + "\n";
-		log += JSON.stringify(response, null, 4) + "\n\n";
-		console.groupCollapsed(group);
-		console.log(log);
-		console.groupEnd();
+		if(isDebug())
+		{
+			var group = "SERVICE : " + service + " / " + method;
+			var log = "";
+			log += url + "\n\n";
+			log += "REQUEST" + "\n";
+			log += JSON.stringify(request, null, 4) + "\n\n";
+			log += "RESPONSE" + "\n";
+			log += JSON.stringify(response, null, 4) + "\n\n";
+			console.groupCollapsed(group);
+			console.log(log);
+			console.groupEnd();
+		}
 	};
 	
 	/**
