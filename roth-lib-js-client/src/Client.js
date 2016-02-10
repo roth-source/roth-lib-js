@@ -265,7 +265,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	{
 		if(isFileProtocol())
 		{
-			this.dev = new roth.lib.js.client.dev.Dev(this.config);
+			this.dev = new roth.lib.js.client.dev.Dev(this.config, this.template);
 		}
 	};
 	

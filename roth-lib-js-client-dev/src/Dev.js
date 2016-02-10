@@ -3,7 +3,7 @@
 /**
  * @class
  */
-roth.lib.js.client.dev.Dev = roth.lib.js.client.dev.Dev || function(config)
+roth.lib.js.client.dev.Dev = roth.lib.js.client.dev.Dev || function(config, template)
 {
 	/**
 	 * @lends Dev.prototype
