@@ -296,7 +296,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 	this.getLayout = function(module, page)
 	{
 		var layout = this.getModulePageConfig(module, page, "layout");
-		return isValidString(layout) ? layout : module;
+		return !isUndefined(layout) ? layout : module;
 	};
 	
 	this.getErrorParamsRedirector = function(module, page)
@@ -324,7 +324,7 @@ roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 		var redirector = this.getModulePageConfig(module, page, "errorAuthRedirector");
 		if(!isSet(redirector))
 		{
-			redirector = this.errorPageRedirector;
+			redirector = this.errorAuthRedirector;
 		}
 		return isString(redirector) ? this.redirector[redirector] : redirector;
 	};

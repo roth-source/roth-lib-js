@@ -569,7 +569,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	 */
 	this.queueLayout = function()
 	{
-		if(this.hash.isNewLayout())
+		if(isSet(this.hash.layout) && this.hash.isNewLayout())
 		{
 			this.layout = {};
 			this.queueLayoutInit();
@@ -920,7 +920,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 	 */
 	this.loadPageReady = function()
 	{
-		var pageElement = this.pageElement();
+		var pageElement = isSet(this.hash.layout) ? this.pageElement() : this.layoutElement();
 		if(!pageElement.is(":hidden"))
 		{
 			pageElement.hide();
