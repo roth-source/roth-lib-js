@@ -1,13 +1,8 @@
 
 
-/**
- * @class
- */
 roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 {
-	/**
-	 * @lends Queue.prototype
-	 */
+	
 	
 	var Event =
 	{
@@ -33,118 +28,64 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 	Order[Event.PAGE_COMPONENT] 	= [Event.PAGE_RESOURCE];
 	Order[Event.PAGE_READY] 		= [Event.LAYOUT_READY, Event.PAGE_COMPONENT];
 	
-	/**
-	 * the task queue holding callbacks of certain event types
-	 * @member {Object}
-	 */
+	
 	this.task = {};
 	
-	/**
-	 * queues text event callback
-	 * @method
-	 * @param {Function} callback
-	 * @returns {String}
-	 */
+	
 	this.text = function(callback)
 	{
 		return this.add(Event.TEXT, callback);
 	};
 	
-	/**
-	 * queues init event callback
-	 * @method
-	 * @param {Function} callback
-	 * @returns {String}
-	 */
+	
 	this.layoutInit = function(callback)
 	{
 		return this.add(Event.LAYOUT_INIT, callback);
 	};
 	
-	/**
-	 * queues layout event callback
-	 * @method
-	 * @param {Function} callback
-	 * @returns {String}
-	 */
+	
 	this.layoutResource = function(callback)
 	{
 		return this.add(Event.LAYOUT_RESOURCE, callback);
 	};
 	
-	/**
-	 * queues component event callback
-	 * @method
-	 * @param {Function} callback
-	 * @returns {String}
-	 */
+	
 	this.layoutComponent = function(callback)
 	{
 		return this.add(Event.LAYOUT_COMPONENT, callback);
 	};
 	
-	/**
-	 * queues ready event callback
-	 * @method
-	 * @param {Function} callback
-	 * @returns {String}
-	 */
+	
 	this.layoutReady = function(callback)
 	{
 		return this.add(Event.LAYOUT_READY, callback);
 	};
 	
-	/**
-	 * queues init event callback
-	 * @method
-	 * @param {Function} callback
-	 * @returns {String}
-	 */
+	
 	this.pageInit = function(callback)
 	{
 		return this.add(Event.PAGE_INIT, callback);
 	};
 	
-	/**
-	 * queues layout event callback
-	 * @method
-	 * @param {Function} callback
-	 * @returns {String}
-	 */
+	
 	this.pageResource = function(callback)
 	{
 		return this.add(Event.PAGE_RESOURCE, callback);
 	};
 	
-	/**
-	 * queues component event callback
-	 * @method
-	 * @param {Function} callback
-	 * @returns {String}
-	 */
+	
 	this.pageComponent = function(callback)
 	{
 		return this.add(Event.PAGE_COMPONENT, callback);
 	};
 	
-	/**
-	 * queues ready event callback
-	 * @method
-	 * @param {Function} callback
-	 * @returns {String}
-	 */
+	
 	this.pageReady = function(callback)
 	{
 		return this.add(Event.PAGE_READY, callback);
 	};
 	
-	/**
-	 * queues the event callback
-	 * @method
-	 * @param {String} event
-	 * @param {Function} callback
-	 * @returns {String}
-	 */
+	
 	this.add = function(event, callback)
 	{
 		var id = IdUtil.generate();
@@ -160,11 +101,7 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 		return id;
 	};
 	
-	/**
-	 * completes the task and runs execute
-	 * @method
-	 * @param {String} id
-	 */
+	
 	this.complete = function(id)
 	{
 		if(isSet(id))
@@ -178,10 +115,7 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 		}
 	};
 	
-	/**
-	 * executes the next available task
-	 * @method
-	 */
+	
 	this.execute = function()
 	{
 		for(var id in this.task)
@@ -199,12 +133,7 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 		}
 	};
 	
-	/**
-	 * checks if task is ready for execution
-	 * @method
-	 * @param {Object} task
-	 * @returns {Boolean}
-	 */
+	
 	this.isTaskReady = function(task)
 	{
 		for(var id in this.task)
@@ -217,13 +146,7 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 		return true;
 	};
 	
-	/**
-	 * checks if the event is in the order list
-	 * @method
-	 * @param {String} event
-	 * @param {String} order
-	 * @returns {Boolean}
-	 */
+	
 	this.hasEvent = function(event, order)
 	{
 		if(isSet(order) && order.length > 0)
@@ -243,10 +166,7 @@ roth.lib.js.client.Queue = roth.lib.js.client.Queue || function()
 		return false;
 	};
 	
-	/**
-	 * clears the task object to stop execution
-	 * @method
-	 */
+	
 	this.stop = function()
 	{
 		this.task = {};

@@ -1,13 +1,15 @@
 
 
-/**
- * @class
- */
+var roth = roth || {};
+roth.lib = roth.lib || {};
+roth.lib.js = roth.lib.js || {};
+roth.lib.js.client = roth.lib.js.client || {};
+roth.lib.js.client.dev = roth.lib.js.client.dev || {};
+
+
 roth.lib.js.client.dev.Dev = roth.lib.js.client.dev.Dev || function(config, template)
 {
-	/**
-	 * @lends Dev.prototype
-	 */
+	
 	
 	var self = this;
 	var selects = $('<div class="roth-dev-selects"></div>');
@@ -42,13 +44,7 @@ roth.lib.js.client.dev.Dev = roth.lib.js.client.dev.Dev || function(config, temp
 	})
 	();
 	
-	/**
-	 * Asks mock developer to select from a list of options.
-	 * @method
-	 * @param {String} context
-	 * @param {Array} values
-	 * @param {Function} callback
-	 */
+	
 	this.select = function(context, values, callback)
 	{
 		var value = sessionStorage.getItem(context);

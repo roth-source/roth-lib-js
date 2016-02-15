@@ -1,87 +1,52 @@
 
 
-/**
- * @class
- */
+var roth = roth || {};
+roth.lib = roth.lib || {};
+roth.lib.js = roth.lib.js || {};
+roth.lib.js.client = roth.lib.js.client || {};
+
+
 roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 {
-	/**
-	 * @lends Client.prototype
-	 */
+	
 	
 	var self = this;
 	var inited = false;
 	
-	/**
-	 * The clients instance of the config.
-	 * @member {Config}
-	 */
+	
 	this.config = new roth.lib.js.client.Config();
 	
-	/**
-	 * The clients instance of the current hash.
-	 * @member {Hash}
-	 */
+	
 	this.hash = new roth.lib.js.client.Hash();
 	
-	/**
-	 * The clients instance of the queue.
-	 * @member {Queue}
-	 */
+	
 	this.queue = new roth.lib.js.client.Queue();
 	
-	/**
-	 * The clients instance of the template engine.
-	 * @member {Template}
-	 */
+	
 	this.template = new roth.lib.js.template.Template();
 	
-	/**
-	 * The clients instance of the dev only class.
-	 * @member {Dev}
-	 */
+	
 	this.dev = null;
 	
-	/**
-	 * A scope object for storing text for current lang translation
-	 * @member {Object}
-	 */
+	
 	this.text = {};
 	
-	/**
-	 * A scope object for functions and variables in the current layout scope.
-	 * @member {Object}
-	 */
+	
 	this.layout = {};
 	
-	/**
-	 * A scope object for functions and variables in the current page scope.
-	 * @member {Object}
-	 */
+	
 	this.page = {};
 	
-	/**
-	 * A scope object for functions and variables manually managed by the application.
-	 * @member {Object}
-	 */
+	
 	this.context = {};
 	
-	/**
-	 * A temporary holder for layout
-	 * @member {jQuery}
-	 */
+	
 	this._layoutElement = $("<div></div>");
 	
-	/**
-	 * A temporary holder for page
-	 * @member {jQuery}
-	 */
+	
 	this._pageElement = $("<div></div>");
 	
-	/**
-	 * inits the client framework
-	 * @method
-	 */
+	
 	this.init = function()
 	{
 		this.checkJquery();
@@ -114,10 +79,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	}
 	
-	/**
-	 * loads jquery if not loaded
-	 * @method
-	 */
+	
 	this.checkJquery = function()
 	{
 		if(!isSet(jQuery))
@@ -126,10 +88,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	/**
-	 * loads dev related assets if dev environment
-	 * @method
-	 */
+	
 	this.checkDev = function()
 	{
 		if(isFileProtocol())
@@ -142,11 +101,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	/**
-	 * loads the application config.json data into framework and loads init callback
-	 * @method
-	 * @param {Function} init
-	 */
+	
 	this.loadConfig = function(init)
 	{
 		var devConfig = function()
@@ -203,10 +158,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
-	/**
-	 * removes console functions if not a dev or debug env
-	 * @method
-	 */
+	
 	this.initConsole = function()
 	{
 		var console = window.console;
@@ -229,10 +181,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	/**
-	 * customizes jquery
-	 * @method
-	 */
+	
 	this.initJquery = function()
 	{
 		jQuery.expr[":"].notDefaultedValue = function(node, index, match)
@@ -246,10 +195,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		};
 	};
 	
-	/**
-	 * sets defaults from config object to other objects
-	 * @method
-	 */
+	
 	this.initConfig = function()
 	{
 		this.hash.defaultModule = this.config.defaultModule;
@@ -257,10 +203,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		this.hash.langStorage = this.config.langStorage;
 	};
 	
-	/**
-	 * creates instance of dev object if dev environment
-	 * @method
-	 */
+	
 	this.initDev = function()
 	{
 		if(isFileProtocol())
@@ -269,20 +212,14 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	/**
-	 * reload 
-	 * @method
-	 */
+	
 	this.reload = function()
 	{
 		// TODO : what does else does it need to do
 		this.load();
 	};
 	
-	/**
-	 * loads the application if it is determined to be loadable based on parsed hash and config
-	 * @method
-	 */
+	
 	this.load = function()
 	{
 		this.queueText();
@@ -291,11 +228,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		this.queue.execute();
 	};
 	
-	/**
-	 * checks valid hash, sets lang, checks changed params, and validates param scenarios
-	 * @method
-	 * @returns {Boolean}
-	 */
+	
 	this.isLoadable = function()
 	{
 		var loadable = this.hash.isValid();
@@ -451,34 +384,19 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		return loadable;
 	};
 	
-	/**
-	 * gets the jquery layout container
-	 * @method
-	 * @returns {jQuery}
-	 */
+	
 	this.layoutElement = function()
 	{
 		return $("#" + this.config.layoutId);
 	};
 	
-	/**
-	 * gets the jquery page container
-	 * @method
-	 * @returns {jQuery}
-	 */
+	
 	this.pageElement = function()
 	{
 		return $("#" + this.config.pageId);
 	};
 	
-	/**
-	 * an ajax call to load a static resource
-	 * @method
-	 * @param {String} path
-	 * @param {String} dataType
-	 * @param {Function} success
-	 * @param {Function} error
-	 */
+	
 	this.loadResource = function(path, dataType, success, error)
 	{
 		$.ajax(
@@ -493,10 +411,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
-	/**
-	 * queues loading of text translation
-	 * @method
-	 */
+	
 	this.queueText = function()
 	{
 		if(this.hash.isNewText() || this.hash.isNewLang())
@@ -508,11 +423,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	/**
-	 * loads language translation file into text scope object
-	 * @method
-	 * @param {String} [id]
-	 */
+	
 	this.loadText = function(id)
 	{
 		var modulePath = this.config.getModuleTextPath(this.hash.module, this.hash.lang);
@@ -563,10 +474,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		this.loadResource(path, "json", success, error);
 	};
 	
-	/**
-	 * queues loading of layout
-	 * @method
-	 */
+	
 	this.queueLayout = function()
 	{
 		if(isSet(this.hash.layout) && this.hash.isNewLayout())
@@ -578,10 +486,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	/**
-	 * queues loading of layout init
-	 * @method
-	 */
+	
 	this.queueLayoutInit = function()
 	{
 		var id = this.queue.layoutInit(function()
@@ -590,11 +495,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
-	/**
-	 * calls the layout init method and saves response to layout.data
-	 * @method
-	 * @param {String} id
-	 */
+	
 	this.loadLayoutInit = function(id)
 	{
 		var init = this.config.getLayoutInit(this.hash.layout);
@@ -627,10 +528,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	/**
-	 * queues loading of layout resource
-	 * @method
-	 */
+	
 	this.queueLayoutResource = function()
 	{
 		var id = this.queue.layoutResource(function()
@@ -639,11 +537,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
-	/**
-	 * gets layout template, renders it and loads into dom
-	 * @method
-	 * @param {String} id
-	 */
+	
 	this.loadLayoutResource = function(id)
 	{
 		var layout = this.hash.layout;
@@ -684,10 +578,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	/**
-	 * queues loading of layout components
-	 * @method
-	 */
+	
 	this.queueLayoutComponents = function()
 	{
 		this._layoutElement.find("[" + self.config.componentAttribute + "]").each(function()
@@ -698,12 +589,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
-	/**
-	 * queues loading of component
-	 * @method
-	 * @param {jQuery} element
-	 * @param {String} component
-	 */
+	
 	this.queueLayoutComponent = function(element, component)
 	{
 		var id = this.queue.layoutComponent(function()
@@ -712,10 +598,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
-	/**
-	 * queues loading of layout ready function
-	 * @method
-	 */
+	
 	this.queueLayoutReady = function()
 	{
 		var id = this.queue.layoutReady(function()
@@ -725,10 +608,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
-	/**
-	 * calls layout ready function if set
-	 * @method
-	 */
+	
 	this.loadLayoutReady = function()
 	{
 		var layoutElement = this.layoutElement();
@@ -752,10 +632,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	/**
-	 * queues loading of page
-	 * @method
-	 */
+	
 	this.queuePage = function()
 	{
 		if(!this.hash.isNewLayout() && isFunction(this.config.pageLoader))
@@ -768,10 +645,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		this.queuePageReady();
 	};
 	
-	/**
-	 * queues loading of page init
-	 * @method
-	 */
+	
 	this.queuePageInit = function()
 	{
 		var id = this.queue.pageInit(function()
@@ -780,11 +654,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
-	/**
-	 * calls the page init method and saves response to page.data
-	 * @method
-	 * @param {String} id
-	 */
+	
 	this.loadPageInit = function(id)
 	{
 		var module = this.hash.getModule();
@@ -819,10 +689,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	/**
-	 * queues loading of page template
-	 * @method
-	 */
+	
 	this.queuePageResource = function()
 	{
 		var id = this.queue.pageResource(function()
@@ -831,11 +698,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
-	/**
-	 * gets page template, renders it and loads into dom
-	 * @method
-	 * @param {String} id
-	 */
+	
 	this.loadPageResource = function(id)
 	{
 		var module = this.hash.getModule();
@@ -873,10 +736,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		this.loadResource(this.config.getPagePath(module, page), "text", success, error);
 	};
 
-	/**
-	 * queues loading of page components
-	 * @method
-	 */
+	
 	this.queuePageComponents = function()
 	{
 		this._pageElement.find("[" + self.config.componentAttribute + "]").each(function()
@@ -887,12 +747,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
-	/**
-	 * queues loading of component
-	 * @method
-	 * @param {jQuery} element
-	 * @param {String} component
-	 */
+	
 	this.queuePageComponent = function(element, component)
 	{
 		var id = this.queue.pageComponent(function()
@@ -901,10 +756,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
-	/**
-	 * queues loading of layout ready function
-	 * @method
-	 */
+	
 	this.queuePageReady = function()
 	{
 		var id = this.queue.pageReady(function()
@@ -914,10 +766,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
-	/**
-	 * calls page ready function if set
-	 * @method
-	 */
+	
 	this.loadPageReady = function()
 	{
 		var pageElement = isSet(this.hash.layout) ? this.pageElement() : this.layoutElement();
@@ -941,18 +790,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	/**
-	 * call init service then load component template into jquery element
-	 * @method
-	 * @param {jQuery} element
-	 * @param {String} component
-	 * @param {String} [service]
-	 * @param {String} [method]
-	 * @param {Object} [request]
-	 * @param {Object} [data]
-	 * @param {Function} [callback]
-	 * @param {String} [id]
-	 */
+	
 	this.loadComponentInit = function(element, component, service, method, request, data, callback, id)
 	{
 		var service = isValidString(service) ? service : element.attr(this.config.fieldServiceAttribute);
@@ -979,15 +817,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	/**
-	 * loads component template into jquery element
-	 * @method
-	 * @param {jQuery} element
-	 * @param {String} component
-	 * @param {Object} [data]
-	 * @param {Function} [callback]
-	 * @param {String} [id]
-	 */
+	
 	this.loadComponent = function(element, component, data, callback, id)
 	{
 		if(!isObject(data))
@@ -1028,12 +858,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		this.loadResource(this.config.getComponentPath(component), "text", success, error);
 	};
 	
-	/**
-	 * loads translations into dom elements
-	 * @method
-	 * @param {jQuery} resourceElement
-	 * @param {String} [prefix]
-	 */
+	
 	this.translate = function(resourceElement, prefix)
 	{
 		resourceElement.find("[" + self.config.textAttribute + "] > [" + self.config.langAttribute + "]").each(function()
@@ -1131,15 +956,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		self.hash.loadedLang();
 	};
 	
-	/**
-	 * finds translation in text file
-	 * @method
-	 * @param {String} path
-	 * @param {Object} text
-	 * @param {String} [prefix]
-	 * @param {Object} [param]
-	 * @returns {*}
-	 */
+	
 	this.translation = function(path, text, prefix, param)
 	{
 		var object = null;
@@ -1168,11 +985,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		return object;
 	};
 	
-	/**
-	 * adds default value to select, radio, and checkbox, and add placeholder to select
-	 * @method
-	 * @param {jQuery} resourceElement
-	 */
+	
 	this.defaults = function(resourceElement)
 	{
 		// select value
@@ -1245,12 +1058,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
-	/**
-	 * creates a jquery selector for finding request fields and execute search
-	 * @method
-	 * @param {jQuery} element
-	 * @returns {jQuery}
-	 */
+	
 	this.groupElements = function(element, active)
 	{
 		active = isSet(active) ? active : true;
@@ -1263,14 +1071,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		return element.find(selector);
 	}
 	
-	/**
-	 * create a json request object based on url param and form fields for service call
-	 * @method
-	 * @param {jQuery} element
-	 * @param {String} [service]
-	 * @param {String} [method]
-	 * @returns {object}
-	 */
+	
 	this.request = function(element, service, method)
 	{
 		var elementRegExp = new RegExp("^(\\w+)(?:\\[|$)");
@@ -1410,11 +1211,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	/**
-	 * call a service method to update the value of a single field
-	 * @method
-	 * @param {Node|jQuery|String} element
-	 */
+	
 	this.update = function(element)
 	{
 		element = this.element(element);
@@ -1439,14 +1236,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	/**
-	 * creates a request and submits form to service call
-	 * @method
-	 * @param {Node|jQuery|String} element
-	 * @param {Object} [request]
-	 * @param {Function} [success]
-	 * @param {Function} [error]
-	 */
+	
 	this.submit = function(element, request, success, error)
 	{
 		element = this.element(element);
@@ -1518,12 +1308,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	/**
-	 * turns a string or dom node into a jquery element
-	 * @method
-	 * @param {Node|jQuery|String} element
-	 * @param {String} [selector]
-	 */
+	
 	this.element = function(element, selector)
 	{
 		if(element instanceof jQuery)
@@ -1551,11 +1336,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	/**
-	 * calls filters for a request field and creates a field object for tracking state
-	 * @method
-	 * @param {Node|jQuery|String} element
-	 */
+	
 	this.filter = function(element)
 	{
 		element = this.element(element);
@@ -1616,11 +1397,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		return field;
 	};
 	
-	/**
-	 * validate a group of fields
-	 * @method
-	 * @param {jQuery} element
-	 */
+	
 	this.validateGroup = function(element)
 	{
 		var validGroup = true;
@@ -1635,11 +1412,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		return validGroup;
 	};
 	
-	/**
-	 * validate a field value and add to the field object for tracking state
-	 * @method
-	 * @param {Node|jQuery|String} element
-	 */
+	
 	this.validate = function(element)
 	{
 		element = this.element(element);
@@ -1670,12 +1443,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		return field;
 	};
 	
-	/**
-	 * read file contents into a base64 string
-	 * @method
-	 * @param {Node|jQuery|String} element
-	 * @param {Function} [callback]
-	 */
+	
 	this.file = function(element, callback)
 	{
 		element = this.element(element);
@@ -1699,12 +1467,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	/**
-	 * applies validation feedback to the field
-	 * @method
-	 * @param {Node|jQuery|String} element
-	 * @param {Object} field
-	 */
+	
 	this.feedback = function(element, field)
 	{
 		element = this.element(element);
@@ -1717,42 +1480,28 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	/**
-	 * calls resetGroupsValidation and resetGroupsValue
-	 * @method
-	 */
+	
 	this.resetGroups = function()
 	{
 		this.resetGroupsValidation();
 		this.resetGroupsValue();
 	};
 	
-	/**
-	 * calls resetGroupValidation and resetGroupValue
-	 * @method
-	 * @param {Node|jQuery|String} element
-	 */
+	
 	this.resetGroup = function(element)
 	{
 		this.resetGroupValidation(element);
 		this.resetGroupValue(element);
 	};
 	
-	/**
-	 * calls resetValidation and resetValue
-	 * @method
-	 * @param {Node|jQuery|String} element
-	 */
+	
 	this.reset = function(element)
 	{
 		this.resetValidation(element);
 		this.resetValue(element);
 	};
 	
-	/**
-	 * resets all groups validation
-	 * @method
-	 */
+	
 	this.resetGroupsValidation = function()
 	{
 		$("[" + this.config.fieldGroupAttribute + "]").each(function()
@@ -1761,11 +1510,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
-	/**
-	 * resets a groups validation
-	 * @method
-	 * @param {Node|jQuery|String} element
-	 */
+	
 	this.resetGroupValidation = function(element)
 	{
 		element = this.element(element, "[" + this.config.fieldGroupAttribute + "='{name}']");
@@ -1775,21 +1520,13 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
-	/**
-	 * resets a fields validation
-	 * @method
-	 * @param {Node|jQuery|String} element
-	 */
+	
 	this.resetValidation = function(element)
 	{
 		this.feedback(element);
 	};
 	
-	/**
-	 * resets all groups values
-	 * @method
-	 * @param {Node|jQuery|String} element
-	 */
+	
 	this.resetGroupsValue = function()
 	{
 		$("[" + this.config.fieldGroupAttribute + "]").each(function()
@@ -1798,11 +1535,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
-	/**
-	 * resets a groups values
-	 * @method
-	 * @param {Node|jQuery|String} element
-	 */
+	
 	this.resetGroupValue = function(element)
 	{
 		element = this.element(element, "[" + this.config.fieldGroupAttribute + "='{name}']");
@@ -1812,11 +1545,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
-	/**
-	 * resets a fields value
-	 * @method
-	 * @param {Node|jQuery|String} element
-	 */
+	
 	this.resetValue = function(element)
 	{
 		this.feedback(element);
@@ -1829,11 +1558,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	/**
-	 * finds the endpoint for the current environment
-	 * @method
-	 * @returns {String}
-	 */
+	
 	this.endpoint = function()
 	{
 		var endpoint = localStorage.getItem(this.config.getEndpointStorage());
@@ -1849,24 +1574,13 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		return endpoint;
 	};
 	
-	/**
-	 * removes the current endpoint from local storage
-	 * @method
-	 */
+	
 	this.resetEndpoint = function()
 	{
 		localStorage.removeItem(this.config.getEndpointStorage());
 	};
 	
-	/**
-	 * calls service file if mock env or calls service endpoint
-	 * @method
-	 * @param {String} service
-	 * @param {String} method
-	 * @param {Object} request
-	 * @param {Function} success
-	 * @param {Function} [error]
-	 */
+	
 	this.service = function(service, method, request, success, error, group)
 	{
 		if(isMock())
@@ -1880,15 +1594,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	/**
-	 * creates select modal for choosing response scenario
-	 * @method
-	 * @param {String} service
-	 * @param {String} method
-	 * @param {Object} request
-	 * @param {Function} success
-	 * @param {Function} [error]
-	 */
+	
 	this.serviceFile = function(service, method, request, success, error, group)
 	{
 		var scenarios = this.config.getDevServiceResponseScenarios(service, method);
@@ -1912,16 +1618,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	/**
-	 * calls the endpoint or file to get a json response
-	 * @method
-	 * @param {String} path
-	 * @param {Object} request
-	 * @param {Function} success
-	 * @param {Function} [error]
-	 * @param {Function} [group]
-	 * @param {String} [scenario]
-	 */
+	
 	this.serviceCall = function(service, method, request, success, error, group, scenario)
 	{
 		var module = this.hash.getModule();
@@ -2044,15 +1741,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		});
 	};
 	
-	/**
-	 * 
-	 * @method
-	 * @param {String} service
-	 * @param {String} method
-	 * @param {String} url
-	 * @param {Object} request
-	 * @param {Object} response
-	 */
+	
 	this.serviceLog = function(service, method, url, request, response)
 	{
 		if(isDebug())
@@ -2070,9 +1759,7 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	/**
-	 * 
-	 */
+	
 	this.key = function(key, event, callback)
 	{
 		var keyCode = event.which || event.keyCode;
@@ -2085,25 +1772,19 @@ roth.lib.js.client.Client = roth.lib.js.client.Client || function()
 		}
 	};
 	
-	/**
-	 * 
-	 */
+	
 	this.escape = function(event, callback)
 	{
 		this.key(27, event, callback);
 	};
 	
-	/**
-	 * 
-	 */
+	
 	this.enter = function(event, callback)
 	{
 		this.key(13, event, callback);
 	};
 	
-	/**
-	 * 
-	 */
+	
 	this.enterSubmit = function(event)
 	{
 		var callback = function(element)

@@ -1,13 +1,8 @@
 
 
-/**
- * @class
- */
 roth.lib.js.client.Config = roth.lib.js.client.Config || function()
 {
-	/**
-	 * @lends Config.prototype
-	 */
+	
 	
 	this.versionToken					= "{version}";
 	

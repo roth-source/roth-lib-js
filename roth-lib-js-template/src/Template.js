@@ -1,201 +1,178 @@
 
 
-/**
- * @class
- * @param {object} [config]
- */
+var roth = roth || {};
+roth.lib = roth.lib || {};
+roth.lib.js = roth.lib.js || {};
+roth.lib.js.template = roth.lib.js.template || {};
+
+
 roth.lib.js.template.Template = roth.lib.js.template.Template || function(config)
 {
-	/**
-	 * @lends Template.prototype
-	 */
 	
-	var self = this;
+	this.config = typeof config === "object" ? config : {};
 	
-	var Config =
-	{
-		openUnescapedExpression 	: "{{{",
-		openEscapedExpression 		: "{{",
-		openStatement 				: "{%",
-		closeUnescapedExpression	: "}}}",
-		closeEscapedExpression		: "}}",
-		closeStatement				: "%}",
-		scopeVar					: "$_d",
-		escapeVar					: "$_e",
-		issetVar					: "$_i",
-		argVar						: "$_a",
-		tempVar						: "$_t",
-		sourceVar					: "$_s"
-	};
-	
-	var escapeRegExp = function(value)
+	this.escapeRegExp = function(value)
 	{
 		return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 	};
 	
-	var syntaxRegExp = (function()
+	this.syntaxRegExp = (function(self)
 	{
-		config = typeof config === "object" ? config : {};
+		var Config =
+		{
+			openUnescapedExpression 	: "{{{",
+			openEscapedExpression 		: "{{",
+			openStatement 				: "{%",
+			closeUnescapedExpression	: "}}}",
+			closeEscapedExpression		: "}}",
+			closeStatement				: "%}",
+			scopeVar					: "$_d",
+			escapeVar					: "$_e",
+			issetVar					: "$_i",
+			argVar						: "$_a",
+			tempVar						: "$_t",
+			sourceVar					: "$_s"
+		};
 		for(var name in Config)
 		{
-			if(config[name] === undefined || config[name] === null || config[name] == "")
+			if(self.config[name] === undefined || self.config[name] === null || self.config[name] == "")
 			{
-				config[name] = Config[name];
+				self.config[name] = Config[name];
 			}
 		}
 		var builder = "";
+		builder += "\\t|";
 		builder += "\\\\r\\\\n|";
 		builder += "\\\\n|";
 		builder += "\\r\\n|";
 		builder += "\\n|";
 		builder += "\\\\\"|";
 		builder += "\\\"|";
-		builder += escapeRegExp(config.openUnescapedExpression) + "|";
-		builder += escapeRegExp(config.openEscapedExpression) + "|";
-		builder += escapeRegExp(config.openStatement) + "|";
-		builder += escapeRegExp(config.closeUnescapedExpression) + "|";
-		builder += escapeRegExp(config.closeEscapedExpression) + "|";
-		builder += escapeRegExp(config.closeStatement) + "|";
-		//builder += "defined\\((.+?)\\)";
+		builder += self.escapeRegExp(self.config.openUnescapedExpression) + "|";
+		builder += self.escapeRegExp(self.config.openEscapedExpression) + "|";
+		builder += self.escapeRegExp(self.config.openStatement) + "|";
+		builder += self.escapeRegExp(self.config.closeUnescapedExpression) + "|";
+		builder += self.escapeRegExp(self.config.closeEscapedExpression) + "|";
+		builder += self.escapeRegExp(self.config.closeStatement) + "|";
 		return new RegExp(builder, "g");
-	})();
+	})
+	(this);
 	
-	/**
-	 * parse scope object into flattened strings
-	 * @method
-	 * @param {Object} scope
-	 * @returns {String}
-	 */
-	this.parseScope = function(scope)
+};
+
+
+roth.lib.js.template.Template.prototype.parseScope = function(scope)
+{
+	var parsedScope = ""
+	if(typeof scope === "object")
 	{
-		var parsedScope = ""
-		if(typeof scope === "object")
+		for(var name in scope)
 		{
-			for(var name in scope)
+			parsedScope += "var " + name + " = " + this.config.scopeVar + "[\"" + name + "\"];\n";
+		}
+	}
+	return parsedScope;
+};
+
+
+roth.lib.js.template.Template.prototype.parse = function(source)
+{
+	var self = this;
+	var escape = true;
+	var parsedSource = "";
+	parsedSource += "var " + self.config.escapeVar + " = function(" + self.config.argVar + ") { return " + self.config.argVar + ".replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\"); };\n";
+	parsedSource += "var " + self.config.issetVar + " = function(" + self.config.argVar + ") { return "  + self.config.argVar + " !== undefined && " + self.config.argVar + " !== null };\n";
+	parsedSource += "var " + self.config.tempVar + ";\nvar " + self.config.sourceVar + "=\"\";\n" + self.config.sourceVar + "+=\"";
+	parsedSource += source.replace(self.syntaxRegExp, function(match, capture)
+	{
+		var replacement = "";
+		switch(match)
+		{
+			case "\\t":
 			{
-				parsedScope += "var " + name + " = " + config.scopeVar + "[\"" + name + "\"];\n";
+				break;
+			}
+			case "\\r\\n":
+			case "\\n":
+			{
+				replacement = escape ? "\\\\n" : "\\n";
+				break;
+			}
+			case "\r\n":
+			case "\n":
+			{
+				replacement = escape ? "\\n" : "\n";
+				break;
+			}
+			case "\\\"":
+			{
+				replacement = escape ? "\\\\\\\"" : "\\\"";
+				break;
+			}
+			case "\"":
+			{
+				replacement = escape ? "\\\"" : "\"";
+				break;
+			}
+			case self.config.openUnescapedExpression:
+			{
+				replacement = "\"; try{" + self.config.tempVar + "=";
+				escape = false;
+				break;
+			}
+			case self.config.openEscapedExpression:
+			{
+				replacement = "\"; try{" + self.config.tempVar + "=";
+				escape = false;
+				break;
+			}
+			case self.config.openStatement:
+			{
+				replacement = "\";";
+				escape = false;
+				break;
+			}
+			case self.config.closeUnescapedExpression:
+			{
+				replacement = "; " + self.config.sourceVar + "+=(" + self.config.issetVar + "(" + self.config.tempVar + ")) ? new String(" + self.config.tempVar + ") : \"\";}catch(e){}; " + self.config.sourceVar + "+=\"";
+				escape = true;
+				break;
+			}
+			case self.config.closeEscapedExpression:
+			{
+				replacement = "; " + self.config.sourceVar + "+=(" + self.config.issetVar + "(" + self.config.tempVar + ")) ? " + self.config.escapeVar + "(new String(" + self.config.tempVar + ")) : \"\";}catch(e){}; " + self.config.sourceVar + "+=\"";
+				escape = true;
+				break;
+			}
+			case self.config.closeStatement:
+			{
+				replacement = self.config.sourceVar + "+=\"";
+				escape = true;
+				break;
+			}
+			default:
+			{
+				break;
 			}
 		}
-		return parsedScope;
-	};
-	
-	/**
-	 * creates a parsed source string from the source
-	 * @method
-	 * @param {String} source
-	 * @returns {String}
-	 */
-	this.parse = function(source)
-	{
-		var escape = true;
-		var parsedSource = "";
-		parsedSource += "var " + config.escapeVar + " = function(" + config.argVar + ") { return " + config.argVar + ".replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\"); };\n";
-		parsedSource += "var " + config.issetVar + " = function(" + config.argVar + ") { return "  + config.argVar + " !== undefined && " + config.argVar + " !== null };\n";
-		parsedSource += "var " + config.tempVar + ";\nvar " + config.sourceVar + "=\"\";\n" + config.sourceVar + "+=\"";
-		parsedSource += source.replace(syntaxRegExp, function(match, capture)
-		{
-			var replacement = "";
-			switch(match)
-			{
-				case "\\r\\n":
-				case "\\n":
-				{
-					replacement = escape ? "\\\\n" : "\\n";
-					break;
-				}
-				case "\r\n":
-				case "\n":
-				{
-					replacement = escape ? "\\n" : "\n";
-					break;
-				}
-				case "\\\"":
-				{
-					replacement = escape ? "\\\\\\\"" : "\\\"";
-					break;
-				}
-				case "\"":
-				{
-					replacement = escape ? "\\\"" : "\"";
-					break;
-				}
-				case config.openUnescapedExpression:
-				{
-					replacement = "\"; try{" + config.tempVar + "=";
-					escape = false;
-					break;
-				}
-				case config.openEscapedExpression:
-				{
-					replacement = "\"; try{" + config.tempVar + "=";
-					escape = false;
-					break;
-				}
-				case config.openStatement:
-				{
-					replacement = "\";";
-					escape = false;
-					break;
-				}
-				case config.closeUnescapedExpression:
-				{
-					replacement = "; " + config.sourceVar + "+=(" + config.issetVar + "(" + config.tempVar + ")) ? new String(" + config.tempVar + ") : \"\";}catch(e){}; " + config.sourceVar + "+=\"";
-					escape = true;
-					break;
-				}
-				case config.closeEscapedExpression:
-				{
-					replacement = "; " + config.sourceVar + "+=(" + config.issetVar + "(" + config.tempVar + ")) ? " + config.escapeVar + "(new String(" + config.tempVar + ")) : \"\";}catch(e){}; " + config.sourceVar + "+=\"";
-					escape = true;
-					break;
-				}
-				case config.closeStatement:
-				{
-					replacement = config.sourceVar + "+=\"";
-					escape = true;
-					break;
-				}
-				default:
-				{
-					/*
-					if(match.indexOf("defined") == 0)
-					{
-						replacement = "typeof " + capture + " !== " + "\"undefined\"";
-					}
-					*/
-					break;
-				}
-			}
-			return replacement;
-		});
-		parsedSource += "\";\nreturn " + config.sourceVar + ";";
-		return parsedSource;
-	};
-	
-	/**
-	 * renders template by evaling parsed source with scope object
-	 * @method
-	 * @param {String} parsedSource
-	 * @param {Object} scope
-	 * @returns {String}
-	 */
-	this.renderParsed = function(parsedSource, scope)
-	{
-		return new Function(config.scopeVar, self.parseScope(scope) + parsedSource)(scope);
-	};
-	
-	/**
-	 * parses and renders source with scope data
-	 * @method
-	 * @param {String} source
-	 * @param {Object} scope
-	 * @returns {String}
-	 */
-	this.render = function(source, scope)
-	{
-		return self.renderParsed(self.parse(source, scope), scope);
-	};
-	
+		return replacement;
+	});
+	parsedSource += "\";\nreturn " + self.config.sourceVar + ";";
+	return parsedSource;
+};
+
+
+roth.lib.js.template.Template.prototype.eval = function(parsedSource, scope)
+{
+	var self = this;
+	return new Function(self.config.scopeVar, self.parseScope(scope) + parsedSource)(scope);
+};
+
+
+roth.lib.js.template.Template.prototype.render = function(source, scope)
+{
+	var self = this;
+	return this.eval(self.parse(source, scope), scope);
 };
 
 

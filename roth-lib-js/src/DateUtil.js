@@ -1,31 +1,16 @@
 
 
-/**
- * A utility for formatting dates.
- * @namespace DateUtil
- */
+
 var DateUtil = DateUtil ||
 {
 	
-	/**
-	 * Default format pattern "yyyy-MM-dd HH:mm:ss z".
-	 * @memberof DateUtil
-	 * @member {String}
-	 */
+	
 	defaultPattern : "yyyy-MM-dd HH:mm:ss z",
 	
-	/**
-	 * Default lang "en".
-	 * @memberof DateUtil
-	 * @member {String}
-	 */
+	
 	defaultLang : "en",
 	
-	/**
-	 * A regular expression compliant with java's date format.
-	 * @memberof DateUtil
-	 * @member {RegExp}
-	 */
+	
 	formatRegExp : (function()
 	{
 		var builder = "";
@@ -47,11 +32,7 @@ var DateUtil = DateUtil ||
 		return new RegExp(builder, "g");
 	})(),
 	
-	/**
-	 * Language translations for month and day names.
-	 * @memberof DateUtil
-	 * @member {Object}
-	 */
+	
 	label :
 	{
 		"en" :
@@ -70,34 +51,14 @@ var DateUtil = DateUtil ||
 		}
 	},
 	
-	/**
-	 * Create a date using natural month value 1-12 instead of 0-11.
-	 * @memberof DateUtil
-	 * @method
-	 * @param {Number} year
-	 * @param {Number} month
-	 * @param {Number} day
-	 * @param {Number} [hour]
-	 * @param {Number} [minutes]
-	 * @param {Number} [seconds]
-	 * @param {Number} [milliseconds]
-	 * @returns {Date}
-	 */
+	
 	get : function(year, month, day, hour, minutes, seconds, milliseconds)
 	{
 		month = !isNaN(month) ? month - 1 : 0;
 		return new Date(year, month, day, hour, minutes, seconds, milliseconds);
 	},
 	
-	/**
-	 * Format a date or timestamp into a string pattern.
-	 * @memberof DateUtil
-	 * @method
-	 * @param {String} [pattern]
-	 * @param {Date|Number} [date]
-	 * @param {String} [lang]
-	 * @returns {String}
-	 */
+	
 	format : function(pattern, date, lang)
 	{
 		var self = this;
@@ -264,14 +225,7 @@ var DateUtil = DateUtil ||
 		return formattedDate;
 	},
 	
-	/**
-	 * Creates a regular expression for parsing a date string
-	 * @memberof DateUtil
-	 * @method
-	 * @param {String} [pattern]
-	 * @param {String} [lang]
-	 * @returns {Object}
-	 */
+	
 	parser : function(pattern, lang)
 	{
 		var self = this;
@@ -456,30 +410,14 @@ var DateUtil = DateUtil ||
 		}
 	},
 	
-	/**
-	 * Uses a parser to validate date string against a pattern
-	 * @memberof DateUtil
-	 * @method
-	 * @param {String} pattern
-	 * @param {String} value
-	 * @param {String} [lang]
-	 * @returns {Boolean}
-	 */
+	
 	isValid : function(pattern, value, lang)
 	{
 		var parser = this.parser(pattern, lang);
 		return parser.regExp.test(value);
 	},
 	
-	/**
-	 * Parses a date string into a date object
-	 * @memberof DateUtil
-	 * @method
-	 * @param {String} [pattern]
-	 * @param {String} [value]
-	 * @param {String} [lang]
-	 * @returns {Date}
-	 */
+	
 	parse : function(pattern, value, lang)
 	{
 		var self = this;
@@ -616,16 +554,7 @@ var DateUtil = DateUtil ||
 		return date;
 	},
 	
-	/**
-	 * Parses a date string into a date object
-	 * @memberof DateUtil
-	 * @method
-	 * @param {String} parsePattern
-	 * @param {String} formatPattern
-	 * @param {String} value
-	 * @param {String} [lang]
-	 * @returns {Date}
-	 */
+	
 	reformat : function(parsePattern, formatPattern, value, lang)
 	{
 		var date = this.parse(parsePattern, value, lang);
