@@ -133,7 +133,7 @@ roth.lib.js.web.Register.prototype.getText = function(lang)
 
 roth.lib.js.web.Register.prototype.getSafeName = function(name)
 {
-	return isValidString(name) ? name.replace(/[^a-zA-Z_0-9]/g, "_").toLowerCase() : "";
+	return isValidString(name) ? name.replace(/[^a-zA-Z_0-9]/g, "_") : "";
 };
 
 

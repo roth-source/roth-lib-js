@@ -2,13 +2,13 @@
 
 roth.lib.js.web.Dev = function()
 {
-	this.service =
-	(
+	this.service = (function()
+	{
 		var service = {};
 		var url = "dev/service.json";
 		var success = function(data)
 		{
-			services = data;
+			service = data;
 		};
 		$.ajax(
 		{
@@ -19,8 +19,8 @@ roth.lib.js.web.Dev = function()
 			success : success
 		});
 		return service;
-	)();
-	
+	})
+	();
 	
 };
 

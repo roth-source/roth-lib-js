@@ -49,7 +49,8 @@ roth.lib.js.web.Web = function(app)
 			radioGroup		: "data-radio-group",
 			radioValue		: "data-radio-value",
 			checkboxValue	: "data-checkbox-value",
-			fileValue		: "data-file-value"
+			fileValue		: "data-file-value",
+			onclick			: "data-onclick"
 		}
 	};
 	this.inited = false;
@@ -76,7 +77,7 @@ roth.lib.js.web.Web.prototype.init = function()
 	}
 	window.addEventListener("hashchange", function()
 	{
-		if(self.isLoadable())
+		if(self._isLoadable())
 		{
 			self._loadLayout();
 		}
@@ -148,8 +149,8 @@ roth.lib.js.web.Web.prototype._isLoadable = function()
 		if(isSet(page))
 		{
 			var layoutName = !isUndefined(page.layout) ? page.layout : moduleName;
-			layout = this.register.getLayout(layoutName);
 			this.hash.setLayout(layoutName);
+			var layout = this.hash.newLayout ? this.register.getLayout(layoutName) : this.layout;
 			if(!(isSet(this.hash.lang) && this.register.isValidLang(this.hash.lang)))
 			{
 				var lang = localStorage.getItem(this.hash.langStorage);
@@ -179,7 +180,7 @@ roth.lib.js.web.Web.prototype._isLoadable = function()
 			if(loadable)
 			{
 				// SET DEFAULT PARAMS
-				forEach(this.page.defaultParams, function(value, name)
+				forEach(page.defaultParams, function(value, name)
 				{
 					if(!self.hash.hasParam(name))
 					{
@@ -376,7 +377,8 @@ roth.lib.js.web.Web.prototype._loadLayout = function()
 			self.layout._temp.html(html);
 			self.translate(self.layout._temp, prefix);
 			self.defaults(self.layout._temp);
-			self._loadComponents(self.layout._temp, self.layout.data);
+			self._loadComponents(self.layout, self.layout._temp, self.layout.data);
+			self.hash.loadedLayout();
 			self._readyLayout();
 		};
 		var error = function(xhr, status, errorMessage)
@@ -409,6 +411,7 @@ roth.lib.js.web.Web.prototype._loadLayout = function()
 
 roth.lib.js.web.Web.prototype._readyLayout = function()
 {
+	var self = this;
 	this.layout.element = $("#" + this.config.layoutId);
 	if(!this.layout.element.is(":hidden"))
 	{
@@ -418,13 +421,31 @@ roth.lib.js.web.Web.prototype._readyLayout = function()
 	delete this.layout._temp;
 	if(isFunction(this.layout.ready))
 	{
-		this.layout.ready(this.layout.data);
+		this.layout.ready(this.layout.data, this.layout);
 	}
+	forEach(this.layout._components, function(component)
+	{
+		if(isFunction(component.ready))
+		{
+			component.ready(self.layout.data, component);
+		}
+	});
 	this.layout.element.show();
+	forEach(this.layout._components, function(component)
+	{
+		component.element.show();
+	});
 	if(isFunction(this.layout.show))
 	{
-		this.layout.show(this.layout.data);
+		this.layout.show(this.layout.data, this.layout);
 	}
+	forEach(this.layout._components, function(component)
+	{
+		if(isFunction(component.show))
+		{
+			component.show(self.layout.data, component);
+		}
+	});
 	var loader = this.register.loader._default;
 	if(isFunction(loader))
 	{
@@ -456,7 +477,11 @@ roth.lib.js.web.Web.prototype._loadPage = function()
 		self.page._temp.html(html);
 		self.translate(self.page._temp, prefix);
 		self.defaults(self.page._temp);
-		self._loadComponents(self.page._temp, self.page.data);
+		self._loadComponents(self.page, self.page._temp, self.page.data);
+		self.hash.loadedModule();
+		self.hash.loadedPage();
+		self.hash.loadedValue();
+		self.hash.loadedLang();
 		self._readyPage();
 	};
 	var error = function(xhr, status, errorMessage)
@@ -483,6 +508,7 @@ roth.lib.js.web.Web.prototype._loadPage = function()
 
 roth.lib.js.web.Web.prototype._readyPage = function()
 {
+	var self = this;
 	this.page.element = isSet(this.hash.layout) ? $("#" + this.config.pageId) :  $("#" + this.config.layoutId);
 	if(!this.page.element.is(":hidden"))
 	{
@@ -492,22 +518,40 @@ roth.lib.js.web.Web.prototype._readyPage = function()
 	delete this.page._temp;
 	if(isFunction(this.page.ready))
 	{
-		this.page.ready(this.page.data);
+		this.page.ready(this.page.data, this.page);
 	}
+	forEach(this.page._components, function(component)
+	{
+		if(isFunction(component.ready))
+		{
+			component.ready(self.page.data, component);
+		}
+	});
 	var loader = this.register.loader._default;
 	if(isFunction(loader))
 	{
 		loader(this.page.element, false);
 	}
 	this.page.element.show();
+	forEach(this.page._components, function(component)
+	{
+		component.element.show();
+	});
 	if(isFunction(this.page.show))
 	{
-		this.page.show(this.page.data);
+		this.page.show(this.page.data, this.page);
 	}
+	forEach(this.page._components, function(component)
+	{
+		if(isFunction(component.show))
+		{
+			component.show(self.page.data, component);
+		}
+	});
 };
 
 
-roth.lib.js.web.Web.prototype._loadComponents = function(element, data)
+roth.lib.js.web.Web.prototype._loadComponents = function(view, element, data)
 {
 	var self = this;
 	element.find("[" + this.config.attr.component + "]").each(function()
@@ -520,6 +564,11 @@ roth.lib.js.web.Web.prototype._loadComponents = function(element, data)
 			component.name = componentName;
 			component.element = element;
 			self._loadComponent(component, data);
+			if(!isArray(view._components))
+			{
+				view._components = [];
+			}
+			view._components.push(component);
 		}
 	});
 };
@@ -540,6 +589,7 @@ roth.lib.js.web.Web.prototype._loadComponent = function(component, data, callbac
 		context : self.context
 	});
 	var prefix = "component." + (component.name.replace(/\//g, ".")) + ".";
+	component.element.hide();
 	component.element.html(html);
 	self.translate(component.element, prefix);
 	self.defaults(component.element);
@@ -586,17 +636,26 @@ roth.lib.js.web.Web.prototype.loadComponent = function(element, componentName, d
 {
 	if(!isObject(data))
 	{
-		data = self.page.data;
+		data = this.page.data;
 	}
-	var component = self.register.getComponent(componentName);
+	var component = this.register.getComponent(componentName);
 	if(isSet(component))
 	{
 		component.name = componentName;
 		component.element = element;
-		self._loadComponent(component, data);
+		this._loadComponent(component, data);
+		if(isFunction(component.ready))
+		{
+			component.ready(data, component);
+		}
+		component.element.show();
+		if(isFunction(component.show))
+		{
+			component.show(data, component);
+		}
 		if(isFunction(callback))
 		{
-			callback(data, element, component);
+			callback(data, component);
 		}
 	}
 };
@@ -730,7 +789,7 @@ roth.lib.js.web.Web.prototype._serviceCall = function(service, method, request, 
 							{
 								authRedirector = self.register.redirector.auth;
 							}
-							if(isFunction(redirector))
+							if(isFunction(authRedirector))
 							{
 								authRedirector();
 							}
