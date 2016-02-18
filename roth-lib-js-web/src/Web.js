@@ -6,12 +6,13 @@ roth.lib.js = roth.lib.js || {};
 roth.lib.js.web = roth.lib.js.web || {};
 
 
-roth.lib.js.web.Web = function(app)
+roth.lib.js.web.Web = function(app, modules)
 {
 	this.config =
 	{
 		jqueryScript 		: "https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.js",
 		defaultLang 		: "en",
+		common				: "_common",
 		endpoint 			: "endpoint",
 		service 			: "service",
 		sessionId 			: "jsessionid",
@@ -53,10 +54,12 @@ roth.lib.js.web.Web = function(app)
 			onclick			: "data-onclick"
 		}
 	};
+	this.app = app;
+	this.modules = isArray(modules) ? modules : [];
 	this.inited = false;
 	
 	this.template = new roth.lib.js.template.Template();
-	this.register = new roth.lib.js.web.Register(app);
+	this.register = new roth.lib.js.web.Register(this.app, this.modules, this.config.common, this.template);
 	this.hash = new roth.lib.js.web.Hash();
 	this.dev = isFileProtocol() ? new roth.lib.js.web.Dev() : {};
 	
@@ -85,7 +88,7 @@ roth.lib.js.web.Web.prototype.init = function()
 	false);
 	document.addEventListener("DOMContentLoaded", function()
 	{
-		if(!this.inited)
+		if(!self.inited)
 		{
 			self._initConsole();
 			self._initJquery();
@@ -93,7 +96,7 @@ roth.lib.js.web.Web.prototype.init = function()
 			{
 				self._loadLayout();
 			}
-			this.inited = true;
+			self.inited = true;
 		}
 	});
 };
@@ -143,18 +146,18 @@ roth.lib.js.web.Web.prototype._isLoadable = function()
 	var loadable = this.hash.isValid();
 	if(loadable)
 	{
-		var moduleName = this.hash.getModule();
+		var module = this.hash.getModule();
 		var pageName = this.hash.getPage();
-		var page = this.register.getPage(moduleName, pageName);
+		var page = this.register.getPage(module, pageName);
 		if(isSet(page))
 		{
-			var layoutName = !isUndefined(page.layout) ? page.layout : moduleName;
+			var layoutName = !isUndefined(page.layout) ? page.layout : module;
 			this.hash.setLayout(layoutName);
-			var layout = this.hash.newLayout ? this.register.getLayout(layoutName) : this.layout;
-			if(!(isSet(this.hash.lang) && this.register.isValidLang(this.hash.lang)))
+			var layout = this.hash.newLayout ? this.register.getLayout(module, layoutName) : this.layout;
+			if(!(isSet(this.hash.lang) && this.register.isValidLang(module, this.hash.lang)))
 			{
 				var lang = localStorage.getItem(this.hash.langStorage);
-				if(this.register.isValidLang(lang))
+				if(this.register.isValidLang(module, lang))
 				{
 					this.hash.setLang(lang);
 				}
@@ -172,7 +175,7 @@ roth.lib.js.web.Web.prototype._isLoadable = function()
 					{
 						lang = lang.substring(0, 2);
 					}
-					lang = this.register.isValidLang(lang) ? lang : this.hash.defaultLang;
+					lang = this.register.isValidLang(module, lang) ? lang : this.hash.defaultLang;
 					this.hash.setLang(lang);
 					localStorage.setItem(this.hash.langStorage, lang);
 				}
@@ -292,7 +295,7 @@ roth.lib.js.web.Web.prototype._isLoadable = function()
 			}
 			if(loadable)
 			{
-				this.text = this.register.getText(this.hash.lang);
+				this.text = this.register.getText(module, this.hash.lang);
 				this.page = page;
 				this.layout = layout;
 				this.hash.log();
@@ -435,15 +438,15 @@ roth.lib.js.web.Web.prototype._readyLayout = function()
 	{
 		component.element.show();
 	});
-	if(isFunction(this.layout.show))
+	if(isFunction(this.layout.visible))
 	{
-		this.layout.show(this.layout.data, this.layout);
+		this.layout.visible(this.layout.data, this.layout);
 	}
 	forEach(this.layout._components, function(component)
 	{
-		if(isFunction(component.show))
+		if(isFunction(component.visible))
 		{
-			component.show(self.layout.data, component);
+			component.visible(self.layout.data, component);
 		}
 	});
 	var loader = this.register.loader._default;
@@ -537,15 +540,15 @@ roth.lib.js.web.Web.prototype._readyPage = function()
 	{
 		component.element.show();
 	});
-	if(isFunction(this.page.show))
+	if(isFunction(this.page.visible))
 	{
-		this.page.show(this.page.data, this.page);
+		this.page.visible(this.page.data, this.page);
 	}
 	forEach(this.page._components, function(component)
 	{
-		if(isFunction(component.show))
+		if(isFunction(component.visible))
 		{
-			component.show(self.page.data, component);
+			component.visible(self.page.data, component);
 		}
 	});
 };
@@ -554,11 +557,12 @@ roth.lib.js.web.Web.prototype._readyPage = function()
 roth.lib.js.web.Web.prototype._loadComponents = function(view, element, data)
 {
 	var self = this;
+	var module = this.hash.getModule()
 	element.find("[" + this.config.attr.component + "]").each(function()
 	{
 		var element = $(this);
 		var componentName = element.attr(self.config.attr.component);
-		var component = self.register.getComponent(componentName);
+		var component = self.register.getComponent(module, componentName);
 		if(isSet(component))
 		{
 			component.name = componentName;
@@ -638,7 +642,7 @@ roth.lib.js.web.Web.prototype.loadComponent = function(element, componentName, d
 	{
 		data = this.page.data;
 	}
-	var component = this.register.getComponent(componentName);
+	var component = this.register.getComponent(this.hash.getModule(), componentName);
 	if(isSet(component))
 	{
 		component.name = componentName;
@@ -649,9 +653,9 @@ roth.lib.js.web.Web.prototype.loadComponent = function(element, componentName, d
 			component.ready(data, component);
 		}
 		component.element.show();
-		if(isFunction(component.show))
+		if(isFunction(component.visible))
 		{
-			component.show(data, component);
+			component.visible(data, component);
 		}
 		if(isFunction(callback))
 		{
@@ -676,13 +680,10 @@ roth.lib.js.web.Web.prototype.service = function(service, method, request, succe
 
 roth.lib.js.web.Web.prototype._serviceFile = function(service, method, request, success, error, complete, group)
 {
-	// TODO load services json
 	var self = this;
 	var scenarios = this.dev.getResponseScenarios(service, method);
 	if(scenarios.length > 0)
 	{
-		this._serviceCall(service, method, request, success, error, complete, group, scenarios[0]);
-		/*
 		if(isMockDemo())
 		{
 			this._serviceCall(service, method, request, success, error, complete, group, scenarios[0]);
@@ -694,7 +695,6 @@ roth.lib.js.web.Web.prototype._serviceFile = function(service, method, request, 
 				self._serviceCall(service, method, request, success, error, complete, group, scenario);
 			});
 		}
-		*/
 	}
 	else
 	{

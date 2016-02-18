@@ -1,23 +1,34 @@
 
 
-roth.lib.js.web.Register = function(app)
+roth.lib.js.web.Register = function(app, modules, common, template)
 {
+	var self = this;
 	this.app = app;
-	this.template = isFileProtocol() ? new roth.lib.js.template.Template() : null;
+	this.modules = modules.slice();
+	this.common = common;
+	this.template = template;
 	
-	this.langs			= ["en"];
 	this.text			= {};
 	this.layout			= {};
 	this.page			= {};
 	this.component		= {};
-	this.endpoint		= {};
 	
+	this.endpoint		= {};
 	this.filterer		= {};
 	this.validator		= {};
 	this.loader			= {};
 	this.redirector		= {};
 	this.feedbacker		= {};
 	this.disabler		= {};
+	
+	modules.push(common);
+	forEach(modules, function(module)
+	{
+		self.text[module]		= {};
+		self.layout[module]		= {};
+		self.page[module]		= {};
+		self.component[module]	= {};
+	});
 	
 	
 	this.filterer.replace = function(value, regExp, replacement)
@@ -114,20 +125,40 @@ roth.lib.js.web.Register = function(app)
 };
 
 
-roth.lib.js.web.Register.prototype.isValidLang = function(lang)
+roth.lib.js.web.Register.prototype.isValidModule = function(module)
 {
-	return inArray(lang, this.langs);
+	return inMap(module, this.modules);
 };
 
 
-roth.lib.js.web.Register.prototype.getText = function(lang)
+roth.lib.js.web.Register.prototype.isValidLang = function(module, lang)
 {
-	if(isFileProtocol() && !isObject(this.text[lang]))
+	var valid = inMap(lang, this.text[module]);
+	if(isFileProtocol() && !valid)
 	{
-		var path = "text/text_" + lang;
-		this.text[lang] = this.getJson(path);
+		this.getText(module, lang);
+		valid = inMap(lang, this.text[module]);
 	}
-	return this.text[lang];
+	return valid;
+};
+
+
+roth.lib.js.web.Register.prototype.getText = function(module, lang)
+{
+	var text = {};
+	if(isFileProtocol() && !isObject(this.text[module][lang]))
+	{
+		var path = module + "/text/" + lang;
+		this.text[module][lang] = this.getJson(path);
+	}
+	$.extend(true, text, this.text[module][lang]);
+	if(isFileProtocol() && !isObject(this.text[this.common][lang]))
+	{
+		var path = this.common + "/text/" + lang;
+		this.text[this.common][lang] = this.getJson(path);
+	}
+	$.extend(true, text, this.text[this.common][lang]);
+	return text;
 };
 
 
@@ -137,108 +168,81 @@ roth.lib.js.web.Register.prototype.getSafeName = function(name)
 };
 
 
-roth.lib.js.web.Register.prototype.getLayout = function(layoutName)
+roth.lib.js.web.Register.prototype.getConstructor = function(module, name, type)
 {
-	var layout = null;
-	var layoutConstructor = this.getLayoutConstructor(layoutName);
-	if(isSet(layoutConstructor))
-	{
-		layout = new layoutConstructor();
-	}
-	return layout;
-};
-
-
-roth.lib.js.web.Register.prototype.getLayoutConstructor = function(layoutName)
-{
-	var name = this.getSafeName(layoutName);
-	var layoutConstructor = this.layout[name];
+	var safeName = this.getSafeName(name);
+	var constructor = this[type][module][safeName];
 	if(isFileProtocol())
 	{
-		var path = "view/layout/" + layoutName;
-		if(!isFunction(layoutConstructor))
+		var path = module + "/" + type + "/" + name;
+		if(!isFunction(constructor))
 		{
 			this.loadScript(path);
-			layoutConstructor = this.layout[name];
+			constructor = this[type][module][safeName];
 		}
-		if(isFunction(layoutConstructor) && !isString(layoutConstructor.source))
+		if(!isFunction(constructor))
 		{
-			layoutConstructor.source = this.getSource(path);
+			var source = this.getSource(path);
+			if(isValidString(source))
+			{
+				this[type][module][safeName] = function()
+				{
+					this.init = null;
+				};
+				constructor = this[type][module][safeName];
+				constructor.source = source;
+			}
+		}
+		else if(!isValidString(constructor.source))
+		{
+			constructor.source = this.getSource(path);
+			if(!isValidString(constructor.source))
+			{
+				constructor = null;
+			}
 		}
 	}
-	return layoutConstructor;
+	return constructor;
 };
 
 
-roth.lib.js.web.Register.prototype.getPage = function(moduleName, pageName)
+roth.lib.js.web.Register.prototype.getView = function(module, name, type)
 {
-	var page = null;
-	var pageConstructor = this.getPageConstructor(moduleName, pageName);
-	if(isSet(pageConstructor))
+	var view = null;
+	var constructor = this.getConstructor(module, name, type);
+	if(!isFunction(constructor))
 	{
-		page = new pageConstructor();
+		constructor = this.getConstructor(this.common, name, type);
 	}
-	return page;
+	if(isFunction(constructor))
+	{
+		view = new constructor();
+	}
+	return view;
 };
 
 
-roth.lib.js.web.Register.prototype.getPageConstructor = function(moduleName, pageName)
+roth.lib.js.web.Register.prototype.getLayout = function(module, name)
 {
-	var name = this.getSafeName(moduleName + "_" + pageName);
-	var pageConstructor = this.page[name];
-	if(isFileProtocol())
-	{
-		var path = "view/page/" + moduleName + "/" + pageName;
-		if(!isFunction(pageConstructor))
-		{
-			this.loadScript(path);
-			pageConstructor = this.page[name];
-		}
-		if(isFunction(pageConstructor) && !isString(pageConstructor.source))
-		{
-			pageConstructor.source = this.getSource(path);
-		}
-	}
-	return pageConstructor;
+	return this.getView(module, name, "layout");
 };
 
 
-roth.lib.js.web.Register.prototype.getComponent = function(componentName)
+roth.lib.js.web.Register.prototype.getPage = function(module, name)
 {
-	var component = null;
-	var componentConstructor = this.getComponentConstructor(componentName);
-	if(isSet(componentConstructor))
-	{
-		component = new componentConstructor();
-	}
-	return component;
+	return this.getView(module, name, "page");
 };
 
 
-roth.lib.js.web.Register.prototype.getComponentConstructor = function(componentName)
+roth.lib.js.web.Register.prototype.getComponent = function(module, name)
 {
-	var name = this.getSafeName(componentName);
-	var componentConstructor = this.component[name];
-	if(isFileProtocol())
-	{
-		var path = "view/component/" + componentName;
-		if(!isFunction(componentConstructor))
-		{
-			this.loadScript(path);
-			componentConstructor = this.component[name];
-		}
-		if(isFunction(componentConstructor) && !isString(componentConstructor.source))
-		{
-			componentConstructor.source = this.getSource(path);
-		}
-	}
-	return componentConstructor;
+	return this.getView(module, name, "component");
 };
 
 
 roth.lib.js.web.Register.prototype.loadScript = function(path)
 {
-	var url = "dev/" + this.app + "/" + path + ".js";
+	var url = "dev/app/" + this.app + "/" + path + ".js";
 	$.ajax(
 	{
 		url : url,
@@ -253,7 +257,7 @@ roth.lib.js.web.Register.prototype.getSource = function(path)
 {
 	var self = this;
 	var source = null;
-	var url = "dev/" + this.app + "/" + path + ".html";
+	var url = "dev/app/" + this.app + "/" + path + ".html";
 	var success = function(data)
 	{
 		source = self.template.parse(data);
@@ -274,7 +278,7 @@ roth.lib.js.web.Register.prototype.getJson = function(path)
 {
 	var self = this;
 	var json = null;
-	var url = "dev/" + this.app + "/" + path + ".json";
+	var url = "dev/app/" + this.app + "/" + path + ".json";
 	var success = function(data)
 	{
 		json = data;
