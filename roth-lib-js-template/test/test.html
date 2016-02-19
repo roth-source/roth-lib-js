@@ -44,7 +44,7 @@
 				var source = load("test-source.html", "text");
 				var data = load("test-data.json", "text");
 				var parsed = template.parse(source, JSON.parse(data));
-				var rendered = template.renderParsed(parsed, JSON.parse(data));
+				var rendered = template.eval(parsed, JSON.parse(data));
 				
 				$("#source").text(source);
 				$("#data").text(data);

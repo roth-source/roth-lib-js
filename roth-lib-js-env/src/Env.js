@@ -7,7 +7,8 @@ roth.lib.js.env = roth.lib.js.env || {};
 roth.lib.js.env.hosts = roth.lib.js.env.hosts || { local : ["localhost", "127.0.0.1"] };
 roth.lib.js.env.environment = roth.lib.js.env.environment || null;
 roth.lib.js.env.debug = roth.lib.js.env.debug || null;
-roth.lib.js.env.compiled = roth.lib.js.env.compiled || false;
+roth.lib.js.env.compiled = roth.lib.js.env.compiled || null;
+roth.lib.js.env.cssCompiled = roth.lib.js.env.cssCompiled || false;
 roth.lib.js.env.context = roth.lib.js.env.context || null;
 roth.lib.js.env.mockDemo = roth.lib.js.env.mockDemo || false;
 roth.lib.js.env.dependencies = roth.lib.js.env.dependencies || [];
@@ -92,6 +93,12 @@ var setDebug = setDebug || function(debug)
 var setCompiled = setCompiled || function(compiled)
 {
 	roth.lib.js.env.compiled = compiled !== false ? true : false;
+};
+
+
+var setCssCompiled = setCssCompiled || function(cssCompiled)
+{
+	roth.lib.js.env.cssCompiled = cssCompiled !== false ? true : false;
 };
 
 
@@ -237,11 +244,20 @@ var isDebug = isDebug || function()
 };
 
 
+var isCompiled = isCompiled || function()
+{
+	if(roth.lib.js.env.compiled == null)
+	{
+		roth.lib.js.env.compiled = !isDev();
+	}
+	return roth.lib.js.env.compiled;
+};
+
+
 var getContext = getContext || function()
 {
 	return roth.lib.js.env.context;
 };
-
 
 
 var checkSecure = checkSecure || function()
@@ -259,30 +275,24 @@ var checkSecure = checkSecure || function()
 };
 
 
-var loadCompiledDependencies = loadCompiledDependencies || function()
+var loadCssCompiledDependencies = loadCssCompiledDependencies || function(app)
 {
-	loadDependencies(roth.lib.js.env.compiled);
+	loadDependencies(app, roth.lib.js.env.cssCompiled);
 };
 
 
-var loadDependencies = loadDependencies || function(compiled)
+var loadDependencies = loadDependencies || function(app, cssCompiled)
 {
-	var writeTag = function(tag)
-	{
-		document.write(tag);
-	}
-	
 	var styleRegExp = new RegExp("\\.css$", "i");
 	var scriptRegExp = new RegExp("\\.js$", "i");
-	
 	for(var i in roth.lib.js.env.dependencies)
 	{
 		var dependency = roth.lib.js.env.dependencies[i];
-		if(dependency)
+		if(dependency && (!dependency.app || dependency.app == app))
 		{
 			if(!((dependency.exclude === true) || (!isDev()  && dependency.dev === true) || (isDev() && dependency.dev === false)))
 			{
-				if((compiled === undefined && dependency.compiled === undefined) || (compiled === true && dependency.compiled === true) || (compiled === false && dependency.compiled === false))
+				if((cssCompiled === undefined && dependency.cssCompiled === undefined) || (cssCompiled === true && dependency.cssCompiled === true) || (cssCompiled === false && dependency.cssCompiled === false))
 				{
 					var local = dependency.local;
 					var external = dependency.external;
@@ -299,33 +309,28 @@ var loadDependencies = loadDependencies || function(compiled)
 							var builder = "";
 							builder += "<link ";
 							var attributeMap = dependency.attributeMap || {};
+							attributeMap.href = path;
 							attributeMap.rel = attributeMap.rel || "stylesheet";
 							attributeMap.type = attributeMap.type || "text/css";
 							for(var name in attributeMap)
 							{
 								builder += name + "=\"" + attributeMap[name] + "\" ";
 							}
-							builder += "href=\"";
-							builder += path;
-							builder += "\" />";
-							writeTag(builder);
+							builder += " />";
+							document.write(builder);
 						}
 						else if((tag && tag.toLowerCase() == "script") || scriptRegExp.test(path))
 						{
 							var builder = "";
 							builder += "<script ";
-							if(dependency.attributeMap)
+							var attributeMap = dependency.attributeMap || {};
+							attributeMap.src = path;
+							for(var name in attributeMap)
 							{
-								for(var name in dependency.attributeMap)
-								{
-									builder += name + "=\"" + dependency.attributeMap[name] + "\" ";
-								}
+								builder += name + "=\"" + attributeMap[name] + "\" ";
 							}
-							builder += "src=\"";
-							builder += path;
-							builder += "\">";
-							builder += "</script>";
-							writeTag(builder);
+							builder += "></script>";
+							document.write(builder);
 						}
 					}
 				}
@@ -335,7 +340,7 @@ var loadDependencies = loadDependencies || function(compiled)
 };
 
 
-var getDependencies = getDependencies || function()
+var getDependenciesString = getDependenciesString || function()
 {
 	return JSON.stringify(roth.lib.js.env.dependencies);
 };

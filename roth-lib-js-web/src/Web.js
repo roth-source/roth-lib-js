@@ -55,7 +55,8 @@ roth.lib.js.web.Web = function(app, modules)
 		}
 	};
 	this.app = app;
-	this.modules = isArray(modules) ? modules : [];
+	this.modules = isArray(modules) ? modules.slice() : [];
+	this.loadedModules = [];
 	this.inited = false;
 	
 	this.template = new roth.lib.js.template.Template();
@@ -92,6 +93,7 @@ roth.lib.js.web.Web.prototype.init = function()
 		{
 			self._initConsole();
 			self._initJquery();
+			self._loadModule(self.config.common);
 			if(self._isLoadable())
 			{
 				self._loadLayout();
@@ -140,6 +142,17 @@ roth.lib.js.web.Web.prototype._initJquery = function()
 };
 
 
+roth.lib.js.web.Web.prototype._loadModule = function(module)
+{
+	if(isCompiled() && !inArray(module, this.loadedModules))
+	{
+		var src = "app/" + this.app + "/" + module + ".js";
+		$("<script></script>").attr("src", src).appendTo("head");
+		this.loadedModules.push(module);
+	}
+};
+
+
 roth.lib.js.web.Web.prototype._isLoadable = function()
 {
 	var self = this;
@@ -147,6 +160,7 @@ roth.lib.js.web.Web.prototype._isLoadable = function()
 	if(loadable)
 	{
 		var module = this.hash.getModule();
+		this._loadModule(module);
 		var pageName = this.hash.getPage();
 		var page = this.register.getPage(module, pageName);
 		if(isSet(page))

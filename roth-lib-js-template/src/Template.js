@@ -26,10 +26,8 @@ roth.lib.js.template.Template = roth.lib.js.template.Template || function(config
 			closeUnescapedExpression	: "}}}",
 			closeEscapedExpression		: "}}",
 			closeStatement				: "%}",
-			scopeVar					: "$_d",
 			escapeVar					: "$_e",
 			issetVar					: "$_i",
-			argVar						: "$_a",
 			tempVar						: "$_t",
 			sourceVar					: "$_s"
 		};
@@ -58,20 +56,16 @@ roth.lib.js.template.Template = roth.lib.js.template.Template || function(config
 	})
 	(this);
 	
-};
-
-
-roth.lib.js.template.Template.prototype.parseScope = function(scope)
-{
-	var parsedScope = ""
-	if(typeof scope === "object")
+	this.escape = function(value)
 	{
-		for(var name in scope)
-		{
-			parsedScope += "var " + name + " = " + this.config.scopeVar + "[\"" + name + "\"];\n";
-		}
-	}
-	return parsedScope;
+		return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+	};
+	
+	this.isset = function(value)
+	{
+		return value !== undefined && value !== null;
+	};
+	
 };
 
 
@@ -80,9 +74,7 @@ roth.lib.js.template.Template.prototype.parse = function(source)
 	var self = this;
 	var escape = true;
 	var parsedSource = "";
-	parsedSource += "var " + self.config.escapeVar + " = function(" + self.config.argVar + ") { return " + self.config.argVar + ".replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\"); };\n";
-	parsedSource += "var " + self.config.issetVar + " = function(" + self.config.argVar + ") { return "  + self.config.argVar + " !== undefined && " + self.config.argVar + " !== null };\n";
-	parsedSource += "var " + self.config.tempVar + ";\nvar " + self.config.sourceVar + "=\"\";\n" + self.config.sourceVar + "+=\"";
+	parsedSource += "var " + self.config.tempVar + "; var " + self.config.sourceVar + "=\"\"; " + self.config.sourceVar + "+=\"";
 	parsedSource += source.replace(self.syntaxRegExp, function(match, capture)
 	{
 		var replacement = "";
@@ -157,22 +149,34 @@ roth.lib.js.template.Template.prototype.parse = function(source)
 		}
 		return replacement;
 	});
-	parsedSource += "\";\nreturn " + self.config.sourceVar + ";";
+	parsedSource += "\"; return " + self.config.sourceVar + ";";
 	return parsedSource;
 };
 
 
 roth.lib.js.template.Template.prototype.eval = function(parsedSource, scope)
 {
-	var self = this;
-	return new Function(self.config.scopeVar, self.parseScope(scope) + parsedSource)(scope);
+	var names = [];
+	names.push(this.config.escapeVar);
+	names.push(this.config.issetVar);
+	var values = [];
+	values.push(this.escape);
+	values.push(this.isset);
+	if(scope != null && typeof scope === "object")
+	{
+		for(var name in scope)
+		{
+			names.push(name);
+			values.push(scope[name]);
+		}
+	}
+	return new Function(names.join(), parsedSource).apply(this, values);
 };
 
 
 roth.lib.js.template.Template.prototype.render = function(source, scope)
 {
-	var self = this;
-	return this.eval(self.parse(source, scope), scope);
+	return this.eval(this.parse(source), scope);
 };
 
 
