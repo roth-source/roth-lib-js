@@ -1,11 +1,11 @@
 <html>
 	<head>
-		
+		<title>dev</title>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.js"></script>
+		<script src="http://dist.roth.cm/roth/lib/js/roth-lib-js-template/0.2.0-SNAPSHOT/roth-lib-js-template.js"></script>
 		<style>
 			.roth-dev-layout
 			{
-				overflow:scroll;
-				height:100vh;
 				margin-top:15px;
 				font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
 				box-sizing:border-box;
@@ -98,15 +98,15 @@
 			{
 				z-index:2;
 			}
-			.roth-dev-nav.roth-dev-nav-active > a
+			.roth-dev-nav.roth-dev-nav-active > button
 			{
 				border-color: #ddd #ddd #fff #ddd;
 			}
-			.roth-dev-nav.roth-dev-nav-active > a:hover
+			.roth-dev-nav.roth-dev-nav-active > button:hover
 			{
 				background-color: #fff;
 			}
-			.roth-dev-nav > a
+			.roth-dev-nav > button
 			{
 				display: block;
 				padding: 10px 15px;
@@ -114,9 +114,12 @@
 				text-decoration: none;
 				color: #999;
 				border: 1px solid transparent;
+				border-color: #ddd;
 				border-radius: 4px 4px 0 0;
+				background-color: #fff;
+				cursor: pointer;
 			}
-			.roth-dev-nav > a:hover
+			.roth-dev-nav > button:hover
 			{
 				background-color: #eee;
 			}
@@ -158,6 +161,12 @@
 				width:300px;
 				display:inline-block;
 				vertical-align:top;
+			}
+			.roth-dev-link-page
+			{
+				display:table;
+				width:100%;
+				box-sizing:border-box;
 			}
 			.roth-dev-link-label
 			{
@@ -399,12 +408,137 @@
 	<body>
 		<div class="roth-dev-layout">
 			<ul class="roth-dev-navs">
-				<li id="roth-dev-nav-links" class="roth-dev-nav"><a href="#/{{ config.devModule }}/{{ config.devLinksPage }}/">links</a></li>
-				<li id="roth-dev-nav-services" class="roth-dev-nav"><a href="#/{{ config.devModule }}/{{ config.devServicesPage }}/">services</a></li>
-				<li id="roth-dev-nav-config" class="roth-dev-nav"><a href="#/{{ config.devModule }}/{{ config.devConfigPage }}/">config</a></li>
+				<li id="roth-dev-nav-links" class="roth-dev-nav">
+					<button onclick="loadLinks();">links</button>
+				</li>
+				<li id="roth-dev-nav-services" class="roth-dev-nav">
+					<button onclick="loadServices();">service</button>
+				</li>
 			</ul>
 			<br/>
-			<div id="{{ config.pageId }}" class="roth-dev-page"></div>
+			<div id="page" class="roth-dev-page"></div>
+			
+			<div id="roth-dev-links-template" style="display:none;">
+				<div class="roth-dev-panels-link">
+					{% for(var app in data) { %}
+					{% var appData = data[app]; %}
+					<div class="roth-dev-panel">
+						<div class="roth-dev-panel-header">{{ app }}</div>
+						<div class="roth-dev-panel-body">
+							{% for(var module in appData) { %}
+							{% var moduleData = appData[module]; %}
+							<div class="roth-dev-panel">
+								<div class="roth-dev-panel-header">{{ module }}</div>
+								<div class="roth-dev-panel-body roth-dev-panel-link-param">
+									{% for(var page in moduleData) { %}
+									{% var pageData = moduleData[page]; %}
+									<div class="roth-dev-link-page">
+										<label class="roth-dev-link-label">{{ page }}</label>
+										<div class="roth-dev-links">
+											{% if(pageData.length == 0) { %}
+											<div>
+												<a class="roth-dev-link" href="javascript:;">{{ app }}.html#/{{ module }}/{{ page }}/</a>
+											</div>
+											{% } else { %}
+											{% for(var i in pageData) { %}
+											<div>
+												<a class="roth-dev-link" href="javascript:;">{{ app }}.html#/{{ module }}/{{ page }}/{%
+												var paramMap = pageData[i];
+												for(var name in paramMap) {
+												var value = paramMap[name];
+												%}{{ name }}/</a>{%
+												%}<span class="roth-dev-param-value" contenteditable="true">{{ value }}</span>{%
+												%}<a class="roth-dev-link" href="javascript:;">/{% 
+												} %}</a>
+											</div>
+											{% } %}
+											{% } %}
+										</div>
+									</div>
+									{% } %}
+								</div>
+							</div>
+							{% } %}
+						</div>
+					</div>
+					{% } %}
+				</div>
+			</div>
+			
 		</div>
+		<script>
+		
+			var template = new roth.lib.js.template.Template();
+			
+			$(document).ready(function()
+			{
+				loadLinks();
+			});
+			
+			var loadLinks = function()
+			{
+				$(".roth-dev-nav").removeClass("roth-dev-nav-active");
+				$("#roth-dev-nav-links").addClass("roth-dev-nav-active");
+				$.ajax(
+				{
+					url : "link.json",
+					dataType : "json",
+					cache : false,
+					success : function(data)
+					{
+						$("#page").html(template.render($("#roth-dev-links-template").html(), { data : data }));
+						$("span.roth-dev-param-value").dblclick(function(e)
+						{
+							var selection = window.getSelection();
+							var range = document.createRange();
+							range.setStart(this, 0);
+							range.setEnd(this, 1);
+							selection.removeAllRanges();
+							selection.addRange(range);
+						});
+						var setLink = function()
+						{
+							var element = $(this);
+							var parent = element.parent();
+							var link = parent.text();
+							parent.children("a").attr("href", "../" + link);
+						}
+						$("a.roth-dev-link").each(setLink);
+						$("span.roth-dev-param-value").blur(setLink).keypress(function(e)
+						{
+							if(e.keyCode == 10 || e.keyCode == 13)
+							{
+								e.preventDefault();
+							}
+						});
+					},
+					error : function()
+					{
+						$("#page").html("error loading links");
+					}
+				});
+			};
+			
+			var loadServices = function()
+			{
+				$(".roth-dev-nav").removeClass("roth-dev-nav-active");
+				$("#roth-dev-nav-services").addClass("roth-dev-nav-active");
+				$.ajax(
+				{
+					url : "service.json",
+					dataType : "json",
+					cache : false,
+					success : function(data)
+					{
+						$("#page").html("loading services");
+					},
+					error : function()
+					{
+						$("#page").html("error loading services");
+					}
+				});
+			};
+			
+		</script>
 	</body>
 </html>
