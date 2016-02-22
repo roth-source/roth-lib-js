@@ -1,11 +1,10 @@
 
 
-roth.lib.js.web.Register = function(app, modules, common, template)
+roth.lib.js.web.Register = function(app, moduleDependencies, template)
 {
 	var self = this;
 	this.app = app;
-	this.modules = modules.slice();
-	this.common = common;
+	this.moduleDependencies = moduleDependencies;
 	this.template = template;
 	
 	this.text			= {};
@@ -13,16 +12,7 @@ roth.lib.js.web.Register = function(app, modules, common, template)
 	this.page			= {};
 	this.component		= {};
 	
-	this.endpoint		= {};
-	this.filterer		= {};
-	this.validator		= {};
-	this.loader			= {};
-	this.redirector		= {};
-	this.feedbacker		= {};
-	this.disabler		= {};
-	
-	modules.push(common);
-	forEach(modules, function(module)
+	forEach(moduleDependencies, function(dependencies, module)
 	{
 		self.text[module]		= {};
 		self.layout[module]		= {};
@@ -30,6 +20,13 @@ roth.lib.js.web.Register = function(app, modules, common, template)
 		self.component[module]	= {};
 	});
 	
+	this.endpoint		= {};
+	this.filterer		= {};
+	this.validator		= {};
+	this.disabler		= {};
+	this.loader			= {};
+	this.redirector		= {};
+	this.feedbacker		= {};
 	
 	this.filterer.replace = function(value, regExp, replacement)
 	{
@@ -127,37 +124,51 @@ roth.lib.js.web.Register = function(app, modules, common, template)
 
 roth.lib.js.web.Register.prototype.isValidModule = function(module)
 {
-	return inMap(module, this.modules);
+	return inMap(module, this.moduleDependencies);
 };
 
 
 roth.lib.js.web.Register.prototype.isValidLang = function(module, lang)
 {
-	var valid = inMap(lang, this.text[module]);
-	if(isFileProtocol() && !valid)
+	if(isSet(lang))
 	{
-		this.getText(module, lang);
-		valid = inMap(lang, this.text[module]);
+		var valid = inMap(lang, this.text[module]);
+		if(isFileProtocol() && !valid)
+		{
+			this.getText(module, lang);
+			valid = inMap(lang, this.text[module]);
+		}
+		return valid;
 	}
-	return valid;
+	else
+	{
+		return false;
+	}
 };
 
 
 roth.lib.js.web.Register.prototype.getText = function(module, lang)
 {
+	var self = this;
 	var text = {};
-	if(isFileProtocol() && !isObject(this.text[module][lang]))
+	if(isSet(lang))
 	{
-		var path = module + "/text/" + lang;
-		this.text[module][lang] = this.getJson(path);
+		if(isFileProtocol() && !isObject(this.text[module][lang]))
+		{
+			var path = module + "/text/" + module + "_" + lang;
+			this.text[module][lang] = this.getJson(path);
+		}
+		$.extend(true, text, this.text[module][lang]);
+		forEach(this.moduleDependencies, function(dependencies, module)
+		{
+			if(isFileProtocol() && !isObject(self.text[module][lang]))
+			{
+				var path = module + "/text/" + module + "_" + lang;
+				self.text[module][lang] = self.getJson(path);
+			}
+			$.extend(true, text, self.text[module][lang]);
+		});
 	}
-	$.extend(true, text, this.text[module][lang]);
-	if(isFileProtocol() && !isObject(this.text[this.common][lang]))
-	{
-		var path = this.common + "/text/" + lang;
-		this.text[this.common][lang] = this.getJson(path);
-	}
-	$.extend(true, text, this.text[this.common][lang]);
 	return text;
 };
 
@@ -208,11 +219,19 @@ roth.lib.js.web.Register.prototype.getConstructor = function(module, name, type)
 
 roth.lib.js.web.Register.prototype.getView = function(module, name, type)
 {
+	var self = this;
 	var view = null;
 	var constructor = this.getConstructor(module, name, type);
 	if(!isFunction(constructor))
 	{
-		constructor = this.getConstructor(this.common, name, type);
+		forEach(this.moduleDependencies, function(dependencies, module)
+		{
+			constructor = self.getConstructor(module, name, type);
+			if(isFunction(constructor))
+			{
+				return;
+			}
+		});
 	}
 	if(isFunction(constructor))
 	{

@@ -157,10 +157,10 @@ roth.lib.js.template.Template.prototype.parse = function(source)
 roth.lib.js.template.Template.prototype.eval = function(parsedSource, scope)
 {
 	var names = [];
-	names.push(this.config.escapeVar);
-	names.push(this.config.issetVar);
 	var values = [];
+	names.push(this.config.escapeVar);
 	values.push(this.escape);
+	names.push(this.config.issetVar);
 	values.push(this.isset);
 	if(scope != null && typeof scope === "object")
 	{

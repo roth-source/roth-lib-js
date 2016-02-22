@@ -6,13 +6,12 @@ roth.lib.js = roth.lib.js || {};
 roth.lib.js.web = roth.lib.js.web || {};
 
 
-roth.lib.js.web.Web = function(app, modules)
+roth.lib.js.web.Web = function(app, moduleDependencies)
 {
 	this.config =
 	{
 		jqueryScript 		: "https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.js",
 		defaultLang 		: "en",
-		common				: "_common",
 		endpoint 			: "endpoint",
 		service 			: "service",
 		sessionId 			: "jsessionid",
@@ -51,16 +50,22 @@ roth.lib.js.web.Web = function(app, modules)
 			radioValue		: "data-radio-value",
 			checkboxValue	: "data-checkbox-value",
 			fileValue		: "data-file-value",
-			onclick			: "data-onclick"
+			field			: "data-field",
+			onclick			: "data-onclick",
+			ondblclick		: "data-ondblclick",
+			onchange		: "data-onchange",
+			onblur			: "data-onblur",
+			onfocus			: "data-onfocus"
 		}
 	};
+	
 	this.app = app;
-	this.modules = isArray(modules) ? modules.slice() : [];
-	this.loadedModules = [];
-	this.inited = false;
+	this.moduleDependencies = moduleDependencies;
+	this._loadedModules = [];
+	this._inited = false;
 	
 	this.template = new roth.lib.js.template.Template();
-	this.register = new roth.lib.js.web.Register(this.app, this.modules, this.config.common, this.template);
+	this.register = new roth.lib.js.web.Register(this.app, this.moduleDependencies, this.template);
 	this.hash = new roth.lib.js.web.Hash();
 	this.dev = isFileProtocol() ? new roth.lib.js.web.Dev() : {};
 	
@@ -89,16 +94,15 @@ roth.lib.js.web.Web.prototype.init = function()
 	false);
 	document.addEventListener("DOMContentLoaded", function()
 	{
-		if(!self.inited)
+		if(!self._inited)
 		{
 			self._initConsole();
 			self._initJquery();
-			self._loadModule(self.config.common);
 			if(self._isLoadable())
 			{
 				self._loadLayout();
 			}
-			self.inited = true;
+			self._inited = true;
 		}
 	});
 };
@@ -130,10 +134,6 @@ roth.lib.js.web.Web.prototype._initConsole = function()
 roth.lib.js.web.Web.prototype._initJquery = function()
 {
 	var self = this;
-	jQuery.expr[":"].notDefaultedValue = function(node, index, match)
-	{
-		return !isSet($(node).prop("defaulted-value"));
-	};
 	jQuery.expr[":"].include = function(node, index, match)
 	{
 		var element = $(node);
@@ -142,13 +142,24 @@ roth.lib.js.web.Web.prototype._initJquery = function()
 };
 
 
+roth.lib.js.web.Web.prototype._loadModuleDependencies = function(module)
+{
+	var self = this;
+	this._loadModule(module);
+	forEach(this.moduleDependencies[module], function(module)
+	{
+		self._loadModule(module);
+	});
+};
+
+
 roth.lib.js.web.Web.prototype._loadModule = function(module)
 {
-	if(isCompiled() && !inArray(module, this.loadedModules))
+	if(isCompiled() && !inArray(module, this._loadedModules))
 	{
 		var src = "app/" + this.app + "/" + module + ".js";
 		$("<script></script>").attr("src", src).appendTo("head");
-		this.loadedModules.push(module);
+		this._loadedModules.push(module);
 	}
 };
 
@@ -160,7 +171,7 @@ roth.lib.js.web.Web.prototype._isLoadable = function()
 	if(loadable)
 	{
 		var module = this.hash.getModule();
-		this._loadModule(module);
+		this._loadModuleDependencies(module);
 		var pageName = this.hash.getPage();
 		var page = this.register.getPage(module, pageName);
 		if(isSet(page))
@@ -271,9 +282,8 @@ roth.lib.js.web.Web.prototype._isLoadable = function()
 			// CHECK FOR VALID PARAM SCENARIO
 			if(loadable)
 			{
-				if(!isEmpty(page.params))
+				if(!isEmpty(page.paramScenarios))
 				{
-					/*
 					var paramsRedirector = this.register.redirector[this.page.paramsRedirector];
 					if(!isFunction(paramsRedirector))
 					{
@@ -281,30 +291,29 @@ roth.lib.js.web.Web.prototype._isLoadable = function()
 					}
 					if(isFunction(paramsRedirector))
 					{
-						for(var i in params)
+						loadable = false;
+						forEach(page.paramScenarios, function(paramScenario)
 						{
 							var valid = true;
-							var param = params[i];
-							for(var name in param)
+							forEach(paramScenario, function(param)
 							{
-								if(!this.hash.hasParam(name))
+								if(!self.hash.hasParam(param))
 								{
 									valid = false;
-									break;
+									return;
 								}
-							}
+							});
 							if(valid)
 							{
 								loadable = true;
-								break;
+								return;
 							}
-						}
+						});
 						if(!loadable)
 						{
 							paramsRedirector();
 						}
 					}
-					*/
 				}
 			}
 			if(loadable)
@@ -389,11 +398,11 @@ roth.lib.js.web.Web.prototype._loadLayout = function()
 				layout	: self.layout,
 				context : self.context
 			});
-			var prefix = "layout." + self.hash.layout + ".";
 			self.layout._temp = $("<div></div>");
 			self.layout._temp.html(html);
-			self.translate(self.layout._temp, prefix);
-			self.defaults(self.layout._temp);
+			self._translate(self.layout._temp, "layout." + self.hash.getModule() + "." + self.hash.layout + ".");
+			self._defaults(self.layout._temp);
+			self._bind(self.layout._temp, self.layout, "layout");
 			self._loadComponents(self.layout, self.layout._temp, self.layout.data);
 			self.hash.loadedLayout();
 			self._readyLayout();
@@ -489,11 +498,11 @@ roth.lib.js.web.Web.prototype._loadPage = function()
 			page	: self.page,
 			context : self.context
 		});
-		var prefix = "page." + self.hash.getModule() + "." + self.hash.getPage() + ".";
 		self.page._temp = $("<div></div>");
 		self.page._temp.html(html);
-		self.translate(self.page._temp, prefix);
-		self.defaults(self.page._temp);
+		self._translate(self.page._temp, "page." + self.hash.getModule() + "." + self.hash.getPage() + ".");
+		self._defaults(self.page._temp);
+		self._bind(self.page._temp, self.page, "page");
 		self._loadComponents(self.page, self.page._temp, self.page.data);
 		self.hash.loadedModule();
 		self.hash.loadedPage();
@@ -592,7 +601,7 @@ roth.lib.js.web.Web.prototype._loadComponents = function(view, element, data)
 };
 
 
-roth.lib.js.web.Web.prototype._loadComponent = function(component, data, callback)
+roth.lib.js.web.Web.prototype._loadComponent = function(component, data)
 {
 	var self = this;
 	var html = self.template.eval(component.constructor.source,
@@ -604,17 +613,16 @@ roth.lib.js.web.Web.prototype._loadComponent = function(component, data, callbac
 		text : self.text,
 		layout	: self.layout,
 		page : self.page,
+		component : self.component,
 		context : self.context
 	});
-	var prefix = "component." + (component.name.replace(/\//g, ".")) + ".";
+	component._temp = $("<div></div>");
+	component._temp.html(html);
+	self._translate(component._temp, "component." + this.hash.getModule() + "." + (component.name.replace(/\//g, ".")) + ".");
+	self._defaults(component._temp);
+	self._bind(component._temp, component, "component");
 	component.element.hide();
-	component.element.html(html);
-	self.translate(component.element, prefix);
-	self.defaults(component.element);
-	if(isFunction(callback))
-	{
-		callback(data, component.element);
-	}
+	component.element.empty().append(component._temp.children().detach());
 };
 
 
@@ -901,10 +909,10 @@ roth.lib.js.web.Web.prototype._endpoint = function()
 };
 
 
-roth.lib.js.web.Web.prototype.translate = function(resourceElement, prefix)
+roth.lib.js.web.Web.prototype._translate = function(viewElement, prefix)
 {
 	var self = this;
-	resourceElement.find("[" + self.config.attr.text + "] > [lang]").each(function()
+	viewElement.find("[" + self.config.attr.text + "] > [lang]").each(function()
 	{
 		var element = $(this);
 		var lang = element.attr("lang");
@@ -917,7 +925,7 @@ roth.lib.js.web.Web.prototype.translate = function(resourceElement, prefix)
 			element.hide();
 		}
 	});
-	resourceElement.find("select[" + self.config.attr.text + "]").each(function()
+	viewElement.find("select[" + self.config.attr.text + "]").each(function()
 	{
 		var element = $(this);
 		var path = element.attr(self.config.attr.text);
@@ -933,7 +941,7 @@ roth.lib.js.web.Web.prototype.translate = function(resourceElement, prefix)
 		if(path != "true")
 		{
 			var param = ObjectUtil.parse(element.attr(self.config.attr.textParam));
-			var options = self.translation(path, self.text, prefix, param);
+			var options = self._translation(path, self.text, prefix, param);
 			if(isObject(options))
 			{
 				for(var value in options)
@@ -952,19 +960,19 @@ roth.lib.js.web.Web.prototype.translate = function(resourceElement, prefix)
 			}
 		}
 	});
-	resourceElement.find("[" + self.config.attr.text + "]:not([" + self.config.attr.text + "]:has(> [lang='" + self.hash.lang + "']))").each(function()
+	viewElement.find("[" + self.config.attr.text + "]:not([" + self.config.attr.text + "]:has(> [lang='" + self.hash.lang + "']))").each(function()
 	{
 		var element = $(this);
 		var path = element.attr(self.config.attr.text);
 		if(path != "true")
 		{
 			var param = ObjectUtil.parse(element.attr(self.config.attr.textParam));
-			var value = self.translation(path, self.text, prefix, param);
+			var value = self._translation(path, self.text, prefix, param);
 			value = isSet(value) ? value : "";
 			element.append($("<span></span>").attr("lang", self.hash.lang).html(value));
 		}
 	});
-	resourceElement.find("[" + self.config.attr.textAttr + "]").each(function()
+	viewElement.find("[" + self.config.attr.textAttr + "]").each(function()
 	{
 		var element = $(this);
 		var attrString = element.attr(self.config.attr.textAttr);
@@ -987,7 +995,7 @@ roth.lib.js.web.Web.prototype.translate = function(resourceElement, prefix)
 					if(!isValidString(value) && path != "true")
 					{
 						var param = ObjectUtil.parse(element.attr(self.config.attr.textAttr));
-						var value = self.translation(path, self.text, prefix, param);
+						var value = self._translation(path, self.text, prefix, param);
 						value = isSet(value) ? value : "";
 					}
 					element.attr(attr, value);
@@ -998,7 +1006,7 @@ roth.lib.js.web.Web.prototype.translate = function(resourceElement, prefix)
 };
 
 
-roth.lib.js.web.Web.prototype.translation = function(path, text, prefix, param)
+roth.lib.js.web.Web.prototype._translation = function(path, text, prefix, param)
 {
 	var object = null;
 	if(isValidString(prefix))
@@ -1027,16 +1035,16 @@ roth.lib.js.web.Web.prototype.translation = function(path, text, prefix, param)
 };
 
 
-roth.lib.js.web.Web.prototype.defaults = function(resourceElement)
+roth.lib.js.web.Web.prototype._defaults = function(viewElement)
 {
 	var self = this;
 	// select value
-	resourceElement.find("select[value]:notDefaultedValue, select[placeholder]:notDefaultedValue").each(function()
+	viewElement.find("select[value], select[placeholder]").each(function()
 	{
 		var element = $(this);
 		var selected = false;
 		var value = element.attr("value");
-		if(value)
+		if(isValidString(value))
 		{
 			var option = element.find("option[value='" + value + "']");
 			if(option.length > 0)
@@ -1046,7 +1054,7 @@ roth.lib.js.web.Web.prototype.defaults = function(resourceElement)
 			}
 		}
 		var placeholder = element.attr("placeholder");
-		if(placeholder)
+		if(isValidString(placeholder))
 		{
 			var color = element.css("color");
 			if(!selected)
@@ -1069,10 +1077,9 @@ roth.lib.js.web.Web.prototype.defaults = function(resourceElement)
 			element.change(change);
 			change();
 		}
-		element.prop("defaulted-value", "true");
 	});
 	// radio group value
-	resourceElement.find("[" + self.config.attr.radioValue + "]:notDefaultedValue").each(function()
+	viewElement.find("[" + self.config.attr.radioValue + "]").each(function()
 	{
 		var element = $(this);
 		var value = element.attr(self.config.attr.radioValue);
@@ -1085,10 +1092,9 @@ roth.lib.js.web.Web.prototype.defaults = function(resourceElement)
 		{
 			element.find("input[type=radio]").first().prop("checked", true);
 		}
-		element.prop("defaulted-value", "true");
 	});
 	// checkbox value
-	resourceElement.find("input[type=checkbox][" + self.config.attr.checkboxValue + "]:notDefaultedValue").each(function()
+	viewElement.find("input[type=checkbox][" + self.config.attr.checkboxValue + "]").each(function()
 	{
 		var element = $(this);
 		var value = element.attr(self.config.attr.checkboxValue);
@@ -1096,10 +1102,75 @@ roth.lib.js.web.Web.prototype.defaults = function(resourceElement)
 		{
 			element.prop("checked", true);
 		}
-		element.prop("defaulted-value", "true");
 	});
 };
 
+
+roth.lib.js.web.Web.prototype._bind = function(viewElement, view, viewType)
+{
+	var self = this;
+	viewElement.find("[" + this.config.attr.field + "]").each(function(element)
+	{
+		var field = element.attr(self.config.attr.field);
+		if(!isSet(view[field]))
+		{
+			view[field] = element;
+		}
+	});
+	this._bindEvent(viewElement, view, viewType, "click", this.config.attr.onclick);
+	this._bindEvent(viewElement, view, viewType, "dblclick", this.config.attr.ondblclick);
+	this._bindEvent(viewElement, view, viewType, "change", this.config.attr.onchange);
+	this._bindEvent(viewElement, view, viewType, "blur", this.config.attr.onblur);
+	this._bindEvent(viewElement, view, viewType, "focus", this.config.attr.onfocus);
+};
+
+
+roth.lib.js.web.Web.prototype._bindEvent = function(viewElement, view, viewType, eventType, eventAttr)
+{
+	var self = this;
+	viewElement.find("[" + eventAttr + "]").each(function(element)
+	{
+		var code = element.attr(eventAttr);
+		element.on(eventType, function(event)
+		{
+			var scope =
+			{
+				config : self.config,
+				register : self.register,
+				hash : self.hash,
+				text : self.text,
+				context : self.context,
+				element : element,
+				event : event,
+				eventType : eventType
+			};
+			scope.data = isSet(view.data) ? view.data : {};
+			scope[viewType] = view;
+			if("layout" != viewType)
+			{
+				scope.layout = self.layout;
+				if("page" != viewType)
+				{
+					scope.page = self.page;
+				}
+			}
+			self._eval(code, element[0], scope);
+		});
+	});
+};
+
+
+roth.lib.js.web.Web.prototype._eval = function(code, node, scope)
+{
+	var names = [];
+	var values = [];
+	forEach(scope, function(value, name)
+	{
+		names.push(name);
+		values.push(value);
+	});
+	return new Function(names.join(), code).apply(node, values);
+};
 
 
 roth.lib.js.web.Web.prototype.groupElements = function(element, active)
@@ -1282,7 +1353,7 @@ roth.lib.js.web.Web.prototype.update = function(element)
 };
 
 
-roth.lib.js.web.Web.prototype.submit = function(element, request, success, error)
+roth.lib.js.web.Web.prototype.submit = function(element, request, success, error, complete)
 {
 	var self = this;
 	element = this.element(element);
@@ -1295,6 +1366,18 @@ roth.lib.js.web.Web.prototype.submit = function(element, request, success, error
 	var successAttr = element.attr(this.config.attr.success);
 	var errorAttr = element.attr(this.config.attr.error);
 	var disabler = this.register.disabler[disable];
+	submitGroup = isValidString(submitGroup) ? submitGroup : method;
+	var groupElement = $("[" + this.config.attr.group + "='" + submitGroup + "']");
+	var scope =
+	{
+		config : self.config,
+		register : self.register,
+		hash : self.hash,
+		text : self.text,
+		context : self.context,
+		element : element,
+		groupElement : groupElement
+	};
 	if(!isFunction(disabler))
 	{
 		disabler = this.register.disabler._default;
@@ -1305,7 +1388,7 @@ roth.lib.js.web.Web.prototype.submit = function(element, request, success, error
 	}
 	if(isValidString(prerequest))
 	{
-		if(new Function("element", "return " + prerequest)(element) === false)
+		if(this._eval("return " + prerequest, element[0], scope) === false)
 		{
 			if(isFunction(disabler))
 			{
@@ -1316,15 +1399,15 @@ roth.lib.js.web.Web.prototype.submit = function(element, request, success, error
 	}
 	if(!isObject(request))
 	{
-		submitGroup = isValidString(submitGroup) ? submitGroup : method;
-		request = this.request($("[" + this.config.attr.group + "='" + submitGroup + "']"), service, method);
+		request = this.request(groupElement, service, method);
 	}
 	if(isObject(request))
 	{
 		$.extend(true, request, ObjectUtil.parse(element.attr(this.config.attr.request)));
 		if(isValidString(presubmit))
 		{
-			if(new Function("request", "element", "return " + presubmit)(request, element) === false)
+			scope.request = request;
+			if(this._eval("return " + presubmit, element[0], scope) === false)
 			{
 				if(isFunction(disabler))
 				{
@@ -1347,7 +1430,8 @@ roth.lib.js.web.Web.prototype.submit = function(element, request, success, error
 				}
 				if(isValidString(successAttr))
 				{
-					new Function("data", "request", "element", successAttr)(data, request, element);
+					scope.data = data;
+					self._eval(successAttr, element[0], scope);
 				}
 			},
 			function(errors)
@@ -1362,7 +1446,14 @@ roth.lib.js.web.Web.prototype.submit = function(element, request, success, error
 				}
 				if(isValidString(errorAttr))
 				{
-					new Function("errors", "request", "element", errorAttr)(errors, request, element);
+					self._eval(errorAttr, element[0], scope);
+				}
+			},
+			function()
+			{
+				if(isFunction(complete))
+				{
+					complete();
 				}
 			},
 			submitGroup);
@@ -1449,17 +1540,25 @@ roth.lib.js.web.Web.prototype.filter = function(element)
 			field.value = field.formValue;
 			if(isValidString(field.value))
 			{
-				field.value = field.value.trim();
+				field.value = field.value;
 				if(isValidString(field.filter))
 				{
-					field.filter = field.filter.trim();
-					var builder = "";
+					var scope =
+					{
+						config : self.config,
+						register : self.register,
+						hash : self.hash,
+						text : self.text,
+						context : self.context,
+						element : element,
+						field : field,
+						value : field.value
+					};
 					for(var name in this.register.filterer)
 					{
-						builder += "var " + name + " = $_filterer[\"" + name + "\"];\n";
+						scope[name] = this.register.filterer[name];
 					}
-					builder += "return " + field.filter + ";"
-					field.value = new Function("field", "value", "$_filterer", builder)(field, field.value, this.register.filterer);
+					field.value = this._eval("return " + field.filter, element[0], scope);
 				}
 			}
 		}
@@ -1498,14 +1597,22 @@ roth.lib.js.web.Web.prototype.validate = function(element)
 	{
 		if(isValidString(field.validate))
 		{
-			field.validate = field.validate.trim();
-			var builder = "";
+			var scope =
+			{
+				config : self.config,
+				register : self.register,
+				hash : self.hash,
+				text : self.text,
+				context : self.context,
+				element : element,
+				field : field,
+				value : field.value
+			};
 			for(var name in this.register.validator)
 			{
-				builder += "var " + name + " = $_validator[\"" + name + "\"];\n";
+				scope[name] = this.register.validator[name];
 			}
-			builder += "return " + field.validate + ";"
-			field.valid = new Function("field", "value", "$_validator", builder)(field, field.value, this.register.validator);
+			field.valid = this._eval("return " + field.validate, element[0], scope);
 		}
 	}
 	if(field.visible)
@@ -1640,10 +1747,6 @@ roth.lib.js.web.Web.prototype.resetValue = function(element)
 		element.attr(this.config.attr.fileValue, "");
 	}
 };
-
-
-
-
 
 
 
