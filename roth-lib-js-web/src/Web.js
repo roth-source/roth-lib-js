@@ -279,43 +279,6 @@ roth.lib.js.web.Web.prototype._isLoadable = function()
 					}
 				}
 			}
-			// CHECK FOR VALID PARAM SCENARIO
-			if(loadable)
-			{
-				if(!isEmpty(page.paramScenarios))
-				{
-					var paramsRedirector = this.register.redirector[this.page.paramsRedirector];
-					if(!isFunction(paramsRedirector))
-					{
-						paramsRedirector = this.register.redirector.params;
-					}
-					if(isFunction(paramsRedirector))
-					{
-						loadable = false;
-						forEach(page.paramScenarios, function(paramScenario)
-						{
-							var valid = true;
-							forEach(paramScenario, function(param)
-							{
-								if(!self.hash.hasParam(param))
-								{
-									valid = false;
-									return;
-								}
-							});
-							if(valid)
-							{
-								loadable = true;
-								return;
-							}
-						});
-						if(!loadable)
-						{
-							paramsRedirector();
-						}
-					}
-				}
-			}
 			if(loadable)
 			{
 				this.text = this.register.getText(module, this.hash.lang);
