@@ -309,13 +309,6 @@ roth.lib.js.web.Web.prototype._allowedParams = function(page)
 				allowedParams.push(name);
 			});
 		}
-		forEach(page.params, function(params)
-		{
-			forEach(params, function(name)
-			{
-				allowedParams.push(name);
-			});
-		});
 		forEach(page.changeParams, function(name)
 		{
 			allowedParams.push(name);
@@ -363,7 +356,7 @@ roth.lib.js.web.Web.prototype._loadLayout = function()
 			});
 			self.layout._temp = $("<div></div>");
 			self.layout._temp.html(html);
-			self._translate(self.layout._temp, "layout." + self.hash.getModule() + "." + self.hash.layout + ".");
+			self._translate(self.layout._temp, "layout." + self.layout.module + "." + (self.layout.name.replace(/\//g, ".")) + ".");
 			self._defaults(self.layout._temp);
 			self._bind(self.layout._temp, self.layout, "layout");
 			self._loadComponents(self.layout, self.layout._temp, self.layout.data);
@@ -463,7 +456,7 @@ roth.lib.js.web.Web.prototype._loadPage = function()
 		});
 		self.page._temp = $("<div></div>");
 		self.page._temp.html(html);
-		self._translate(self.page._temp, "page." + self.hash.getModule() + "." + self.hash.getPage() + ".");
+		self._translate(self.page._temp, "page." + self.page.module + "." + (self.page.name.replace(/\//g, ".")) + ".");
 		self._defaults(self.page._temp);
 		self._bind(self.page._temp, self.page, "page");
 		self._loadComponents(self.page, self.page._temp, self.page.data);
@@ -551,7 +544,6 @@ roth.lib.js.web.Web.prototype._loadComponents = function(view, element, data)
 		var component = self.register.getComponent(module, componentName);
 		if(isSet(component))
 		{
-			component.name = componentName;
 			component.element = element;
 			self._loadComponent(component, data);
 			if(!isArray(view._components))
@@ -581,7 +573,7 @@ roth.lib.js.web.Web.prototype._loadComponent = function(component, data)
 	});
 	component._temp = $("<div></div>");
 	component._temp.html(html);
-	self._translate(component._temp, "component." + this.hash.getModule() + "." + (component.name.replace(/\//g, ".")) + ".");
+	self._translate(component._temp, "component." + component.module + "." + (component.name.replace(/\//g, ".")) + ".");
 	self._defaults(component._temp);
 	self._bind(component._temp, component, "component");
 	component.element.hide();

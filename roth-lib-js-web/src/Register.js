@@ -159,12 +159,12 @@ roth.lib.js.web.Register.prototype.getText = function(module, lang)
 			this.text[module][lang] = this.getJson(path);
 		}
 		$.extend(true, text, this.text[module][lang]);
-		forEach(this.moduleDependencies, function(dependencies, module)
+		forEach(this.moduleDependencies[module], function(dependency)
 		{
-			if(isFileProtocol() && !isObject(self.text[module][lang]))
+			if(isFileProtocol() && !isObject(self.text[dependency][lang]))
 			{
-				var path = module + "/text/" + module + "_" + lang;
-				self.text[module][lang] = self.getJson(path);
+				var path = dependency + "/text/" + dependency + "_" + lang;
+				self.text[dependency][lang] = self.getJson(path);
 			}
 			$.extend(true, text, self.text[module][lang]);
 		});
@@ -221,21 +221,25 @@ roth.lib.js.web.Register.prototype.getView = function(module, name, type)
 {
 	var self = this;
 	var view = null;
+	var constructorModule = module;
 	var constructor = this.getConstructor(module, name, type);
 	if(!isFunction(constructor))
 	{
-		forEach(this.moduleDependencies, function(dependencies, module)
+		forEach(this.moduleDependencies[module], function(dependency)
 		{
-			constructor = self.getConstructor(module, name, type);
+			constructor = self.getConstructor(dependency, name, type);
 			if(isFunction(constructor))
 			{
-				return;
+				constructorModule = dependency;
+				return false;
 			}
 		});
 	}
 	if(isFunction(constructor))
 	{
 		view = new constructor();
+		view.module = constructorModule;
+		view.name = name;
 	}
 	return view;
 };
