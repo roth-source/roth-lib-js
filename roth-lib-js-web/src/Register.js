@@ -166,7 +166,7 @@ roth.lib.js.web.Register.prototype.getText = function(module, lang)
 				var path = dependency + "/text/" + dependency + "_" + lang;
 				self.text[dependency][lang] = self.getJson(path);
 			}
-			$.extend(true, text, self.text[module][lang]);
+			$.extend(true, text, self.text[dependency][lang]);
 		});
 	}
 	return text;

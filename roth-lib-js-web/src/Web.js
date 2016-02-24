@@ -413,10 +413,6 @@ roth.lib.js.web.Web.prototype._readyLayout = function()
 		}
 	});
 	this.layout.element.show();
-	forEach(this.layout._components, function(component)
-	{
-		component.element.show();
-	});
 	if(isFunction(this.layout.visible))
 	{
 		this.layout.visible(this.layout.data, this.layout);
@@ -515,10 +511,6 @@ roth.lib.js.web.Web.prototype._readyPage = function()
 		loader(this.page.element, false);
 	}
 	this.page.element.show();
-	forEach(this.page._components, function(component)
-	{
-		component.element.show();
-	});
 	if(isFunction(this.page.visible))
 	{
 		this.page.visible(this.page.data, this.page);
@@ -545,7 +537,7 @@ roth.lib.js.web.Web.prototype._loadComponents = function(view, element, data)
 		if(isSet(component))
 		{
 			component.element = element;
-			self._loadComponent(component, data);
+			self._loadComponent(component, data, false);
 			if(!isArray(view._components))
 			{
 				view._components = [];
@@ -556,7 +548,7 @@ roth.lib.js.web.Web.prototype._loadComponents = function(view, element, data)
 };
 
 
-roth.lib.js.web.Web.prototype._loadComponent = function(component, data)
+roth.lib.js.web.Web.prototype._loadComponent = function(component, data, hide)
 {
 	var self = this;
 	var html = self.template.eval(component.constructor.source,
@@ -576,7 +568,10 @@ roth.lib.js.web.Web.prototype._loadComponent = function(component, data)
 	self._translate(component._temp, "component." + component.module + "." + (component.name.replace(/\//g, ".")) + ".");
 	self._defaults(component._temp);
 	self._bind(component._temp, component, "component");
-	component.element.hide();
+	if(!isFalse(hide))
+	{
+		component.element.hide();
+	}
 	component.element.empty().append(component._temp.children().detach());
 };
 
@@ -624,7 +619,7 @@ roth.lib.js.web.Web.prototype.loadComponent = function(element, componentName, d
 	{
 		component.name = componentName;
 		component.element = element;
-		this._loadComponent(component, data);
+		this._loadComponent(component, data, true);
 		if(isFunction(component.ready))
 		{
 			component.ready(data, component);
@@ -1064,8 +1059,9 @@ roth.lib.js.web.Web.prototype._defaults = function(viewElement)
 roth.lib.js.web.Web.prototype._bind = function(viewElement, view, viewType)
 {
 	var self = this;
-	viewElement.find("[" + this.config.attr.field + "]").each(function(element)
+	viewElement.find("[" + this.config.attr.field + "]").each(function()
 	{
+		var element = $(this);
 		var field = element.attr(self.config.attr.field);
 		if(!isSet(view[field]))
 		{
