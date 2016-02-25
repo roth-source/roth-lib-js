@@ -394,6 +394,7 @@ roth.lib.js.web.Web.prototype._loadLayout = function()
 	}
 	else
 	{
+		this.hash.loadedLayout();
 		this._loadPage();
 	}
 };
