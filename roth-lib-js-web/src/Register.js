@@ -133,7 +133,7 @@ roth.lib.js.web.Register.prototype.isValidLang = function(module, lang)
 	if(isSet(lang))
 	{
 		var valid = inMap(lang, this.text[module]);
-		if(isFileProtocol() && !valid)
+		if(isDevFile() && !isCompiled() && !valid)
 		{
 			this.getText(module, lang);
 			valid = inMap(lang, this.text[module]);
@@ -153,7 +153,7 @@ roth.lib.js.web.Register.prototype.getText = function(module, lang)
 	var text = {};
 	if(isSet(lang))
 	{
-		if(isFileProtocol() && !isObject(this.text[module][lang]))
+		if(isDevFile() && !isCompiled() && !isObject(this.text[module][lang]))
 		{
 			var path = module + "/text/" + module + "_" + lang;
 			this.text[module][lang] = this.getJson(path);
@@ -161,7 +161,7 @@ roth.lib.js.web.Register.prototype.getText = function(module, lang)
 		$.extend(true, text, this.text[module][lang]);
 		forEach(this.moduleDependencies[module], function(dependency)
 		{
-			if(isFileProtocol() && !isObject(self.text[dependency][lang]))
+			if(isDevFile() && !isCompiled() && !isObject(self.text[dependency][lang]))
 			{
 				var path = dependency + "/text/" + dependency + "_" + lang;
 				self.text[dependency][lang] = self.getJson(path);
@@ -183,7 +183,7 @@ roth.lib.js.web.Register.prototype.getConstructor = function(module, name, type)
 {
 	var safeName = this.getSafeName(name);
 	var constructor = this[type][module][safeName];
-	if(isFileProtocol())
+	if(isDevFile() && !isCompiled())
 	{
 		var path = module + "/" + type + "/" + name;
 		if(!isFunction(constructor))

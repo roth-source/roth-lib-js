@@ -67,7 +67,7 @@ roth.lib.js.web.Web = function(app, moduleDependencies)
 	this.template = new roth.lib.js.template.Template();
 	this.register = new roth.lib.js.web.Register(this.app, this.moduleDependencies, this.template);
 	this.hash = new roth.lib.js.web.Hash();
-	this.dev = isFileProtocol() ? new roth.lib.js.web.Dev() : {};
+	this.dev = null;
 	
 	this.text = {};
 	this.layout = {};
@@ -83,6 +83,10 @@ roth.lib.js.web.Web.prototype.init = function()
 	if(!isSet(jQuery))
 	{
 		document.write('<script src="' + this.config.jqueryScript + '"></script>');
+	}
+	if(isMock())
+	{
+		this.dev = new roth.lib.js.web.Dev();
 	}
 	window.addEventListener("hashchange", function()
 	{
@@ -178,7 +182,11 @@ roth.lib.js.web.Web.prototype._isLoadable = function()
 		{
 			var layoutName = !isUndefined(page.layout) ? page.layout : module;
 			this.hash.setLayout(layoutName);
-			var layout = this.hash.newLayout ? this.register.getLayout(module, layoutName) : this.layout;
+			var layout = null;
+			if(isSet(layoutName))
+			{
+				layout = this.hash.newLayout ? this.register.getLayout(module, layoutName) : this.layout;
+			}
 			if(!(isSet(this.hash.lang) && this.register.isValidLang(module, this.hash.lang)))
 			{
 				var lang = localStorage.getItem(this.hash.langStorage);
@@ -681,8 +689,10 @@ roth.lib.js.web.Web.prototype._serviceCall = function(service, method, request, 
 	var module = this.hash.getModule();
 	var page = this.hash.getPage();
 	var url = null;
+	var type = "POST";
 	if(isMock())
 	{
+		type = "GET";
 		url = "dev/service/" + service + "/" + method + "/" + method + "-response";
 		if(scenario)
 		{
@@ -721,7 +731,7 @@ roth.lib.js.web.Web.prototype._serviceCall = function(service, method, request, 
 	var errored = false;
 	$.ajax(
 	{
-		type		: "POST",
+		type		: type,
 		url			: url,
 		data		: JSON.stringify(request),
 		contentType	: "text/plain",
@@ -1079,8 +1089,9 @@ roth.lib.js.web.Web.prototype._bind = function(viewElement, view, viewType)
 roth.lib.js.web.Web.prototype._bindEvent = function(viewElement, view, viewType, eventType, eventAttr)
 {
 	var self = this;
-	viewElement.find("[" + eventAttr + "]").each(function(element)
+	viewElement.find("[" + eventAttr + "]").each(function()
 	{
+		var element = $(this);
 		var code = element.attr(eventAttr);
 		element.on(eventType, function(event)
 		{
@@ -1355,9 +1366,9 @@ roth.lib.js.web.Web.prototype.submit = function(element, request, success, error
 	if(isObject(request))
 	{
 		$.extend(true, request, ObjectUtil.parse(element.attr(this.config.attr.request)));
+		scope.request = request;
 		if(isValidString(presubmit))
 		{
-			scope.request = request;
 			if(this._eval("return " + presubmit, element[0], scope) === false)
 			{
 				if(isFunction(disabler))
@@ -1371,6 +1382,7 @@ roth.lib.js.web.Web.prototype.submit = function(element, request, success, error
 		{
 			this.service(service, method, request, function(data)
 			{
+				scope.data = data;
 				if(isFunction(disabler))
 				{
 					disabler(element, false);
@@ -1381,12 +1393,12 @@ roth.lib.js.web.Web.prototype.submit = function(element, request, success, error
 				}
 				if(isValidString(successAttr))
 				{
-					scope.data = data;
 					self._eval(successAttr, element[0], scope);
 				}
 			},
 			function(errors)
 			{
+				scope.errors = errors;
 				if(isFunction(disabler))
 				{
 					disabler(element, false);

@@ -188,7 +188,19 @@ var isEnvironment = isEnvironment || function(environment)
 var isMockDemo = isMockDemo || function()
 {
 	return roth.lib.js.env.mockDemo;
-}
+};
+
+
+var isMockFile = isMockFile || function()
+{
+	return isMock() || isFileProtocol();
+};
+
+
+var isDevFile = isDevFile || function()
+{
+	return isDev() || isFileProtocol();
+};
 
 
 var isMock = isMock || function()
@@ -231,7 +243,7 @@ var isDebug = isDebug || function()
 {
 	if(roth.lib.js.env.debug == null)
 	{
-		if(isFileProtocol())
+		if(isMockFile())
 		{
 			setDebug(true);
 		}
