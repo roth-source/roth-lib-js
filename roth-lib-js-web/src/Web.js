@@ -25,6 +25,7 @@ roth.lib.js.web.Web = function(app, moduleDependencies)
 			textAttr		: "data-text-attr",
 			textParam		: "data-text-param",
 			component		: "data-component",
+			data			: "data-data",
 			group 			: "data-group",
 			include 		: "data-include",
 			required		: "data-required",
@@ -55,7 +56,8 @@ roth.lib.js.web.Web = function(app, moduleDependencies)
 			ondblclick		: "data-ondblclick",
 			onchange		: "data-onchange",
 			onblur			: "data-onblur",
-			onfocus			: "data-onfocus"
+			onfocus			: "data-onfocus",
+			onkeyup			: "data-onkeyup"
 		}
 	};
 	
@@ -366,7 +368,7 @@ roth.lib.js.web.Web.prototype._loadLayout = function()
 			self._translate(self.layout._temp, "layout." + self.layout.module + "." + (self.layout.name.replace(/\//g, ".")) + ".");
 			self._defaults(self.layout._temp);
 			self._bind(self.layout._temp, self.layout, "layout");
-			self._loadComponents(self.layout, self.layout._temp, self.layout.data);
+			self._loadComponents(self.layout, self.layout._temp);
 			self.hash.loadedLayout();
 			self._readyLayout();
 		};
@@ -462,7 +464,7 @@ roth.lib.js.web.Web.prototype._loadPage = function()
 		self._translate(self.page._temp, "page." + self.page.module + "." + (self.page.name.replace(/\//g, ".")) + ".");
 		self._defaults(self.page._temp);
 		self._bind(self.page._temp, self.page, "page");
-		self._loadComponents(self.page, self.page._temp, self.page.data);
+		self._loadComponents(self.page, self.page._temp);
 		self.hash.loadedModule();
 		self.hash.loadedPage();
 		self.hash.loadedValue();
@@ -532,7 +534,7 @@ roth.lib.js.web.Web.prototype._readyPage = function()
 };
 
 
-roth.lib.js.web.Web.prototype._loadComponents = function(view, element, data)
+roth.lib.js.web.Web.prototype._loadComponents = function(view, element)
 {
 	var self = this;
 	var module = this.hash.getModule()
@@ -543,6 +545,7 @@ roth.lib.js.web.Web.prototype._loadComponents = function(view, element, data)
 		var component = self.register.getComponent(module, componentName);
 		if(isSet(component))
 		{
+			var data = ObjectUtil.parse(element.attr(self.config.attr.data));
 			component.element = element;
 			self._loadComponent(component, data, false);
 			if(!isArray(view._components))
@@ -966,6 +969,7 @@ roth.lib.js.web.Web.prototype._translate = function(viewElement, prefix)
 
 roth.lib.js.web.Web.prototype._translation = function(path, text, prefix, param)
 {
+	var self = this;
 	var object = null;
 	if(isValidString(prefix))
 	{
@@ -979,13 +983,13 @@ roth.lib.js.web.Web.prototype._translation = function(path, text, prefix, param)
 	{
 		if(isString(object))
 		{
-			object = StringUtil.replace(object, param);
+			object = this.template.render(object, param);
 		}
 		else if(isObject(object))
 		{
 			forEach(object, function(value, name)
 			{
-				object[name] = StringUtil.replace(value, param);
+				object[name] =  self.template.render(value, param);
 			});
 		}
 	}
@@ -1081,6 +1085,7 @@ roth.lib.js.web.Web.prototype._bind = function(viewElement, view, viewType)
 	this._bindEvent(viewElement, view, viewType, "change", this.config.attr.onchange);
 	this._bindEvent(viewElement, view, viewType, "blur", this.config.attr.onblur);
 	this._bindEvent(viewElement, view, viewType, "focus", this.config.attr.onfocus);
+	this._bindEvent(viewElement, view, viewType, "keyup", this.config.attr.onkeyup);
 };
 
 
@@ -1576,10 +1581,7 @@ roth.lib.js.web.Web.prototype.validate = function(element)
 			field.valid = this._eval("return " + field.validate, element[0], scope);
 		}
 	}
-	if(field.visible)
-	{
-		this.feedback(element, field);
-	}
+	this.feedback(element, field);
 	return field;
 };
 

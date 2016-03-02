@@ -320,7 +320,20 @@ roth.lib.js.web.Hash.prototype.isValid = function()
 		}
 	}
 	var blankHash = window.location.hash == "" || window.location.hash == "#";
-	if(!blankHash && window.location.hash != hash)
+	if(isSet(this.search.hash))
+	{
+		var url = "";
+		url += window.location.protocol;
+		url += "//";
+		url += window.location.host;
+		url += window.location.pathname;
+		// TODO add query string
+		url += "#";
+		url += decodeURIComponent(this.search.hash);
+		window.location.replace(url);
+		return false;
+	}
+	else if(!blankHash && window.location.hash != hash)
 	{
 		window.location.replace(hash);
 		return false;
