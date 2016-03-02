@@ -63,8 +63,18 @@ var StringUtil = StringUtil ||
 	capitalize : function(value)
 	{
 		return value.charAt(0).toUpperCase() + value.slice(1);
-	}
+	},
 	
+	
+	replace : function(value, param)
+	{
+		value = value.replace(/{{\s*?(\w+)\s*?}}/g, function(match, capture)
+		{
+			var replacement = ObjectUtil.find(param, capture);
+			return isSet(replacement) ? replacement : "";
+		});
+		return value;
+	}
 	
 };
 
