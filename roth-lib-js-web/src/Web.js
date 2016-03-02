@@ -364,8 +364,7 @@ roth.lib.js.web.Web.prototype._loadLayout = function()
 				layout	: self.layout,
 				context : self.context
 			});
-			self.layout._temp = $("<div></div>");
-			self.layout._temp.html(html);
+			self.layout._temp = $().add($.parseHTML(html));
 			self._translate(self.layout._temp, "layout." + self.layout.module + "." + (self.layout.name.replace(/\//g, ".")) + ".");
 			self._defaults(self.layout._temp);
 			self._bind(self.layout._temp, self.layout, "layout");
@@ -461,8 +460,7 @@ roth.lib.js.web.Web.prototype._loadPage = function()
 			page	: self.page,
 			context : self.context
 		});
-		self.page._temp = $("<div></div>");
-		self.page._temp.html(html);
+		self.page._temp = $().add($.parseHTML(html));
 		self._translate(self.page._temp, "page." + self.page.module + "." + (self.page.name.replace(/\//g, ".")) + ".");
 		self._defaults(self.page._temp);
 		self._bind(self.page._temp, self.page, "page");
@@ -503,7 +501,7 @@ roth.lib.js.web.Web.prototype._readyPage = function()
 	{
 		this.page.element.hide();
 	}
-	this.page.element.empty().append(this.page._temp.children().detach());
+	this.page.element.empty().append(this.page._temp.detach());
 	delete this.page._temp;
 	if(isFunction(this.page.ready))
 	{
@@ -575,8 +573,7 @@ roth.lib.js.web.Web.prototype._loadComponent = function(component, data, hide)
 		component : self.component,
 		context : self.context
 	});
-	component._temp = $("<div></div>");
-	component._temp.html(html);
+	component._temp = $().add($.parseHTML(html));
 	self._translate(component._temp, "component." + component.module + "." + (component.name.replace(/\//g, ".")) + ".");
 	self._defaults(component._temp);
 	self._bind(component._temp, component, "component");
@@ -584,7 +581,7 @@ roth.lib.js.web.Web.prototype._loadComponent = function(component, data, hide)
 	{
 		component.element.hide();
 	}
-	component.element.empty().append(component._temp.children().detach());
+	component.element.empty().append(component._temp.detach());
 };
 
 
