@@ -555,6 +555,11 @@ roth.lib.js.web.Web.prototype._loadComponents = function(view, element)
 				view._components = [];
 			}
 			view._components.push(component);
+			componentName = StringUtil.safeName(componentName);
+			if(!isSet(view[componentName]))
+			{
+				view[componentName] = component;
+			}
 		}
 	});
 };

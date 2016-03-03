@@ -63,8 +63,12 @@ var StringUtil = StringUtil ||
 	capitalize : function(value)
 	{
 		return value.charAt(0).toUpperCase() + value.slice(1);
-	}
+	},
 	
+	safeName : function(name)
+	{
+		return isValidString(name) ? name.replace(/[^a-zA-Z_0-9]/g, "_") : "";
+	}
 	
 };
 

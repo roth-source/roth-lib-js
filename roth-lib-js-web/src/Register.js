@@ -173,15 +173,9 @@ roth.lib.js.web.Register.prototype.getText = function(module, lang)
 };
 
 
-roth.lib.js.web.Register.prototype.getSafeName = function(name)
-{
-	return isValidString(name) ? name.replace(/[^a-zA-Z_0-9]/g, "_") : "";
-};
-
-
 roth.lib.js.web.Register.prototype.getConstructor = function(module, name, type)
 {
-	var safeName = this.getSafeName(name);
+	var safeName = StringUtil.safeName(name);
 	var constructor = this[type][module][safeName];
 	if(isDevFile() && !isCompiled())
 	{
