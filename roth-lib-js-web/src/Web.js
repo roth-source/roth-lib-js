@@ -25,6 +25,7 @@ roth.lib.js.web.Web = function(app, moduleDependencies)
 			textAttr		: "data-text-attr",
 			textParam		: "data-text-param",
 			component		: "data-component",
+			reference		: "data-reference",
 			data			: "data-data",
 			group 			: "data-group",
 			include 		: "data-include",
@@ -555,10 +556,10 @@ roth.lib.js.web.Web.prototype._loadComponents = function(view, element)
 				view._components = [];
 			}
 			view._components.push(component);
-			componentName = StringUtil.safeName(componentName);
-			if(!isSet(view[componentName]))
+			var reference = element.attr(self.config.attr.reference);
+			if(isValidString(reference) && !isSet(view[reference]))
 			{
-				view[componentName] = component;
+				view[reference] = component;
 			}
 		}
 	});
@@ -1693,6 +1694,7 @@ roth.lib.js.web.Web.prototype.resetGroupsValue = function()
 	{
 		self.resetGroupValue($(this));
 	});
+	this._defaults(element);
 };
 
 
