@@ -1722,4 +1722,51 @@ roth.lib.js.web.Web.prototype.resetValue = function(element)
 };
 
 
+roth.lib.js.web.Web.prototype.key = function(key, event, callback)
+{
+	var keyCode = event.which || event.keyCode;
+	if(keyCode == key)
+	{
+		if(isFunction(callback))
+		{
+			callback($(event.target), event);
+		}
+	}
+};
+
+
+roth.lib.js.web.Web.prototype.escape = function(event, callback)
+{
+	this.key(27, event, callback);
+};
+
+
+roth.lib.js.web.Web.prototype.enter = function(event, callback)
+{
+	this.key(13, event, callback);
+};
+
+
+roth.lib.js.web.Web.prototype.enterSubmit = function(event)
+{
+	var self = this;
+	var callback = function(element)
+	{
+		var groupElement = element.closest("[" + self.config.attr.group + "]");
+		if(groupElement.length > 0)
+		{
+			var group = groupElement.attr(self.config.attr.group);
+			if(isSet(group))
+			{
+				var submitElement = groupElement.find("[" + self.config.attr.submitGroup + "='" + group + "'], [" + self.config.attr.method + "='" + group + "']");
+				if(submitElement.length > 0)
+				{
+					self.submit(submitElement);
+				}
+			}
+		}
+	};
+	this.key(13, event, callback);
+};
+
 
