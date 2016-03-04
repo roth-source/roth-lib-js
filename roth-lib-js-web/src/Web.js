@@ -1495,7 +1495,7 @@ roth.lib.js.web.Web.prototype.filter = function(element)
 		field.type = element.attr("type");
 		if(field.type == "checkbox")
 		{
-			var value = element.val();
+			var value = element.attr("value");
 			if(isSet(value))
 			{
 				field.value = element.is(":checked") ? value : null;
