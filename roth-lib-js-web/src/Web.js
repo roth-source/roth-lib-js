@@ -652,6 +652,7 @@ roth.lib.js.web.Web.prototype.loadComponent = function(element, componentName, d
 			callback(data, component);
 		}
 	}
+	return component;
 };
 
 
@@ -1694,7 +1695,6 @@ roth.lib.js.web.Web.prototype.resetGroupsValue = function()
 	{
 		self.resetGroupValue($(this));
 	});
-	this._defaults(element);
 };
 
 
@@ -1706,6 +1706,7 @@ roth.lib.js.web.Web.prototype.resetGroupValue = function(element)
 	{
 		self.resetValue($(this));
 	});
+	this._defaults(element);
 };
 
 
