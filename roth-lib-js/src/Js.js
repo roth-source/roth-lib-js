@@ -201,4 +201,19 @@ var forEach = forEach || function(object, callback)
 };
 
 
+var mixin = mixin || function(dest, source)
+{
+	if(isFunction(dest) && isFunction(source))
+	{
+		forEach(source.prototype, function(value, name)
+		{
+			if(isFunction(value))
+			{
+				dest.prototype[name] = value;
+			}
+		});
+	}
+};
+
+
 

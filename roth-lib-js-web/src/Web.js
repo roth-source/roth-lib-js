@@ -41,6 +41,7 @@ roth.lib.js.web.Web = function(app, moduleDependencies)
 			method			: "data-method",
 			success			: "data-success",
 			error			: "data-error",
+			complete		: "data-complete",
 			request			: "data-request",
 			updateValue		: "data-update-value",
 			editable		: "data-editable",
@@ -58,7 +59,10 @@ roth.lib.js.web.Web = function(app, moduleDependencies)
 			onchange		: "data-onchange",
 			onblur			: "data-onblur",
 			onfocus			: "data-onfocus",
-			onkeyup			: "data-onkeyup"
+			onkeyup			: "data-onkeyup",
+			onenter			: "data-onenter",
+			onescape		: "data-onescape",
+			onbackspace		: "data-onbackspace"
 		}
 	};
 	
@@ -66,10 +70,12 @@ roth.lib.js.web.Web = function(app, moduleDependencies)
 	this.moduleDependencies = moduleDependencies;
 	this._loadedModules = [];
 	this._inited = false;
+	this._pageConstructor = null;
+	this._pageConfig = null;
 	
 	this.template = new roth.lib.js.template.Template();
-	this.register = new roth.lib.js.web.Register(this.app, this.moduleDependencies, this.template);
-	this.hash = new roth.lib.js.web.Hash();
+	this.register = new roth.lib.js.web.Register(app, moduleDependencies, this.template);
+	this.hash =  new roth.lib.js.web.Hash();
 	this.dev = null;
 	
 	this.text = {};
@@ -83,35 +89,73 @@ roth.lib.js.web.Web = function(app, moduleDependencies)
 roth.lib.js.web.Web.prototype.init = function()
 {
 	var self = this;
-	if(!isSet(jQuery))
+	if(!this._inited)
 	{
-		document.write('<script src="' + this.config.jqueryScript + '"></script>');
-	}
-	if(isMock())
-	{
-		this.dev = new roth.lib.js.web.Dev();
-	}
-	window.addEventListener("hashchange", function()
-	{
-		if(self._isLoadable())
+		if(!isSet(jQuery))
 		{
-			self._loadLayout();
+			document.write('<script src="' + this.config.jqueryScript + '"></script>');
 		}
-	},
-	false);
-	document.addEventListener("DOMContentLoaded", function()
-	{
-		if(!self._inited)
+		if(isMock())
 		{
-			self._initConsole();
-			self._initJquery();
+			self.dev = new roth.lib.js.web.Dev();
+		}
+		self._initStorage();
+		self._initConsole();
+		self._initJquery();
+		window.addEventListener("hashchange", function()
+		{
 			if(self._isLoadable())
 			{
 				self._loadLayout();
 			}
-			self._inited = true;
-		}
-	});
+		},
+		false);
+		document.addEventListener("DOMContentLoaded", function()
+		{
+			if(!self._inited)
+			{
+				self._inited = true;
+				if(self._isLoadable())
+				{
+					self._loadLayout();
+				}
+			}
+		});
+	}
+};
+
+
+roth.lib.js.web.Web.prototype._initStorage = function()
+{
+	try
+	{
+		localStorage.setItem("_test", "");
+	}
+	catch(e)
+	{
+		var prefix = "cookieStorage_";
+		// SET ITEM
+		var setItem = function(name, value)
+		{
+			CookieUtil.set(prefix + name, value);
+		};
+		localStorage.setItem = setItem;
+		sessionStorage.setItem = setItem;
+		// GET ITEM
+		var getItem = function(name)
+		{
+			return CookieUtil.get(prefix + name);
+		};
+		localStorage.getItem = getItem;
+		sessionStorage.getItem = getItem;
+		// REMOVE ITEM
+		var removeItem = function(name)
+		{
+			CookieUtil.remove(prefix + name);
+		};
+		localStorage.removeItem = removeItem;
+		sessionStorage.removeItem = removeItem;
+	}
 };
 
 
@@ -177,19 +221,15 @@ roth.lib.js.web.Web.prototype._isLoadable = function()
 	var loadable = this.hash.isValid();
 	if(loadable)
 	{
+		// CHECK DEPENDENCIES
 		var module = this.hash.getModule();
 		this._loadModuleDependencies(module);
+		// GET PAGE CONSTRUCTOR
 		var pageName = this.hash.getPage();
-		var page = this.register.getPage(module, pageName);
-		if(isSet(page))
+		var pageConstructor = this.register.getPageConstructor(module, pageName);
+		if(isFunction(pageConstructor))
 		{
-			var layoutName = !isUndefined(page.layout) ? page.layout : module;
-			this.hash.setLayout(layoutName);
-			var layout = null;
-			if(isSet(layoutName))
-			{
-				layout = this.hash.newLayout ? this.register.getLayout(module, layoutName) : this.layout;
-			}
+			// CHECK LANG
 			if(!(isSet(this.hash.lang) && this.register.isValidLang(module, this.hash.lang)))
 			{
 				var lang = localStorage.getItem(this.hash.langStorage);
@@ -216,87 +256,65 @@ roth.lib.js.web.Web.prototype._isLoadable = function()
 					localStorage.setItem(this.hash.langStorage, lang);
 				}
 			}
-			if(loadable)
+			// SET DEFAULT PARAMS
+			var pageConfig = isObject(pageConstructor.config) ? pageConstructor.config : {};
+			forEach(pageConfig.defaultParams, function(value, name)
 			{
-				// SET DEFAULT PARAMS
-				forEach(page.defaultParams, function(value, name)
+				if(!self.hash.hasParam(name))
 				{
-					if(!self.hash.hasParam(name))
+					self.hash.param[name] = value;
+					loadable = false;
+				}
+			});
+			// CHECK FOR ALLOWED PARAMS
+			var allowedParams = this._allowedParams(pageConfig);
+			if(!isNull(allowedParams))
+			{
+				forEach(this.hash.param, function(value, name)
+				{
+					if(!inArray(name, allowedParams))
 					{
-						self.hash.param[name] = value;
+						delete self.hash.param[name];
 						loadable = false;
 					}
 				});
-				// CHECK FOR ALLOWED PARAMS
-				var allowedParams = this._allowedParams(page);
-				if(!isNull(allowedParams))
-				{
-					forEach(this.hash.param, function(value, name)
-					{
-						if(!inArray(name, allowedParams))
-						{
-							delete self.hash.param[name];
-							loadable = false;
-						}
-					});
-				}
-				if(!loadable)
-				{
-					this.hash.refresh();
-				}
 			}
-			// CHECK FOR CHANGE PARAMS
-			if(loadable && !this.hash.newModule && !this.hash.newPage)
+			if(loadable)
 			{
-				if(!isEmpty(page.changeParams))
+				// CHECK FOR CHANGE PARAMS
+				if(!this.hash.newPage && !isEmpty(pageConfig.changeParams))
 				{
-					var changed = false;
-					var loadedParam = this.hash.cloneLoadedParam();
-					for(var name in this.hash.param)
-					{
-						changed = page.changeParams.indexOf(name) > -1;
-						if(!changed)
-						{
-							changed = this.hash.param[name] == loadedParam[name];
-							if(!changed)
-							{
-								break;
-							}
-							else
-							{
-								delete loadedParam[name];
-							}
-						}
-						else
-						{
-							delete loadedParam[name];
-						}
-					}
-					if(changed)
-					{
-						changed = Object.keys(loadedParam).length == 0;
-					}
-					if(changed)
+					var changeParam = this.hash.paramChanges(pageConfig.changeParams);
+					if(!isEmpty(changeParam))
 					{
 						if(isFunction(this.layout.change))
 						{
-							this.layout.change(this.layout.data);
+							this.layout.change(this.layout.data, changeParam);
 						}
 						if(isFunction(this.page.change))
 						{
-							this.page.change(this.page.data);
+							this.page.change(this.page.data, changeParam);
 						}
 						loadable = false;
 					}
 				}
-			}
-			if(loadable)
-			{
-				this.text = this.register.getText(module, this.hash.lang);
-				this.page = page;
-				this.layout = layout;
-				this.hash.log();
+				else
+				{
+					this.hash.changeParam = {};
+				}
+				if(loadable)
+				{
+					this.text = this.register.getText(module, this.hash.lang);
+					this._pageConstructor = pageConstructor;
+					this._pageConfig = pageConfig;
+					this.hash.log();
+				}
 				this.hash.loadedParam();
+			}
+			else
+			{
+				// PARAMS MODIFIED
+				this.hash.refresh();
 			}
 		}
 		else
@@ -308,23 +326,23 @@ roth.lib.js.web.Web.prototype._isLoadable = function()
 };
 
 
-roth.lib.js.web.Web.prototype._allowedParams = function(page)
+roth.lib.js.web.Web.prototype._allowedParams = function(config)
 {
 	var allowedParams = [];
-	if(!isNull(page.allowedParams))
+	if(!isNull(config.allowedParams))
 	{
-		if(isArray(page.allowedParams))
+		if(isArray(config.allowedParams))
 		{
-			forEach(page.allowedParams, function(name)
+			forEach(config.allowedParams, function(name)
 			{
 				allowedParams.push(name);
 			});
 		}
-		forEach(page.changeParams, function(name)
+		forEach(config.changeParams, function(name)
 		{
 			allowedParams.push(name);
 		});
-		forEach(page.defaultParams, function(value, name)
+		forEach(config.defaultParams, function(value, name)
 		{
 			allowedParams.push(name);
 		});
@@ -347,52 +365,74 @@ roth.lib.js.web.Web.prototype._initMethod = function(name)
 	return initMethod;
 };
 
+
 roth.lib.js.web.Web.prototype._loadLayout = function()
 {
 	var self = this;
-	if(isObject(this.layout) && this.hash.newLayout)
+	var module = this.hash.getModule();
+	var layoutName = !isUndefined(this._pageConfig.layout) ? this._pageConfig.layout : module;
+	this.hash.setLayout(layoutName);
+	if(isSet(layoutName) && this.hash.newLayout)
 	{
-		var success = function(data, status, xhr)
+		var layoutConstructor = this.register.getLayoutConstructor(module, layoutName);
+		if(isFunction(layoutConstructor))
 		{
-			self.layout.data = data;
-			var html = self.template.eval(self.layout.constructor.source,
+			var layoutConfig = isObject(layoutConstructor.config) ? layoutConstructor.config : {};
+			this.layout = this.register.constructView(layoutConstructor, this);
+			if(isObject(this.layout))
 			{
-				data : self.layout.data,
-				config : self.config,
-				register : self.register,
-				hash : self.hash,
-				text : self.text,
-				layout	: self.layout,
-				context : self.context
-			});
-			self.layout._temp = $("<div></div>");
-			self.layout._temp.html(html);
-			self._translate(self.layout._temp, "layout." + self.layout.module + "." + (self.layout.name.replace(/\//g, ".")) + ".");
-			self._defaults(self.layout._temp);
-			self._bind(self.layout._temp, self.layout, "layout");
-			self._loadComponents(self.layout, self.layout._temp);
-			self.hash.loadedLayout();
-			self._readyLayout();
-		};
-		var error = function(xhr, status, errorMessage)
-		{
-			self.layout._temp = $("<div></div>").attr("id", self.config.pageId);
-			self._loadPage();
-		};
-		var complete = function(xhr, status)
-		{
-			
-		};
-		var method = !isUndefined(this.layout.init) ? this.layout.init : this._initMethod(this.hash.layout);
-		if(isSet(method))
-		{
-			var service = isSet(this.layout.service) ? this.layout.service : this.hash.getModule();
-			this.service(service, method, this.hash.param, success, error, complete);
+				var success = function(data, status, xhr)
+				{
+					self.layout.data = isObject(data) ? data : {};
+					var html = self.template.eval(layoutConstructor.source,
+					{
+						data : self.layout.data,
+						config : self.config,
+						register : self.register,
+						hash : self.hash,
+						text : self.text,
+						layout : self.layout,
+						context : self.context
+					},
+					self.layout);
+					self.layout._temp = $("<div></div>");
+					self.layout._temp.html(html);
+					self._translate(self.layout._temp, "layout." + layoutConstructor._module + "." + (layoutConstructor._name.replace(/\//g, ".")) + ".");
+					self._defaults(self.layout._temp);
+					self._bind(self.layout._temp, self.layout);
+					self._loadComponents(self.layout, self.layout._temp);
+					self.hash.loadedLayout();
+					self._readyLayout();
+				};
+				var error = function(xhr, status, errorMessage)
+				{
+					self.layout._temp = $("<div></div>").attr("id", self.config.pageId);
+					self._readyLayout();
+				};
+				var complete = function(xhr, status)
+				{
+					
+				};
+				var method = !isUndefined(layoutConfig.init) ? layoutConfig.init : this._initMethod(this.hash.layout);
+				if(isValidString(method))
+				{
+					var service = isValidString(layoutConfig.service) ? layoutConfig.service : this.hash.getModule();
+					this.service(service, method, this.hash.param, success, error, complete);
+				}
+				else
+				{
+					this.layout.data = {};
+					success(this.layout.data);
+				}
+			}
+			else
+			{
+				// error
+			}
 		}
 		else
 		{
-			this.layout.data = {};
-			success(this.layout.data);
+			// error
 		}
 	}
 	else
@@ -424,6 +464,17 @@ roth.lib.js.web.Web.prototype._readyLayout = function()
 			component.ready(self.layout.data, component);
 		}
 	});
+	if(isFunction(this.layout.change))
+	{
+		this.layout.change(this.layout.data, this.hash.changeParam);
+	}
+	forEach(this.layout._components, function(component)
+	{
+		if(isFunction(component.change))
+		{
+			component.change(self.layout.data, self.hash.changeParam);
+		}
+	});
 	this.layout.element.show();
 	if(isFunction(this.layout.visible))
 	{
@@ -448,25 +499,29 @@ roth.lib.js.web.Web.prototype._readyLayout = function()
 roth.lib.js.web.Web.prototype._loadPage = function()
 {
 	var self = this;
+	var pageConstructor = this._pageConstructor;
+	var pageConfig = this._pageConfig;
+	this.page = this.register.constructView(pageConstructor, this);
 	var success = function(data, status, xhr)
 	{
-		self.page.data = data;
-		var html = self.template.eval(self.page.constructor.source,
+		self.page.data = isObject(data) ? data : {};
+		var html = self.template.eval(pageConstructor.source,
 		{
 			data : self.page.data,
 			config : self.config,
 			register : self.register,
 			hash : self.hash,
 			text : self.text,
-			layout	: self.layout,
-			page	: self.page,
+			layout : self.layout,
+			page : self.page,
 			context : self.context
-		});
+		},
+		self.page);
 		self.page._temp = $("<div></div>");
 		self.page._temp.html(html);
-		self._translate(self.page._temp, "page." + self.page.module + "." + (self.page.name.replace(/\//g, ".")) + ".");
+		self._translate(self.page._temp, "page." + pageConstructor._module + "." + (pageConstructor._name.replace(/\//g, ".")) + ".");
 		self._defaults(self.page._temp);
-		self._bind(self.page._temp, self.page, "page");
+		self._bind(self.page._temp, self.page);
 		self._loadComponents(self.page, self.page._temp);
 		self.hash.loadedModule();
 		self.hash.loadedPage();
@@ -482,10 +537,10 @@ roth.lib.js.web.Web.prototype._loadPage = function()
 	{
 		
 	};
-	var method = !isUndefined(this.page.init) ? this.page.init : this._initMethod(this.hash.getPage());
-	if(isSet(method))
+	var method = !isUndefined(pageConfig.init) ? pageConfig.init : this._initMethod(this.hash.getPage());
+	if(isValidString(method))
 	{
-		var service = isSet(this.page.service) ? this.page.service : this.hash.getModule();
+		var service = isValidString(pageConfig.service) ? pageConfig.service : this.hash.getModule();
 		this.service(service, method, this.hash.param, success, error, complete);
 	}
 	else
@@ -517,6 +572,17 @@ roth.lib.js.web.Web.prototype._readyPage = function()
 			component.ready(self.page.data, component);
 		}
 	});
+	if(isFunction(this.page.change))
+	{
+		this.page.change(this.page.data, this.hash.changeParam);
+	}
+	forEach(this.page._components, function(component)
+	{
+		if(isFunction(component.change))
+		{
+			component.change(self.page.data, self.hash.changeParam);
+		}
+	});
 	var loader = this.register.loader._default;
 	if(isFunction(loader))
 	{
@@ -545,21 +611,26 @@ roth.lib.js.web.Web.prototype._loadComponents = function(view, element)
 	{
 		var element = $(this);
 		var componentName = element.attr(self.config.attr.component);
-		var component = self.register.getComponent(module, componentName);
-		if(isSet(component))
+		var componentConstructor = self.register.getComponentConstructor(module, componentName);
+		if(isFunction(componentConstructor))
 		{
-			var data = ObjectUtil.parse(element.attr(self.config.attr.data));
-			component.element = element;
-			self._loadComponent(component, data, false);
-			if(!isArray(view._components))
+			var componentConfig = isObject(componentConstructor.config) ? componentConstructor.config : {};
+			var component = self.register.constructView(componentConstructor, self);
+			if(isSet(component))
 			{
-				view._components = [];
-			}
-			view._components.push(component);
-			var reference = element.attr(self.config.attr.reference);
-			if(isValidString(reference) && !isSet(view[reference]))
-			{
-				view[reference] = component;
+				var data = ObjectUtil.parse(element.attr(self.config.attr.data));
+				component.element = element;
+				self._loadComponent(component, data, false);
+				if(!isArray(view._components))
+				{
+					view._components = [];
+				}
+				view._components.push(component);
+				var reference = element.attr(self.config.attr.reference);
+				if(isValidString(reference) && !isSet(view[reference]))
+				{
+					view[reference] = component;
+				}
 			}
 		}
 	});
@@ -569,23 +640,25 @@ roth.lib.js.web.Web.prototype._loadComponents = function(view, element)
 roth.lib.js.web.Web.prototype._loadComponent = function(component, data, hide)
 {
 	var self = this;
+	component.data = isObject(data) ? data : {};
 	var html = self.template.eval(component.constructor.source,
 	{
-		data : data,
+		data : component.data,
 		config : self.config,
 		register : self.register,
 		hash : self.hash,
 		text : self.text,
-		layout	: self.layout,
+		layout : self.layout,
 		page : self.page,
-		component : self.component,
+		component : component,
 		context : self.context
-	});
+	},
+	component);
 	component._temp = $("<div></div>");
 	component._temp.html(html);
-	self._translate(component._temp, "component." + component.module + "." + (component.name.replace(/\//g, ".")) + ".");
+	self._translate(component._temp, "component." + component.constructor._module + "." + (component.constructor._name.replace(/\//g, ".")) + ".");
 	self._defaults(component._temp);
-	self._bind(component._temp, component, "component");
+	self._bind(component._temp, component);
 	if(!isFalse(hide))
 	{
 		component.element.hide();
@@ -594,82 +667,20 @@ roth.lib.js.web.Web.prototype._loadComponent = function(component, data, hide)
 };
 
 
-roth.lib.js.web.Web.prototype.loadComponentInit = function(element, componentName, service, method, request, data, callback)
-{
-	var self = this;
-	var service = isValidString(service) ? service : element.attr(this.config.attr.service);
-	var method = isValidString(method) ? method : element.attr(this.config.attr.method);
-	if(isValidString(service) && isValidString(method))
-	{
-		request = isObject(request) ? request : {};
-		$.extend(true, request, this.hash.cloneParam(), ObjectUtil.parse(element.attr(this.config.attr.request)));
-		var success = function(response)
-		{
-			data = isObject(data) ? data : {};
-			$.extend(true, data, response);
-			self.loadComponent(element, componentName, data, callback);
-		};
-		var error = function(errors)
-		{
-			self.loadComponent(element, componentName, data, callback);
-		};
-		var complete = function()
-		{
-			
-		};
-		this.service(service, method, request, success, error, complete);
-	}
-	else
-	{
-		this.loadComponent(element, componentName, data, callback);
-	}
-};
-
-
-roth.lib.js.web.Web.prototype.loadComponent = function(element, componentName, data, callback)
-{
-	if(!isObject(data))
-	{
-		data = this.page.data;
-	}
-	var component = this.register.getComponent(this.hash.getModule(), componentName);
-	if(isSet(component))
-	{
-		component.name = componentName;
-		component.element = element;
-		this._loadComponent(component, data, true);
-		if(isFunction(component.ready))
-		{
-			component.ready(data, component);
-		}
-		component.element.show();
-		if(isFunction(component.visible))
-		{
-			component.visible(data, component);
-		}
-		if(isFunction(callback))
-		{
-			callback(data, component);
-		}
-	}
-	return component;
-};
-
-
-roth.lib.js.web.Web.prototype.service = function(service, method, request, success, error, complete, group)
+roth.lib.js.web.Web.prototype.service = function(service, method, request, success, error, complete, group, view)
 {
 	if(isMock())
 	{
-		this._serviceFile(service, method, request, success, error, complete, group);
+		this._serviceFile(service, method, request, success, error, complete, group, view);
 	}
 	else
 	{
-		this._serviceCall(service, method, request, success, error, complete, group);
+		this._serviceCall(service, method, request, success, error, complete, group, view);
 	}
 };
 
 
-roth.lib.js.web.Web.prototype._serviceFile = function(service, method, request, success, error, complete, group)
+roth.lib.js.web.Web.prototype._serviceFile = function(service, method, request, success, error, complete, group, view)
 {
 	var self = this;
 	var scenarios = this.dev.getResponseScenarios(service, method);
@@ -677,24 +688,24 @@ roth.lib.js.web.Web.prototype._serviceFile = function(service, method, request, 
 	{
 		if(isMockDemo())
 		{
-			this._serviceCall(service, method, request, success, error, complete, group, scenarios[0]);
+			this._serviceCall(service, method, request, success, error, complete, group, view, scenarios[0]);
 		}
 		else
 		{
 			this.dev.select(service + "/" + method, scenarios, function(scenario)
 			{
-				self._serviceCall(service, method, request, success, error, complete, group, scenario);
+				self._serviceCall(service, method, request, success, error, complete, group, view, scenario);
 			});
 		}
 	}
 	else
 	{
-		this._serviceCall(service, method, request, success, error, complete, group);
+		this._serviceCall(service, method, request, success, error, complete, group, view);
 	}
 };
 
 
-roth.lib.js.web.Web.prototype._serviceCall = function(service, method, request, success, error, complete, group, scenario)
+roth.lib.js.web.Web.prototype._serviceCall = function(service, method, request, success, error, complete, group, view, scenario)
 {
 	var self = this;
 	var module = this.hash.getModule();
@@ -794,7 +805,7 @@ roth.lib.js.web.Web.prototype._serviceCall = function(service, method, request, 
 							if(isSet(error.context))
 							{
 								var element = groupElement.find("[name='" + error.context + "']");
-								self.feedback(element, { valid : false });
+								view.feedback(element, { valid : false });
 							}
 							break;
 						}
@@ -1078,7 +1089,7 @@ roth.lib.js.web.Web.prototype._defaults = function(viewElement)
 };
 
 
-roth.lib.js.web.Web.prototype._bind = function(viewElement, view, viewType)
+roth.lib.js.web.Web.prototype._bind = function(viewElement, view)
 {
 	var self = this;
 	viewElement.find("[" + this.config.attr.field + "]").each(function()
@@ -1090,16 +1101,19 @@ roth.lib.js.web.Web.prototype._bind = function(viewElement, view, viewType)
 			view[field] = element;
 		}
 	});
-	this._bindEvent(viewElement, view, viewType, "click", this.config.attr.onclick);
-	this._bindEvent(viewElement, view, viewType, "dblclick", this.config.attr.ondblclick);
-	this._bindEvent(viewElement, view, viewType, "change", this.config.attr.onchange);
-	this._bindEvent(viewElement, view, viewType, "blur", this.config.attr.onblur);
-	this._bindEvent(viewElement, view, viewType, "focus", this.config.attr.onfocus);
-	this._bindEvent(viewElement, view, viewType, "keyup", this.config.attr.onkeyup);
+	this._bindEvent(viewElement, view, "click", this.config.attr.onclick);
+	this._bindEvent(viewElement, view, "dblclick", this.config.attr.ondblclick);
+	this._bindEvent(viewElement, view, "change", this.config.attr.onchange);
+	this._bindEvent(viewElement, view, "blur", this.config.attr.onblur);
+	this._bindEvent(viewElement, view, "focus", this.config.attr.onfocus);
+	this._bindEvent(viewElement, view, "keyup", this.config.attr.onkeyup);
+	this._bindEvent(viewElement, view, "keyup", this.config.attr.onenter, 13);
+	this._bindEvent(viewElement, view, "keyup", this.config.attr.onescape, 27);
+	this._bindEvent(viewElement, view, "keyup", this.config.attr.onbackspace, 8);
 };
 
 
-roth.lib.js.web.Web.prototype._bindEvent = function(viewElement, view, viewType, eventType, eventAttr)
+roth.lib.js.web.Web.prototype._bindEvent = function(viewElement, view, eventType, eventAttr, key)
 {
 	var self = this;
 	viewElement.find("[" + eventAttr + "]").each(function()
@@ -1108,666 +1122,29 @@ roth.lib.js.web.Web.prototype._bindEvent = function(viewElement, view, viewType,
 		var code = element.attr(eventAttr);
 		element.on(eventType, function(event)
 		{
-			var scope =
+			if(!isSet(key) || view.key(event, key))
 			{
-				config : self.config,
-				register : self.register,
-				hash : self.hash,
-				text : self.text,
-				context : self.context,
-				element : element,
-				event : event,
-				eventType : eventType
-			};
-			scope.data = isSet(view.data) ? view.data : {};
-			scope[viewType] = view;
-			if("layout" != viewType)
-			{
-				scope.layout = self.layout;
-				if("page" != viewType)
+				var scope =
 				{
-					scope.page = self.page;
-				}
+					data : view.data,
+					config : self.config,
+					register : self.register,
+					hash : self.hash,
+					text : self.text,
+					layout : self.layout,
+					page : self.page,
+					context : self.context,
+					node : element[0],
+					element : element,
+					event : event,
+					eventType : eventType
+				};
+				scope.data = isSet(view.data) ? view.data : {};
+				view.eval(code, scope);
 			}
-			self._eval(code, element[0], scope);
 		});
 	});
 };
 
-
-roth.lib.js.web.Web.prototype._eval = function(code, node, scope)
-{
-	var names = [];
-	var values = [];
-	forEach(scope, function(value, name)
-	{
-		names.push(name);
-		values.push(value);
-	});
-	return new Function(names.join(), code).apply(node, values);
-};
-
-
-roth.lib.js.web.Web.prototype.groupElements = function(element, active)
-{
-	active = isSet(active) ? active : true;
-	var selector = "";
-	selector += "input[name][type=hidden]" + (active ? ":enabled" : "") + ", ";
-	selector += "input[name][type!=hidden][type!=radio][" + this.config.attr.required + "]" + (active ? ":include" : "") + ", ";
-	selector += "select[name][" + this.config.attr.required + "]" + (active ? ":include" : "") + ", ";
-	selector += "textarea[name][" + this.config.attr.required + "]" + (active ? ":include" : "") + ", ";
-	selector += "[" + this.config.attr.radioGroup + "][" + this.config.attr.required + "]:has(input[name][type=radio]" + (active ? ":include" : "") + ") ";
-	return element.find(selector);
-}
-
-
-roth.lib.js.web.Web.prototype.request = function(element, service, method)
-{
-	var self = this;
-	var elementRegExp = new RegExp("^(\\w+)(?:\\[|$)");
-	var indexRegExp = new RegExp("\\[(\\d+)?\\]", "g");
-	var valid = true;
-	var request = this.hash.cloneParam();
-	var fields = [];
-	this.groupElements(element).each(function()
-	{
-		var field = self.validate($(this));
-		if(!field.valid)
-		{
-			valid = false;
-		}
-		if(isDebug())
-		{
-			fields.push(field);
-		}
-		if(valid && isValidString(field.name) && isValid(field.value))
-		{
-			var tempObject = request;
-			var names = field.name.split(".");
-			for(var i in names)
-			{
-				var lastElement = (i == names.length - 1);
-				var elementMatcher = elementRegExp.exec(names[i]);
-				if(elementMatcher)
-				{
-					var elementName = elementMatcher[1];
-					var indexes = [];
-					var indexMatcher;
-					while((indexMatcher = indexRegExp.exec(names[i])) !== null)
-					{
-						var index = indexMatcher[1];
-						indexes.push(index ? parseInt(index) : -1);
-					}
-					if(indexes.length > 0)
-					{
-						var tempElement = tempObject[elementName];
-						if(!isArray(tempElement))
-						{
-							tempElement = [];
-							tempObject[elementName] = tempElement;
-						}
-						tempObject = tempElement;
-						for(var j in indexes)
-						{
-							var index = indexes[j];
-							var lastIndex = (j == indexes.length - 1);
-							if(!lastIndex)
-							{
-								var tempElement = tempObject[index];
-								if(!isArray(tempElement))
-								{
-									tempElement = [];
-									tempObject[index] = tempElement;
-								}
-								tempObject = tempElement;
-							}
-							else
-							{
-								var tempElement = null;
-								if(index >= 0)
-								{
-									if(lastElement)
-									{
-										tempElement = field.value
-										tempObject[index] = tempElement;
-									}
-									else if(isSet(tempObject[index]))
-									{
-										tempElement = tempObject[index];
-									}
-									else
-									{
-										tempElement = {};
-										tempObject[index] = tempElement;
-									}
-								}
-								else
-								{
-									tempElement = lastElement ? field.value : {};
-									tempObject.push(tempElement);
-								}
-								tempObject = tempElement;
-							}
-						}
-					}
-					else
-					{
-						if(!lastElement)
-						{
-							var tempElement = tempObject[elementName];
-							if(!isObject(tempElement))
-							{
-								tempElement = {};
-								tempObject[elementName] = tempElement;
-							}
-							tempObject = tempElement;
-						}
-						else
-						{
-							tempObject[elementName] = field.value;
-						}
-					}
-				}
-			}
-		}
-	});
-	if(valid)
-	{
-		return request;
-	}
-	else
-	{
-		if(isDebug())
-		{
-			var i = fields.length;
-			while(i--)
-			{
-				if(fields[i].valid)
-				{
-					fields.splice(i, 1);
-				}
-				else
-				{
-					delete fields[i].element;
-				}
-			}
-			var group = "INVALID" + (isValidString(service) && isValidString(method) ? " : " + service + " / " + method : "");
-			var log = "\n\n" + JSON.stringify(fields, null, 4) + "\n\n";
-			console.groupCollapsed(group);
-			console.log(log);
-			console.groupEnd();
-		}
-		return null;
-	}
-};
-
-
-roth.lib.js.web.Web.prototype.update = function(element)
-{
-	var self = this;
-	element = this.element(element);
-	var field = this.validate(element);
-	if(field.valid && field.name)
-	{
-		var updateValue = element.attr(this.config.attr.updateValue);
-		if(field.value != updateValue)
-		{
-			var request = this.hash.cloneParam();
-			request.name = field.name;
-			request.value = field.value;
-			this.submit(element, request, function()
-			{
-				element.attr(self.config.attr.updateValue, field.value);
-			},
-			function()
-			{
-				element.val(element.attr(self.config.attr.updateValue));
-			});
-		}
-	}
-};
-
-
-roth.lib.js.web.Web.prototype.submit = function(element, request, success, error, complete)
-{
-	var self = this;
-	element = this.element(element);
-	var disable = element.attr(this.config.attr.disable);
-	var submitGroup = element.attr(this.config.attr.submitGroup);
-	var prerequest = element.attr(this.config.attr.prerequest);
-	var presubmit = element.attr(this.config.attr.presubmit);
-	var service = element.attr(this.config.attr.service);
-	var method = element.attr(this.config.attr.method);
-	var successAttr = element.attr(this.config.attr.success);
-	var errorAttr = element.attr(this.config.attr.error);
-	var disabler = this.register.disabler[disable];
-	submitGroup = isValidString(submitGroup) ? submitGroup : method;
-	var groupElement = $("[" + this.config.attr.group + "='" + submitGroup + "']");
-	var scope =
-	{
-		config : self.config,
-		register : self.register,
-		hash : self.hash,
-		text : self.text,
-		context : self.context,
-		element : element,
-		groupElement : groupElement
-	};
-	if(!isFunction(disabler))
-	{
-		disabler = this.register.disabler._default;
-	}
-	if(isFunction(disabler))
-	{
-		disabler(element, true);
-	}
-	if(isValidString(prerequest))
-	{
-		if(this._eval("return " + prerequest, element[0], scope) === false)
-		{
-			if(isFunction(disabler))
-			{
-				disabler(element, false);
-			}
-			return;
-		}
-	}
-	if(!isObject(request))
-	{
-		request = this.request(groupElement, service, method);
-	}
-	if(isObject(request))
-	{
-		$.extend(true, request, ObjectUtil.parse(element.attr(this.config.attr.request)));
-		scope.request = request;
-		if(isValidString(presubmit))
-		{
-			if(this._eval("return " + presubmit, element[0], scope) === false)
-			{
-				if(isFunction(disabler))
-				{
-					disabler(element, false);
-				}
-				return;
-			}
-		}
-		if(isValidString(service) && isValidString(method))
-		{
-			this.service(service, method, request, function(data)
-			{
-				scope.data = data;
-				if(isFunction(disabler))
-				{
-					disabler(element, false);
-				}
-				if(isFunction(success))
-				{
-					success(data, request, element);
-				}
-				if(isValidString(successAttr))
-				{
-					self._eval(successAttr, element[0], scope);
-				}
-			},
-			function(errors)
-			{
-				scope.errors = errors;
-				if(isFunction(disabler))
-				{
-					disabler(element, false);
-				}
-				if(isFunction(error))
-				{
-					error(errors, request, element);
-				}
-				if(isValidString(errorAttr))
-				{
-					self._eval(errorAttr, element[0], scope);
-				}
-			},
-			function()
-			{
-				if(isFunction(complete))
-				{
-					complete();
-				}
-			},
-			submitGroup);
-		}
-	}
-	else
-	{
-		if(isFunction(disabler))
-		{
-			disabler(element, false);
-		}
-	}
-};
-
-
-roth.lib.js.web.Web.prototype.element = function(element, selector)
-{
-	if(element instanceof jQuery)
-	{
-		return element;
-	}
-	else if(element.nodeType)
-	{
-		return $(element);
-	}
-	else if(isString(element))
-	{
-		if(isString(selector))
-		{
-			return $(selector.replace("{name}", element));
-		}
-		else
-		{
-			return $(element);
-		}
-	}
-	else
-	{
-		return element;
-	}
-};
-
-
-roth.lib.js.web.Web.prototype.filter = function(element)
-{
-	var self = this;
-	element = this.element(element);
-	var field = {};
-	field.element = element;
-	field.name = element.attr(this.config.attr.radioGroup);
-	field.value = null;
-	field.formValue = null;
-	field.tag = element.prop("tagName").toLowerCase();
-	field.type = null;
-	field.filter = element.attr(this.config.attr.filter);
-	if(field.name)
-	{
-		field.formValue = element.find("input[type=radio][name='" + field.name + "']:include:checked").val();
-		field.value = field.formValue;
-	}
-	else
-	{
-		field.name = element.attr("name");
-		field.type = element.attr("type");
-		if(field.type == "checkbox")
-		{
-			var value = element.attr("value");
-			if(isSet(value))
-			{
-				field.value = element.is(":checked") ? value : null;
-			}
-			else
-			{
-				field.value = element.is(":checked");
-			}
-		}
-		else if(field.type == "file")
-		{
-			field.value = element.attr(this.config.attr.fileValue);
-		}
-		else
-		{
-			field.formValue = element.val();
-			field.value = field.formValue;
-			if(isValidString(field.value))
-			{
-				field.value = field.value;
-				if(isValidString(field.filter))
-				{
-					var scope =
-					{
-						config : self.config,
-						register : self.register,
-						hash : self.hash,
-						text : self.text,
-						context : self.context,
-						element : element,
-						field : field,
-						value : field.value
-					};
-					for(var name in this.register.filterer)
-					{
-						scope[name] = this.register.filterer[name];
-					}
-					field.value = this._eval("return " + field.filter, element[0], scope);
-				}
-			}
-		}
-	}
-	return field;
-};
-
-
-roth.lib.js.web.Web.prototype.validateGroup = function(element)
-{
-	var self = this;
-	var validGroup = true;
-	this.groupElements(element).each(function()
-	{
-		var field = self.validate($(this));
-		if(!field.valid)
-		{
-			validGroup = false;
-		}
-	});
-	return validGroup;
-};
-
-
-roth.lib.js.web.Web.prototype.validate = function(element)
-{
-	var self = this;
-	element = this.element(element);
-	var field = this.filter(element);
-	field.visible = element.is(":visible");
-	field.required =  StringUtil.equals(element.attr(this.config.attr.required), "true");
-	field.defined = !isEmpty(field.value);
-	field.valid = !(field.required && !field.defined) ? true : false;
-	field.validate = element.attr(this.config.attr.validate);
-	if(field.visible && (field.required || field.defined))
-	{
-		if(isValidString(field.validate))
-		{
-			var scope =
-			{
-				config : self.config,
-				register : self.register,
-				hash : self.hash,
-				text : self.text,
-				context : self.context,
-				element : element,
-				field : field,
-				value : field.value
-			};
-			for(var name in this.register.validator)
-			{
-				scope[name] = this.register.validator[name];
-			}
-			field.valid = this._eval("return " + field.validate, element[0], scope);
-		}
-	}
-	this.feedback(element, field);
-	return field;
-};
-
-
-roth.lib.js.web.Web.prototype.file = function(element, callback)
-{
-	var self = this;
-	element = this.element(element);
-	var files = element[0].files;
-	if(files.length > 0)
-	{
-		var file = files[0];
-		if(file)
-		{
-			var reader  = new FileReader();
-			reader.onload = function(event)
-			{
-				element.attr(self.config.attr.fileValue, reader.result);
-				if(isFunction(callback))
-				{
-					callback(reader.result);
-				}
-			};
-			reader.readAsDataURL(file);
-		}
-	}
-};
-
-
-roth.lib.js.web.Web.prototype.feedback = function(element, field)
-{
-	var self = this;
-	element = this.element(element);
-	var module = this.hash.getModule();
-	var page = this.hash.getPage();
-	var feedback = element.attr(this.config.attr.feedback);
-	var feedbacker = this.register.feedbacker[feedback];
-	if(!isFunction(feedbacker))
-	{
-		 feedbacker = this.register.feedbacker._default;
-	}
-	if(isFunction(feedbacker))
-	{
-		feedbacker(element, field);
-	}
-};
-
-
-roth.lib.js.web.Web.prototype.resetGroups = function()
-{
-	this.resetGroupsValidation();
-	this.resetGroupsValue();
-};
-
-
-roth.lib.js.web.Web.prototype.resetGroup = function(element)
-{
-	this.resetGroupValidation(element);
-	this.resetGroupValue(element);
-};
-
-
-roth.lib.js.web.Web.prototype.reset = function(element)
-{
-	this.resetValidation(element);
-	this.resetValue(element);
-};
-
-
-roth.lib.js.web.Web.prototype.resetGroupsValidation = function()
-{
-	var self = this;
-	$("[" + this.config.attr.group + "]").each(function()
-	{
-		self.resetGroupValidation($(this));
-	});
-};
-
-
-roth.lib.js.web.Web.prototype.resetGroupValidation = function(element)
-{
-	var self = this;
-	element = this.element(element, "[" + this.config.attr.group + "='{name}']");
-	this.groupElements(element, false).each(function()
-	{
-		self.resetValidation($(this));
-	});
-};
-
-
-roth.lib.js.web.Web.prototype.resetValidation = function(element)
-{
-	this.feedback(element);
-};
-
-
-roth.lib.js.web.Web.prototype.resetGroupsValue = function()
-{
-	var self = this;
-	$("[" + this.config.attr.group + "]").each(function()
-	{
-		self.resetGroupValue($(this));
-	});
-};
-
-
-roth.lib.js.web.Web.prototype.resetGroupValue = function(element)
-{
-	var self = this;
-	element = this.element(element, "[" + this.config.attr.group + "='{name}']");
-	this.groupElements(element, false).each(function()
-	{
-		self.resetValue($(this));
-	});
-	this._defaults(element);
-};
-
-
-roth.lib.js.web.Web.prototype.resetValue = function(element)
-{
-	this.feedback(element);
-	var tag = element.prop("tagName").toLowerCase();
-	var type = element.attr("type");
-	element.val("");
-	if(type == "file")
-	{
-		element.attr(this.config.attr.fileValue, "");
-	}
-};
-
-
-roth.lib.js.web.Web.prototype.key = function(key, event, callback)
-{
-	var keyCode = event.which || event.keyCode;
-	if(keyCode == key)
-	{
-		if(isFunction(callback))
-		{
-			callback($(event.target), event);
-		}
-	}
-};
-
-
-roth.lib.js.web.Web.prototype.escape = function(event, callback)
-{
-	this.key(27, event, callback);
-};
-
-
-roth.lib.js.web.Web.prototype.enter = function(event, callback)
-{
-	this.key(13, event, callback);
-};
-
-
-roth.lib.js.web.Web.prototype.enterSubmit = function(event)
-{
-	var self = this;
-	var callback = function(element)
-	{
-		var groupElement = element.closest("[" + self.config.attr.group + "]");
-		if(groupElement.length > 0)
-		{
-			var group = groupElement.attr(self.config.attr.group);
-			if(isSet(group))
-			{
-				var submitElement = groupElement.find("[" + self.config.attr.submitGroup + "='" + group + "'], [" + self.config.attr.method + "='" + group + "']");
-				if(submitElement.length > 0)
-				{
-					self.submit(submitElement);
-				}
-			}
-		}
-	};
-	this.key(13, event, callback);
-};
 
 

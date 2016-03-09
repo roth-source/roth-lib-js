@@ -18,6 +18,7 @@ roth.lib.js.web.Hash = function()
 	this.langStorage = "lang";
 	
 	this.loaded = {};
+	this.changeParam = {};
 	
 	this.newValue = false;
 	this.newLang = false;
@@ -413,4 +414,37 @@ roth.lib.js.web.Hash.prototype.cloneLoadedParam = function()
 };
 
 
+roth.lib.js.web.Hash.prototype.paramChanges = function(changeParams)
+{
+	var self = this;
+	var changeParam = {};
+	var param = this.cloneParam();
+	var loadedParam = this.cloneLoadedParam();
+	var names = Object.keys(param);
+	forEach(loadedParam, function(value, name)
+	{
+		if(!inArray(name, names))
+		{
+			names.push(name);
+		}
+	});
+	var empty = false;
+	forEach(names, function(name)
+	{
+		var changed = param[name] != loadedParam[name];
+		if(changed)
+		{
+			if(inArray(name, changeParams))
+			{
+				changeParam[name] = isSet(param[name]) ? param[name] : null;
+			}
+			else
+			{
+				empty = true;
+			}
+		}
+	});
+	this.changeParam = changeParam;
+	return !empty ? changeParam : {};
+};
 

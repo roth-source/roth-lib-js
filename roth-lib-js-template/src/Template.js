@@ -154,7 +154,7 @@ roth.lib.js.template.Template.prototype.parse = function(source)
 };
 
 
-roth.lib.js.template.Template.prototype.eval = function(parsedSource, scope)
+roth.lib.js.template.Template.prototype.eval = function(parsedSource, scope, thisArg)
 {
 	var names = [];
 	var values = [];
@@ -170,13 +170,14 @@ roth.lib.js.template.Template.prototype.eval = function(parsedSource, scope)
 			values.push(scope[name]);
 		}
 	}
-	return new Function(names.join(), parsedSource).apply(this, values);
+	thisArg = thisArg != null ? thisArg : this;
+	return new Function(names.join(), parsedSource).apply(thisArg, values);
 };
 
 
-roth.lib.js.template.Template.prototype.render = function(source, scope)
+roth.lib.js.template.Template.prototype.render = function(source, scope, thisArg)
 {
-	return this.eval(this.parse(source), scope);
+	return this.eval(this.parse(source), scope, thisArg);
 };
 
 

@@ -211,10 +211,9 @@ roth.lib.js.web.Register.prototype.getConstructor = function(module, name, type)
 };
 
 
-roth.lib.js.web.Register.prototype.getView = function(module, name, type)
+roth.lib.js.web.Register.prototype.getViewConstructor = function(module, name, type)
 {
 	var self = this;
-	var view = null;
 	var constructorModule = module;
 	var constructor = this.getConstructor(module, name, type);
 	if(!isFunction(constructor))
@@ -231,29 +230,57 @@ roth.lib.js.web.Register.prototype.getView = function(module, name, type)
 	}
 	if(isFunction(constructor))
 	{
+		constructor._module = constructorModule;
+		constructor._name = name;
+	}
+	return constructor;
+};
+
+
+roth.lib.js.web.Register.prototype.constructView = function(constructor, web)
+{
+	var view = null;
+	if(isFunction(constructor))
+	{
+		if(!isSet(constructor.prototype._init))
+		{
+			var prototype = constructor.prototype;
+			constructor.prototype = Object.create(roth.lib.js.web.View.prototype);
+			for(var name in prototype)
+			{
+				if(!isSet(constructor.prototype[name]))
+				{
+					constructor.prototype[name] = prototype[name];
+				}
+				else
+				{
+					console.error(name + " cannot be on view prototype");
+				}
+			}
+			constructor.prototype.constructor = constructor;
+		}
 		view = new constructor();
-		view.module = constructorModule;
-		view.name = name;
+		view._init(web);
 	}
 	return view;
 };
 
 
-roth.lib.js.web.Register.prototype.getLayout = function(module, name)
+roth.lib.js.web.Register.prototype.getPageConstructor = function(module, name)
 {
-	return this.getView(module, name, "layout");
+	return this.getViewConstructor(module, name, "page");
 };
 
 
-roth.lib.js.web.Register.prototype.getPage = function(module, name)
+roth.lib.js.web.Register.prototype.getLayoutConstructor = function(module, name)
 {
-	return this.getView(module, name, "page");
+	return this.getViewConstructor(module, name, "layout");
 };
 
 
-roth.lib.js.web.Register.prototype.getComponent = function(module, name)
+roth.lib.js.web.Register.prototype.getComponentConstructor = function(module, name)
 {
-	return this.getView(module, name, "component");
+	return this.getViewConstructor(module, name, "component");
 };
 
 
@@ -310,6 +337,4 @@ roth.lib.js.web.Register.prototype.getJson = function(path)
 	});
 	return json;
 };
-
-
 
