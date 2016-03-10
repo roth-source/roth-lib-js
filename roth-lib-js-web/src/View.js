@@ -75,6 +75,7 @@ roth.lib.js.web.View.prototype.loadComponent = function(element, componentName, 
 			if(isSet(component))
 			{
 				component.element = element;
+				component.parent = this;
 				this.web._loadComponent(component, data, true);
 				if(isFunction(component.ready))
 				{

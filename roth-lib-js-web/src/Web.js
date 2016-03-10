@@ -621,6 +621,7 @@ roth.lib.js.web.Web.prototype._loadComponents = function(view, element)
 			{
 				var data = ObjectUtil.parse(element.attr(self.config.attr.data));
 				component.element = element;
+				component.parent = view;
 				self._loadComponent(component, data, false);
 				if(!isArray(view._components))
 				{
