@@ -59,6 +59,7 @@ roth.lib.js.web.Web = function(app, moduleDependencies)
 			onchange		: "data-onchange",
 			onblur			: "data-onblur",
 			onfocus			: "data-onfocus",
+			onscroll		: "data-onscroll",
 			onkeyup			: "data-onkeyup",
 			onenter			: "data-onenter",
 			onescape		: "data-onescape",
@@ -1106,6 +1107,7 @@ roth.lib.js.web.Web.prototype._bind = function(viewElement, view)
 	this._bindEvent(viewElement, view, "change", this.config.attr.onchange);
 	this._bindEvent(viewElement, view, "blur", this.config.attr.onblur);
 	this._bindEvent(viewElement, view, "focus", this.config.attr.onfocus);
+	this._bindEvent(viewElement, view, "scroll", this.config.attr.onscroll);
 	this._bindEvent(viewElement, view, "keyup", this.config.attr.onkeyup);
 	this._bindEvent(viewElement, view, "keyup", this.config.attr.onenter, 13);
 	this._bindEvent(viewElement, view, "keyup", this.config.attr.onescape, 27);

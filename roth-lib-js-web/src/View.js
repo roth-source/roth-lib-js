@@ -23,61 +23,78 @@ roth.lib.js.web.View.prototype._init = function(web)
 roth.lib.js.web.View.prototype.loadComponentInit = function(element, componentName, service, method, request, data, callback)
 {
 	var self = this;
-	var service = isValidString(service) ? service : element.attr(this.config.attr.service);
-	var method = isValidString(method) ? method : element.attr(this.config.attr.method);
-	if(isValidString(service) && isValidString(method))
+	element = this.wrap(element);
+	if(element.length > 0)
 	{
-		request = isObject(request) ? request : {};
-		$.extend(true, request, this.hash.cloneParam(), ObjectUtil.parse(element.attr(this.config.attr.request)));
-		var success = function(response)
+		var service = isValidString(service) ? service : element.attr(this.config.attr.service);
+		var method = isValidString(method) ? method : element.attr(this.config.attr.method);
+		if(isValidString(service) && isValidString(method))
 		{
-			data = isObject(data) ? data : {};
-			$.extend(true, data, response);
-			self.loadComponent(element, componentName, data, callback);
-		};
-		var error = function(errors)
+			request = isObject(request) ? request : {};
+			$.extend(true, request, this.hash.cloneParam(), ObjectUtil.parse(element.attr(this.config.attr.request)));
+			var success = function(response)
+			{
+				data = isObject(data) ? data : {};
+				$.extend(true, data, response);
+				self.loadComponent(element, componentName, data, callback);
+			};
+			var error = function(errors)
+			{
+				self.loadComponent(element, componentName, data, callback);
+			};
+			var complete = function()
+			{
+				
+			};
+			this.service(service, method, request, success, error, complete);
+		}
+		else
 		{
-			self.loadComponent(element, componentName, data, callback);
-		};
-		var complete = function()
-		{
-			
-		};
-		this.service(service, method, request, success, error, complete);
+			this.loadComponent(element, componentName, data, callback);
+		}
 	}
 	else
 	{
-		this.loadComponent(element, componentName, data, callback);
+		console.error("element not found");
 	}
 };
 
 
 roth.lib.js.web.View.prototype.loadComponent = function(element, componentName, data, callback)
 {
-	var module = this.hash.getModule();
-	var componentConstructor = this.register.getComponentConstructor(module, componentName);
-	if(isFunction(componentConstructor))
+	var component = null;
+	element = this.wrap(element);
+	if(element.length > 0)
 	{
-		var componentConfig = isObject(componentConstructor.config) ? componentConstructor.config : {};
-		var component = this.register.constructView(componentConstructor, this.web);
-		if(isSet(component))
+		var module = this.hash.getModule();
+		var componentConstructor = this.register.getComponentConstructor(module, componentName);
+		if(isFunction(componentConstructor))
 		{
-			component.element = element;
-			this.web._loadComponent(component, data, true);
-			if(isFunction(component.ready))
+			var componentConfig = isObject(componentConstructor.config) ? componentConstructor.config : {};
+			component = this.register.constructView(componentConstructor, this.web);
+			if(isSet(component))
 			{
-				component.ready(data, component);
-			}
-			component.element.show();
-			if(isFunction(component.visible))
-			{
-				component.visible(data, component);
-			}
-			if(isFunction(callback))
-			{
-				callback(data, component);
+				component.element = element;
+				this.web._loadComponent(component, data, true);
+				if(isFunction(component.ready))
+				{
+					component.ready(data, component);
+				}
+				component.element.show();
+				if(isFunction(component.visible))
+				{
+					component.visible(data, component);
+				}
+				if(isFunction(callback))
+				{
+					callback(data, component);
+				}
 			}
 		}
+	}
+	else
+	{
+		console.error("element not found");
 	}
 	return component;
 };
@@ -414,28 +431,35 @@ roth.lib.js.web.View.prototype.submit = function(element, request, success, erro
 
 roth.lib.js.web.View.prototype.wrap = function(element, selector)
 {
-	if(element instanceof jQuery)
+	if(isSet(element))
 	{
-		return element;
-	}
-	else if(element.nodeType)
-	{
-		return $(element);
-	}
-	else if(isString(element))
-	{
-		if(isString(selector))
+		if(element instanceof jQuery)
 		{
-			return $(selector.replace("{name}", element));
+			return element;
+		}
+		else if(element.nodeType)
+		{
+			return $(element);
+		}
+		else if(isString(element))
+		{
+			if(isString(selector))
+			{
+				return $(selector.replace("{name}", element));
+			}
+			else
+			{
+				return $(element);
+			}
 		}
 		else
 		{
-			return $(element);
+			return $();
 		}
 	}
 	else
 	{
-		return element;
+		return $();
 	}
 };
 
