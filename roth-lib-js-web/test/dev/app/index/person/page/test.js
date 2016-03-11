@@ -5,6 +5,7 @@ web.register.page.person.test = function()
 	
 };
 
+
 web.register.page.person.test.config =
 {
 	allowedParams : [ "asdf" ],
@@ -20,7 +21,7 @@ web.register.page.person.test.prototype.ready = function(data)
 
 web.register.page.person.test.prototype.change = function(data, changeParam)
 {
-	console.json(changeParam);
+	
 };
 
 
