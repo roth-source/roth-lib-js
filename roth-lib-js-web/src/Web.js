@@ -452,7 +452,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		}
 		else
 		{
-			if(isSet(this.layout))
+			if(isSet(this.layout) && isFunction(this.layout._change))
 			{
 				this.layout._change(this.hash.changeParam);
 			}
