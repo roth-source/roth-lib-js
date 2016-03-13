@@ -563,7 +563,38 @@ var DateUtil = DateUtil ||
 			value = this.format(formatPattern, date, lang);
 		}
 		return value;
+	},
+	
+	
+	day : function(date)
+	{
+		if(!isDate(date))
+		{
+			date = new Date();
+		}
+		return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+	},
+	
+	
+	month : function(date)
+	{
+		if(!isDate(date))
+		{
+			date = new Date();
+		}
+		return new Date(date.getFullYear(), date.getMonth(), 1);
+	},
+	
+	
+	year : function(date)
+	{
+		if(!isDate(date))
+		{
+			date = new Date();
+		}
+		return new Date(date.getFullYear(), 0, 1);
 	}
+	
 	
 };
 

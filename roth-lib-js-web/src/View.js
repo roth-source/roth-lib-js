@@ -32,10 +32,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 		}
 		forEach(this._components, function(component)
 		{
-			if(isFunction(component.change))
-			{
-				component.change(self.data, changeParam);
-			}
+			component._change(changeParam);
 		});
 	};
 	
@@ -49,10 +46,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 		}
 		forEach(this._components, function(component)
 		{
-			if(isFunction(component.ready))
-			{
-				component.ready(self.data);
-			}
+			component._ready();
 		});
 		this._change(this.hash.changeParam);
 	};
@@ -67,10 +61,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 		}
 		forEach(this._components, function(component)
 		{
-			if(isFunction(component.visible))
-			{
-				component.visible(self.data);
-			}
+			component._visible();
 		});
 	};
 	
