@@ -412,7 +412,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 						self.layout);
 						self.layout._temp = $("<div></div>");
 						self.layout._temp.html(html);
-						self._translate(self.layout._temp, "layout." + layoutConstructor._module + "." + (layoutConstructor._name.replace(/\//g, ".")) + ".");
+						self._translate(self.layout._temp, "layout." + layoutConstructor._module + "." + layoutConstructor._name + ".");
 						self._defaults(self.layout._temp);
 						self._bind(self.layout);
 						self._loadComponents(self.layout);
@@ -502,7 +502,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 			self.page);
 			self.page._temp = $("<div></div>");
 			self.page._temp.html(html);
-			self._translate(self.page._temp, "page." + pageConstructor._module + "." + (pageConstructor._name.replace(/\//g, ".")) + ".");
+			self._translate(self.page._temp, "page." + pageConstructor._module + "." + pageConstructor._name + ".");
 			self._defaults(self.page._temp);
 			self._bind(self.page);
 			self._loadComponents(self.page);
@@ -611,7 +611,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		component);
 		component._temp = $("<div></div>");
 		component._temp.html(html);
-		self._translate(component._temp, "component." + component.constructor._module + "." + (component.constructor._name.replace(/\//g, ".")) + ".");
+		self._translate(component._temp, "component." + component.constructor._module + "." + component.constructor._name + ".");
 		self._defaults(component._temp);
 		self._bind(component);
 		self._loadComponents(component);

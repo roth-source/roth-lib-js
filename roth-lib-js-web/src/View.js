@@ -109,6 +109,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 	View.prototype.loadComponent = function(element, componentName, data, callback)
 	{
 		var component = null;
+		
 		element = this.wrap(element);
 		if(element.length > 0)
 		{
@@ -127,6 +128,10 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 						this._components = [];
 					}
 					this._components.push(component);
+					if(!isObject(data))
+					{
+						data = {};
+					}
 					this.web._loadComponent(component, data, true);
 					if(isFunction(component.ready))
 					{
@@ -203,7 +208,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 			{
 				fields.push(field);
 			}
-			if(valid && isValidString(field.name) && isValid(field.value))
+			if(valid && isValidString(field.name)) // && isValid(field.value))
 			{
 				var tempObject = request;
 				var names = field.name.split(".");
@@ -585,6 +590,10 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 					}
 				}
 			}
+		}
+		if(!isValid(field.value))
+		{
+			field.value = null;
 		}
 		return field;
 	};

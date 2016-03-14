@@ -65,10 +65,22 @@ var StringUtil = StringUtil ||
 		return value.charAt(0).toUpperCase() + value.slice(1);
 	},
 	
-	safeName : function(name)
+	
+	camelCase : function(value)
 	{
-		return isValidString(name) ? name.replace(/[^a-zA-Z_0-9]/g, "_") : "";
+		value = this.capitalize(value);
+		value = value.replace(/[^a-zA-Z0-9]+([a-zA-Z0-9]{1})/g, function(match, capture)
+		{
+			var replacement = "";
+			if(isValidString(capture))
+			{
+				replacement = capture.charAt(0).toUpperCase();
+			}
+			return replacement;
+		});
+		return value;
 	}
+	
 	
 };
 

@@ -178,26 +178,25 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 
 	Register.prototype.getConstructor = function(module, name, type)
 	{
-		var safeName = StringUtil.safeName(name);
-		var constructor = this[type][module][safeName];
+		var constructor = this[type][module][name];
 		if(isDevFile() && !isCompiled())
 		{
 			var path = module + "/" + type + "/" + name;
 			if(!isFunction(constructor))
 			{
 				this.loadScript(path);
-				constructor = this[type][module][safeName];
+				constructor = this[type][module][name];
 			}
 			if(!isFunction(constructor))
 			{
 				var source = this.getSource(path);
 				if(isValidString(source))
 				{
-					this[type][module][safeName] = function()
+					this[type][module][name] = function()
 					{
 						this.init = null;
 					};
-					constructor = this[type][module][safeName];
+					constructor = this[type][module][name];
 					constructor.source = source;
 				}
 			}
@@ -217,6 +216,7 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 	Register.prototype.getViewConstructor = function(module, name, type)
 	{
 		var self = this;
+		name = StringUtil.camelCase(name);
 		var constructorModule = module;
 		var constructor = this.getConstructor(module, name, type);
 		if(!isFunction(constructor))
