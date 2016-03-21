@@ -17,7 +17,7 @@ var CurrencyUtil = CurrencyUtil ||
 	},
 	
 	
-	formatRoundedText : function(value)
+	formatRounded : function(value)
 	{
 		return this.format(value, "$", ",", true)
 	},
@@ -35,7 +35,7 @@ var CurrencyUtil = CurrencyUtil ||
 				value = Math.round(value);
 			}
 			var formattedValue = isValidString(symbol) ? symbol : "";
-			formattedValue += isValidString(seperator) ? parseFloat(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, seperator) : parseFloat(value).toFixed(decimal);
+			formattedValue += isValidString(seperator) ? parseFloat(value).toFixed(decimal).replace(/\B(?=(\d{3})+(?!\d))/g, seperator) : parseFloat(value).toFixed(decimal);
 			return formattedValue;
 		}
 		else
