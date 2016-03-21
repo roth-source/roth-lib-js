@@ -26,6 +26,10 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 	View.prototype._change = function(changeParam)
 	{
 		var self = this;
+		if(!isObject(changeParam))
+		{
+			changeParam = this.hash.changeParam;
+		}
 		if(isFunction(this.change))
 		{
 			this.change(this.data, changeParam);
@@ -48,14 +52,13 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 		{
 			component._ready();
 		});
-		this._change(this.hash.changeParam);
 	};
 	
 	
 	View.prototype._visible = function()
 	{
 		var self = this;
-		if(isFunction(this.visible))
+		if(isFunction(this.visible) && isSet(this.element) && this.element.is(":visible"))
 		{
 			this.visible(this.data);
 		}

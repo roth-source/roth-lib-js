@@ -17,13 +17,25 @@ var CurrencyUtil = CurrencyUtil ||
 	},
 	
 	
-	format : function(value, symbol, seperator)
+	formatRoundedText : function(value)
+	{
+		return this.format(value, "$", ",", true)
+	},
+	
+	
+	format : function(value, symbol, seperator, round)
 	{
 		if(isNumber(value))
 		{
+			var decimal = 2;
 			value = value / 100;
+			if(isTrue(round)) 
+			{
+				decimal = 0;
+				value = Math.round(value);
+			}
 			var formattedValue = isValidString(symbol) ? symbol : "";
-			formattedValue += isValidString(seperator) ? parseFloat(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, seperator) : parseFloat(value).toFixed(2);
+			formattedValue += isValidString(seperator) ? parseFloat(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, seperator) : parseFloat(value).toFixed(decimal);
 			return formattedValue;
 		}
 		else

@@ -83,8 +83,8 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		this.dev = null;
 		
 		this.text = {};
-		this.layout = {};
-		this.page = {};
+		this.layout = null;
+		this.page = null;
 		this.context = {};
 		
 	};
@@ -199,11 +199,11 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 	Web.prototype._loadModuleDependencies = function(module)
 	{
 		var self = this;
-		this._loadModule(module);
-		forEach(this.moduleDependencies[module], function(module)
+		forEach(this.moduleDependencies[module].slice().reverse(), function(module)
 		{
 			self._loadModule(module);
 		});
+		this._loadModule(module);
 	};
 
 
@@ -387,75 +387,59 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		var module = this.hash.getModule();
 		var layoutName = !isUndefined(this._pageConfig.layout) ? this._pageConfig.layout : module;
 		this.hash.setLayout(layoutName);
-		if(isSet(layoutName) && this.hash.newLayout)
+		if(this.hash.newLayout)
 		{
-			var layoutConstructor = this.register.getLayoutConstructor(module, layoutName);
-			if(isFunction(layoutConstructor))
+			var defaultSource = "<div id=\"" +  this.config.pageId + "\"><div>";
+			var layoutConstructor = this.register.getLayoutConstructor(module, layoutName, defaultSource);
+			var layoutConfig = isObject(layoutConstructor.config) ? layoutConstructor.config : {};
+			this.layout = this.register.constructView(layoutConstructor, this);
+			var success = function(data, status, xhr)
 			{
-				var layoutConfig = isObject(layoutConstructor.config) ? layoutConstructor.config : {};
-				this.layout = this.register.constructView(layoutConstructor, this);
-				if(isObject(this.layout))
+				self.layout.data = isObject(data) ? data : {};
+				var html = self.template.eval(layoutConstructor.source,
 				{
-					var success = function(data, status, xhr)
-					{
-						self.layout.data = isObject(data) ? data : {};
-						var html = self.template.eval(layoutConstructor.source,
-						{
-							data : self.layout.data,
-							config : self.config,
-							register : self.register,
-							hash : self.hash,
-							text : self.text,
-							layout : self.layout,
-							context : self.context
-						},
-						self.layout);
-						self.layout._temp = $("<div></div>");
-						self.layout._temp.html(html);
-						self._translate(self.layout._temp, "layout." + layoutConstructor._module + "." + layoutConstructor._name + ".");
-						self._defaults(self.layout._temp);
-						self._bind(self.layout);
-						self._loadComponents(self.layout);
-						self.hash.loadedLayout();
-						self._readyLayout();
-					};
-					var error = function(xhr, status, errorMessage)
-					{
-						self.layout._temp = $("<div></div>").attr("id", self.config.pageId);
-						self._readyLayout();
-					};
-					var complete = function(xhr, status)
-					{
-						
-					};
-					var method = !isUndefined(layoutConfig.init) ? layoutConfig.init : this._initMethod(this.hash.layout);
-					if(isValidString(method))
-					{
-						var service = isValidString(layoutConfig.service) ? layoutConfig.service : this.hash.getModule();
-						this.service(service, method, this.hash.param, success, error, complete);
-					}
-					else
-					{
-						this.layout.data = {};
-						success(this.layout.data);
-					}
-				}
-				else
-				{
-					// error
-				}
+					data : self.layout.data,
+					config : self.config,
+					register : self.register,
+					hash : self.hash,
+					text : self.text,
+					layout : self.layout,
+					context : self.context
+				},
+				self.layout);
+				self.layout._temp = $("<div></div>");
+				self.layout._temp.html(html);
+				self._translate(self.layout._temp, "layout." + layoutConstructor._module + "." + layoutConstructor._name + ".");
+				self._defaults(self.layout._temp);
+				self._bind(self.layout);
+				self._loadComponents(self.layout);
+				self.hash.loadedLayout();
+				self._readyLayout();
+			};
+			var error = function(xhr, status, errorMessage)
+			{
+				self.layout.data = {};
+				self.layout._temp = $(defaultSource);
+				self._readyLayout();
+			};
+			var complete = function(xhr, status)
+			{
+				
+			};
+			var method = !isUndefined(layoutConfig.init) ? layoutConfig.init : this._initMethod(this.hash.layout);
+			if(isValidString(method))
+			{
+				var service = isValidString(layoutConfig.service) ? layoutConfig.service : this.hash.getModule();
+				this.service(service, method, this.hash.param, success, error, complete);
 			}
 			else
 			{
-				// error
+				this.layout.data = {};
+				success(this.layout.data);
 			}
 		}
 		else
 		{
-			if(isSet(this.layout) && isFunction(this.layout._change))
-			{
-				this.layout._change(this.hash.changeParam);
-			}
 			this.hash.loadedLayout();
 			this._loadPage();
 		}
@@ -464,6 +448,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 	
 	Web.prototype._readyLayout = function()
 	{
+		this.layout._init(this);
 		this.layout.element = this.layoutElement();
 		this.layout.element.hide();
 		this.layout.element.empty().append(this.layout._temp.contents().detach());
@@ -536,10 +521,14 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 
 	Web.prototype._readyPage = function()
 	{
-		this.page.element = isSet(this.hash.layout) ? this.pageElement() :  this.layoutElement();
+		this.layout.page = this.page;
+		this.page._init(this);
+		this.page.element = this.pageElement();
 		this.page.element.hide();
 		this.page.element.empty().append(this.page._temp.contents().detach());
 		this.page._ready();
+		this.page._change();
+		this.layout._change();
 		var loader = this.register.loader._default;
 		if(isFunction(loader))
 		{
@@ -554,6 +543,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 	{
 		var self = this;
 		var module = this.hash.getModule()
+		view._components = [];
 		view._temp.find("[" + this.config.attr.component + "]").each(function()
 		{
 			var element = $(this);
@@ -569,10 +559,6 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 					component.element = element;
 					component.parent = view;
 					self._loadComponent(component, data, false);
-					if(!isArray(view._components))
-					{
-						view._components = [];
-					}
 					view._components.push(component);
 					var reference = element.attr(self.config.attr.reference);
 					if(isValidString(reference))
@@ -744,7 +730,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 							case "SERVICE_AJAX_NOT_AUTHENTICATED":
 							case "SERVICE_CSRF_TOKEN_INVALID":
 							{
-								var authRedirector = self.register.redirector[self.page.authRedirector];
+								var authRedirector = self.register.redirector[self._pageConfig.authRedirector];
 								if(!isFunction(authRedirector))
 								{
 									authRedirector = self.register.redirector.auth;

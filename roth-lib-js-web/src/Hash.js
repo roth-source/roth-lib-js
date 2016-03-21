@@ -72,35 +72,35 @@ roth.lib.js.web.Hash = roth.lib.js.web.Hash || (function()
 	Hash.prototype.setValue = function(value)
 	{
 		this.value = value;
-		this.newValue = this.value != this.loaded.value;
+		this.newValue = this.value !== this.loaded.value;
 	};
 
 
 	Hash.prototype.setLang = function(lang)
 	{
 		this.lang = lang;
-		this.newLang = this.lang != this.loaded.lang;
+		this.newLang = this.lang !== this.loaded.lang;
 	};
 
 
 	Hash.prototype.setLayout = function(layout)
 	{
 		this.layout = layout;
-		this.newLayout = this.layout != this.loaded.layout;
+		this.newLayout = this.layout !== this.loaded.layout;
 	};
 
 
 	Hash.prototype.setModule = function(module)
 	{
 		this.module = module;
-		this.newModule = this.module != this.loaded.module;
+		this.newModule = this.module !== this.loaded.module;
 	};
 
 
 	Hash.prototype.setPage = function(page)
 	{
 		this.page = page;
-		this.newPage = this.newModule || this.page != this.loaded.page;
+		this.newPage = this.newModule || this.page !== this.loaded.page;
 	};
 
 
@@ -284,7 +284,7 @@ roth.lib.js.web.Hash = roth.lib.js.web.Hash || (function()
 				}
 			}
 		}
-		if(isNull(this.search))
+		if(!isSet(this.search))
 		{
 			this.search = {};
 			var nameValues = window.location.search.substr(1).split("&");
@@ -299,16 +299,16 @@ roth.lib.js.web.Hash = roth.lib.js.web.Hash || (function()
 				}
 			}
 		}
-		if(isNull(this.context))
+		if(!isSet(this.context))
 		{
 			this.context = getContext();
-			if(isNull(this.context))
+			if(!isSet(this.context))
 			{
 				if(isSet(this.search.context))
 				{
 					this.context = this.search.context;
 				}
-				if(isNull(this.context))
+				if(!isSet(this.context))
 				{
 					if(isHyperTextProtocol())
 					{

@@ -245,7 +245,7 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 		var view = null;
 		if(isFunction(constructor))
 		{
-			if(!isSet(constructor.prototype._init))
+			if(!isFunction(constructor.prototype._init))
 			{
 				var prototype = constructor.prototype;
 				constructor.prototype = Object.create(roth.lib.js.web.View.prototype);
@@ -267,20 +267,33 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 		}
 		return view;
 	};
-
-
+	
+	
+	Register.prototype.getLayoutConstructor = function(module, name, defaultSource)
+	{
+		var layoutConstructor = null;
+		if(isValidString(name))
+		{
+			layoutConstructor = this.getViewConstructor(module, name, "layout");
+		}
+		if(!isFunction(layoutConstructor))
+		{
+			layoutConstructor = function(){};
+			layoutConstructor._module = module;
+			layoutConstructor._name = "default";
+			layoutConstructor.config = { init : null };
+			layoutConstructor.source = this.template.parse(defaultSource);
+		}
+		return layoutConstructor;
+	};
+	
+	
 	Register.prototype.getPageConstructor = function(module, name)
 	{
 		return this.getViewConstructor(module, name, "page");
 	};
-
-
-	Register.prototype.getLayoutConstructor = function(module, name)
-	{
-		return this.getViewConstructor(module, name, "layout");
-	};
-
-
+	
+	
 	Register.prototype.getComponentConstructor = function(module, name)
 	{
 		return this.getViewConstructor(module, name, "component");
