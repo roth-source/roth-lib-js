@@ -76,6 +76,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		this._inited = false;
 		this._pageConstructor = null;
 		this._pageConfig = null;
+		this._loadId = null;
 		
 		this.template = new roth.lib.js.template.Template();
 		this.register = new roth.lib.js.web.Register(app, moduleDependencies, this.template);
@@ -86,6 +87,108 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		this.layout = null;
 		this.page = null;
 		this.context = {};
+		
+		this.handler = 
+		{
+			endpoint		: {},
+			filterer		: {},
+			validator		: {},
+			disabler		: {},
+			loader			: {},
+			redirector		: {},
+			feedbacker		: {}
+		};
+		
+		this.handler.filterer.replace = function(value, regExp, replacement)
+		{
+			replacement = isSet(replacement) ? replacement : "";
+			return value.replace(regExp, replacement);
+		};
+		
+		this.handler.filterer.number = function(value)
+		{
+			return value.replace(/[^0-9]/g, "");
+		};
+		
+		this.handler.filterer.decimal = function(value)
+		{
+			return value.replace(/[^0-9.]/g, "");
+		};
+		
+		this.handler.filterer.int = function(value)
+		{
+			if(value)
+			{
+				value = value.replace(/[^0-9.]/g, "");
+				if(!isNaN(value))
+				{
+					value = parseInt(value);
+				}
+				if(!isNaN(value))
+				{
+					return value;
+				}
+			}
+			return null;
+		};
+		
+		this.handler.filterer.float = function(value)
+		{
+			if(value)
+			{
+				value = value.replace(/[^0-9.]/g, "");
+				if(!isNaN(value))
+				{
+					value = parseFloat(value);
+				}
+				if(!isNaN(value))
+				{
+					return value;
+				}
+			}
+			return null;
+		};
+		
+		this.handler.filterer.currency = function(value)
+		{
+			return CurrencyUtil.parse(value);
+		};
+		
+		this.handler.validator.test = function(value, regExp)
+		{
+			return regexp.test(value);
+		};
+		
+		this.handler.validator.email = function(value)
+		{
+			return (/^[a-zA-Z0-9._\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]+$/).test(value);
+		};
+		
+		this.handler.validator.phone = function(value)
+		{
+			return (/^[0-9]{10}$/).test(value);
+		};
+		
+		this.handler.validator.zip = function(value)
+		{
+			return (/^[0-9]{5}$/).test(value);
+		};
+		
+		this.handler.validator.number = function(value)
+		{
+			return (/^[0-9]+(\.[0-9]{1,2})?$/).test(value);
+		};
+		
+		this.handler.validator.confirm = function(value, id)
+		{
+			var value2 = $("#" + id).val();
+			return value == value2;
+		};
+		
+		this.handler.validator.date = function(value, pattern)
+		{
+			return DateUtil.isValid(pattern, value);
+		};
 		
 	};
 	
@@ -105,23 +208,21 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 			self._initStorage();
 			self._initConsole();
 			self._initJquery();
-			window.addEventListener("hashchange", function()
+			var load = function()
 			{
 				if(self._isLoadable())
 				{
-					self._loadLayout();
+					self._loadId = IdUtil.generate();
+					self._loadLayout(self._loadId);
 				}
-			},
-			false);
+			}
+			window.addEventListener("hashchange", load, false);
 			document.addEventListener("DOMContentLoaded", function()
 			{
 				if(!self._inited)
 				{
 					self._inited = true;
-					if(self._isLoadable())
-					{
-						self._loadLayout();
-					}
+					load();
 				}
 			});
 		}
@@ -381,7 +482,12 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 	};
 	
 	
-	Web.prototype._loadLayout = function()
+	Web.prototype._continueLoad = function(loadId)
+	{
+		return !isSet(loadId) || loadId == this._loadId;
+	};
+	
+	Web.prototype._loadLayout = function(loadId)
 	{
 		var self = this;
 		var module = this.hash.getModule();
@@ -392,37 +498,42 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 			var defaultSource = "<div id=\"" +  this.config.pageId + "\"><div>";
 			var layoutConstructor = this.register.getLayoutConstructor(module, layoutName, defaultSource);
 			var layoutConfig = isObject(layoutConstructor.config) ? layoutConstructor.config : {};
-			this.layout = this.register.constructView(layoutConstructor, this);
 			var success = function(data, status, xhr)
 			{
-				self.layout.data = isObject(data) ? data : {};
-				var html = self.template.eval(layoutConstructor.source,
+				if(self._continueLoad(loadId))
 				{
-					data : self.layout.data,
-					config : self.config,
-					register : self.register,
-					hash : self.hash,
-					text : self.text,
-					layout : self.layout,
-					context : self.context
-				},
-				self.layout);
-				self.layout._temp = $("<div></div>");
-				self.layout._temp.html(html);
-				self._translate(self.layout._temp, "layout." + layoutConstructor._module + "." + layoutConstructor._name + ".");
-				self._defaults(self.layout._temp);
-				self._bind(self.layout);
-				self._loadComponents(self.layout);
-				self.hash.loadedLayout();
-				self._readyLayout();
+					if(!isObject(data))
+					{
+						data = {};
+					}
+					var layout = self.register.constructView(layoutConstructor, data, self);
+					var html = self.template.eval(layoutConstructor.source,
+					{
+						data : data,
+						config : self.config,
+						register : self.register,
+						hash : self.hash,
+						text : self.text,
+						layout : layout,
+						context : self.context
+					},
+					layout);
+					layout._temp = $("<div></div>");
+					layout._temp.html(html);
+					self._translate(layout._temp, layoutConstructor._module + ".layout." + layoutConstructor._name + ".");
+					self._defaults(layout._temp);
+					self._bind(layout);
+					self.hash.loadedLayout();
+					self.layout = layout;
+					self._loadComponents(layout, loadId);
+					self._readyLayout(loadId);
+				}
 			};
-			var error = function(xhr, status, errorMessage)
+			var error = function(errors, status, xhr)
 			{
-				self.layout.data = {};
-				self.layout._temp = $(defaultSource);
-				self._readyLayout();
+				
 			};
-			var complete = function(xhr, status)
+			var complete = function(status, xhr)
 			{
 				
 			};
@@ -434,74 +545,83 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 			}
 			else
 			{
-				this.layout.data = {};
-				success(this.layout.data);
+				success();
 			}
 		}
 		else
 		{
 			this.hash.loadedLayout();
-			this._loadPage();
+			this._loadPage(loadId);
 		}
 	};
 	
 	
-	Web.prototype._readyLayout = function()
+	Web.prototype._readyLayout = function(loadId)
 	{
-		this.layout._init(this);
-		this.layout.element = this.layoutElement();
-		this.layout.element.hide();
-		this.layout.element.empty().append(this.layout._temp.contents().detach());
-		this.layout._ready();
-		this.layout.element.show();
-		this.layout._visible();
-		var loader = this.register.loader._default;
-		if(isFunction(loader))
+		if(this._continueLoad(loadId))
 		{
-			loader(this.pageElement(), true);
+			this.layout._init(this);
+			this.layout.element = this.layoutElement();
+			this.layout.element.hide();
+			this.layout.element.empty().append(this.layout._temp.contents().detach());
+			this.layout._ready();
+			this.layout.element.show();
+			this.layout._visible();
+			var loader = this.handler.loader._default;
+			if(isFunction(loader))
+			{
+				loader(this.pageElement(), true);
+			}
+			this._loadPage(loadId);
 		}
-		this._loadPage();
 	};
 	
 	
-	Web.prototype._loadPage = function()
+	Web.prototype._loadPage = function(loadId)
 	{
 		var self = this;
 		var pageConstructor = this._pageConstructor;
 		var pageConfig = this._pageConfig;
-		this.page = this.register.constructView(pageConstructor, this);
 		var success = function(data, status, xhr)
 		{
-			self.page.data = isObject(data) ? data : {};
-			var html = self.template.eval(pageConstructor.source,
+			if(self._continueLoad(loadId))
 			{
-				data : self.page.data,
-				config : self.config,
-				register : self.register,
-				hash : self.hash,
-				text : self.text,
-				layout : self.layout,
-				page : self.page,
-				context : self.context
-			},
-			self.page);
-			self.page._temp = $("<div></div>");
-			self.page._temp.html(html);
-			self._translate(self.page._temp, "page." + pageConstructor._module + "." + pageConstructor._name + ".");
-			self._defaults(self.page._temp);
-			self._bind(self.page);
-			self._loadComponents(self.page);
-			self.hash.loadedModule();
-			self.hash.loadedPage();
-			self.hash.loadedValue();
-			self.hash.loadedLang();
-			self._readyPage();
+				if(!isObject(data))
+				{
+					data = {};
+				}
+				var page = self.register.constructView(pageConstructor, data, self);
+				var html = self.template.eval(pageConstructor.source,
+				{
+					data : data,
+					config : self.config,
+					register : self.register,
+					hash : self.hash,
+					text : self.text,
+					layout : self.layout,
+					page : page,
+					context : self.context
+				},
+				page);
+				page._temp = $("<div></div>");
+				page._temp.html(html);
+				self._translate(page._temp, pageConstructor._module + ".page." + pageConstructor._name + ".");
+				self._defaults(page._temp);
+				self._bind(page);
+				self.hash.loadedModule();
+				self.hash.loadedPage();
+				self.hash.loadedValue();
+				self.hash.loadedLang();
+				self.page = page;
+				self._loadComponents(page, loadId);
+				self._readyPage(loadId);
+			}
 		};
-		var error = function(xhr, status, errorMessage)
+		var error = function(errors, status, xhr)
 		{
-			// TODO error
+			
 		};
-		var complete = function(xhr, status)
+		var complete = function(status, xhr)
 		{
 			
 		};
@@ -513,63 +633,68 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		}
 		else
 		{
-			this.page.data = {};
-			success(this.page.data);
+			success();
 		}
 	};
 
 
-	Web.prototype._readyPage = function()
+	Web.prototype._readyPage = function(loadId)
 	{
-		this.layout.page = this.page;
-		this.page._init(this);
-		this.page.element = this.pageElement();
-		this.page.element.hide();
-		this.page.element.empty().append(this.page._temp.contents().detach());
-		this.page._ready();
-		this.page._change();
-		this.layout._change();
-		var loader = this.register.loader._default;
-		if(isFunction(loader))
+		if(this._continueLoad(loadId))
 		{
-			loader(this.page.element, false);
+			this.layout.page = this.page;
+			this.page._init(this);
+			this.page.element = this.pageElement();
+			this.page.element.hide();
+			this.page.element.empty().append(this.page._temp.contents().detach());
+			this.page._ready();
+			this.page._change();
+			this.layout._change();
+			var loader = this.handler.loader._default;
+			if(isFunction(loader))
+			{
+				loader(this.page.element, false);
+			}
+			this.page.element.show();
+			this.page._visible();
 		}
-		this.page.element.show();
-		this.page._visible();
 	};
 
 
-	Web.prototype._loadComponents = function(view)
+	Web.prototype._loadComponents = function(view, loadId)
 	{
 		var self = this;
 		var module = this.hash.getModule()
 		view._components = [];
 		view._temp.find("[" + this.config.attr.component + "]").each(function()
 		{
-			var element = $(this);
-			var componentName = element.attr(self.config.attr.component);
-			var componentConstructor = self.register.getComponentConstructor(module, componentName);
-			if(isFunction(componentConstructor))
+			if(self._continueLoad(loadId))
 			{
-				var componentConfig = isObject(componentConstructor.config) ? componentConstructor.config : {};
-				var component = self.register.constructView(componentConstructor, self);
-				if(isSet(component))
+				var element = $(this);
+				var componentName = element.attr(self.config.attr.component);
+				var componentConstructor = self.register.getComponentConstructor(module, componentName);
+				if(isFunction(componentConstructor))
 				{
+					var componentConfig = isObject(componentConstructor.config) ? componentConstructor.config : {};
 					var data = ObjectUtil.parse(element.attr(self.config.attr.data));
-					component.element = element;
-					component.parent = view;
-					self._loadComponent(component, data, false);
-					view._components.push(component);
-					var reference = element.attr(self.config.attr.reference);
-					if(isValidString(reference))
+					var component = self.register.constructView(componentConstructor, data, self);
+					if(isSet(component))
 					{
-						if(!isSet(view[reference]))
+						component.element = element;
+						component.parent = view;
+						self._loadComponent(component, false, loadId);
+						view._components.push(component);
+						var reference = element.attr(self.config.attr.reference);
+						if(isValidString(reference))
 						{
-							view[reference] = component;
-						}
-						else
-						{
-							console.error(reference + " name is already used on view");
+							if(!isSet(view[reference]))
+							{
+								view[reference] = component;
+							}
+							else
+							{
+								console.error(reference + " name is already used on view");
+							}
 						}
 					}
 				}
@@ -578,10 +703,9 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 	};
 
 
-	Web.prototype._loadComponent = function(component, data, hide)
+	Web.prototype._loadComponent = function(component, hide, loadId)
 	{
 		var self = this;
-		component.data = isObject(data) ? data : {};
 		var html = self.template.eval(component.constructor.source,
 		{
 			data : component.data,
@@ -597,10 +721,10 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		component);
 		component._temp = $("<div></div>");
 		component._temp.html(html);
-		self._translate(component._temp, "component." + component.constructor._module + "." + component.constructor._name + ".");
+		self._translate(component._temp, component.constructor._module + ".component." + component.constructor._name + ".");
 		self._defaults(component._temp);
 		self._bind(component);
-		self._loadComponents(component);
+		self._loadComponents(component, loadId);
 		if(!isFalse(hide))
 		{
 			component.element.hide();
@@ -720,7 +844,14 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 					localStorage.setItem(self.config.csrfToken, csrfTokenHeader);
 				}
 				self._serviceLog(service, method, url, request, response);
-				if(isSet(response.errors) && response.errors.length > 0)
+				if(isEmpty(response.errors))
+				{
+					if(isFunction(success))
+					{
+						success(response, status, xhr);
+					}
+				}
+				else
 				{
 					var groupElement = isSet(group) ? $("[" + self.config.attr.group + "='" + group + "']") : $();
 					forEach(response.errors, function(error)
@@ -730,10 +861,10 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 							case "SERVICE_AJAX_NOT_AUTHENTICATED":
 							case "SERVICE_CSRF_TOKEN_INVALID":
 							{
-								var authRedirector = self.register.redirector[self._pageConfig.authRedirector];
+								var authRedirector = self.handler.redirector[self._pageConfig.authRedirector];
 								if(!isFunction(authRedirector))
 								{
-									authRedirector = self.register.redirector.auth;
+									authRedirector = self.handler.redirector.auth;
 								}
 								if(isFunction(authRedirector))
 								{
@@ -755,14 +886,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 					});
 					if(isFunction(error))
 					{
-						error(response.errors);
-					}
-				}
-				else
-				{
-					if(isFunction(success))
-					{
-						success(response);
+						error(response.errors, status, xhr);
 					}
 				}
 			},
@@ -774,7 +898,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 					errored = true;
 					if(isFunction(error))
 					{
-						error();
+						error({}, status, xhr);
 					}
 				}
 			},
@@ -786,12 +910,12 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 					errored = true;
 					if(isFunction(error))
 					{
-						error();
+						error({}, status, xhr);
 					}
 				}
 				if(isFunction(complete))
 				{
-					complete();
+					complete(status, xhr);
 				}
 			}
 		});
@@ -822,7 +946,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		var endpoint = localStorage.getItem(endpointStorage);
 		if(!isSet(endpoint))
 		{
-			var endpoints = this.register.endpoint[getEnvironment()];
+			var endpoints = this.handler.endpoint[getEnvironment()];
 			if(isArray(endpoints) && !isEmpty(endpoints))
 			{
 				endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];

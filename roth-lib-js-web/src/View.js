@@ -13,6 +13,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 	{
 		this.web = web;
 		this.config = web.config;
+		this.handler = web.handler;
 		this.template = web.template;
 		this.register = web.register;
 		this.hash = web.hash;
@@ -32,7 +33,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 		}
 		if(isFunction(this.change))
 		{
-			this.change(this.data, changeParam);
+			this.change(changeParam);
 		}
 		forEach(this._components, function(component)
 		{
@@ -46,7 +47,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 		var self = this;
 		if(isFunction(this.ready))
 		{
-			this.ready(this.data);
+			this.ready();
 		}
 		forEach(this._components, function(component)
 		{
@@ -60,7 +61,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 		var self = this;
 		if(isFunction(this.visible) && isSet(this.element) && this.element.is(":visible"))
 		{
-			this.visible(this.data);
+			this.visible();
 		}
 		forEach(this._components, function(component)
 		{
@@ -107,8 +108,8 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 			console.error("element not found");
 		}
 	};
-
-
+	
+	
 	View.prototype.loadComponent = function(element, componentName, data, callback)
 	{
 		var component = null;
@@ -120,8 +121,12 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 			var componentConstructor = this.register.getComponentConstructor(module, componentName);
 			if(isFunction(componentConstructor))
 			{
+				if(!isObject(data))
+				{
+					data = {};
+				}
 				var componentConfig = isObject(componentConstructor.config) ? componentConstructor.config : {};
-				component = this.register.constructView(componentConstructor, this.web);
+				component = this.register.constructView(componentConstructor, data, this.web);
 				if(isSet(component))
 				{
 					component.element = element;
@@ -131,20 +136,11 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 						this._components = [];
 					}
 					this._components.push(component);
-					if(!isObject(data))
-					{
-						data = {};
-					}
-					this.web._loadComponent(component, data, true);
-					if(isFunction(component.ready))
-					{
-						component.ready(data, component);
-					}
+					this.web._loadComponent(component, true);
+					component._ready();
+					component._change();
 					component.element.show();
-					if(isFunction(component.visible))
-					{
-						component.visible(data, component);
-					}
+					component._visible();
 					if(isFunction(callback))
 					{
 						callback(data, component);
@@ -376,13 +372,14 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 		var successAttr = element.attr(this.config.attr.success);
 		var errorAttr = element.attr(this.config.attr.error);
 		var completeAttr = element.attr(this.config.attr.complete);
-		var disabler = this.register.disabler[disable];
+		var disabler = this.handler.disabler[disable];
 		submitGroup = isValidString(submitGroup) ? submitGroup : method;
 		var groupElement = $("[" + this.config.attr.group + "='" + submitGroup + "']");
 		var scope =
 		{
 			data : this.data,
 			config : this.config,
+			handler : this.handler,
 			register : this.register,
 			hash : this.hash,
 			text : this.text,
@@ -395,7 +392,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 		};
 		if(!isFunction(disabler))
 		{
-			disabler = this.register.disabler._default;
+			disabler = this.handler.disabler._default;
 		}
 		if(isFunction(disabler))
 		{
@@ -574,6 +571,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 						{
 							data : this.data,
 							config : this.config,
+							handler : this.handler,
 							register : this.register,
 							hash : this.hash,
 							text : this.text,
@@ -585,9 +583,9 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 							field : field,
 							value : field.value
 						};
-						for(var name in this.register.filterer)
+						for(var name in this.handler.filterer)
 						{
-							scope[name] = this.register.filterer[name];
+							scope[name] = this.handler.filterer[name];
 						}
 						field.value = this.eval("return " + field.filter, scope);
 					}
@@ -636,6 +634,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 				{
 					data : this.data,
 					config : this.config,
+					handler : this.handler,
 					register : this.register,
 					hash : this.hash,
 					text : this.text,
@@ -647,9 +646,9 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 					field : field,
 					value : field.value
 				};
-				for(var name in this.register.validator)
+				for(var name in this.handler.validator)
 				{
-					scope[name] = this.register.validator[name];
+					scope[name] = this.handler.validator[name];
 				}
 				field.valid = this.eval("return " + field.validate, scope);
 			}
@@ -691,10 +690,10 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 		var module = this.hash.getModule();
 		var page = this.hash.getPage();
 		var feedback = element.attr(this.config.attr.feedback);
-		var feedbacker = this.register.feedbacker[feedback];
+		var feedbacker = this.handler.feedbacker[feedback];
 		if(!isFunction(feedbacker))
 		{
-			 feedbacker = this.register.feedbacker._default;
+			 feedbacker = this.handler.feedbacker._default;
 		}
 		if(isFunction(feedbacker))
 		{

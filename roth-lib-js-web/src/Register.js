@@ -6,128 +6,27 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 	var Register = function(app, moduleDependencies, template)
 	{
 		var self = this;
-		this.app = app;
-		this.moduleDependencies = moduleDependencies;
-		this.template = template;
-		
-		this.text			= {};
-		this.layout			= {};
-		this.page			= {};
-		this.component		= {};
+		this._app = app;
+		this._moduleDependencies = moduleDependencies;
+		this._template = template;
 		
 		forEach(moduleDependencies, function(dependencies, module)
 		{
-			self.text[module]		= {};
-			self.layout[module]		= {};
-			self.page[module]		= {};
-			self.component[module]	= {};
+			self[module] =
+			{
+				text 		: {},
+				layout 		: {},
+				page 		: {},
+				component	: {}
+			};
 		});
-		
-		this.endpoint		= {};
-		this.filterer		= {};
-		this.validator		= {};
-		this.disabler		= {};
-		this.loader			= {};
-		this.redirector		= {};
-		this.feedbacker		= {};
-		
-		this.filterer.replace = function(value, regExp, replacement)
-		{
-			replacement = isSet(replacement) ? replacement : "";
-			return value.replace(regExp, replacement);
-		};
-		
-		this.filterer.number = function(value)
-		{
-			return value.replace(/[^0-9]/g, "");
-		};
-		
-		this.filterer.decimal = function(value)
-		{
-			return value.replace(/[^0-9.]/g, "");
-		};
-		
-		this.filterer.int = function(value)
-		{
-			if(value)
-			{
-				value = value.replace(/[^0-9.]/g, "");
-				if(!isNaN(value))
-				{
-					value = parseInt(value);
-				}
-				if(!isNaN(value))
-				{
-					return value;
-				}
-			}
-			return null;
-		};
-		
-		this.filterer.float = function(value)
-		{
-			if(value)
-			{
-				value = value.replace(/[^0-9.]/g, "");
-				if(!isNaN(value))
-				{
-					value = parseFloat(value);
-				}
-				if(!isNaN(value))
-				{
-					return value;
-				}
-			}
-			return null;
-		};
-		
-		this.filterer.currency = function(value)
-		{
-			return CurrencyUtil.parse(value);
-		};
-		
-		this.validator.test = function(value, regExp)
-		{
-			return regexp.test(value);
-		};
-		
-		this.validator.email = function(value)
-		{
-			return (/^[a-zA-Z0-9._\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]+$/).test(value);
-		};
-		
-		this.validator.phone = function(value)
-		{
-			return (/^[0-9]{10}$/).test(value);
-		};
-		
-		this.validator.zip = function(value)
-		{
-			return (/^[0-9]{5}$/).test(value);
-		};
-		
-		this.validator.number = function(value)
-		{
-			return (/^[0-9]+(\.[0-9]{1,2})?$/).test(value);
-		};
-		
-		this.validator.confirm = function(value, id)
-		{
-			var value2 = $("#" + id).val();
-			return value == value2;
-		};
-		
-		this.validator.date = function(value, pattern)
-		{
-			return DateUtil.isValid(pattern, value);
-		};
 		
 	};
 	
 	
 	Register.prototype.isValidModule = function(module)
 	{
-		return inMap(module, this.moduleDependencies);
+		return inMap(module, this._moduleDependencies);
 	};
 
 
@@ -135,11 +34,11 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 	{
 		if(isSet(lang))
 		{
-			var valid = inMap(lang, this.text[module]);
+			var valid = inMap(lang, this[module].text);
 			if(isDevFile() && !isCompiled() && !valid)
 			{
 				this.getText(module, lang);
-				valid = inMap(lang, this.text[module]);
+				valid = inMap(lang, this[module].text);
 			}
 			return valid;
 		}
@@ -156,20 +55,20 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 		var text = {};
 		if(isSet(lang))
 		{
-			if(isDevFile() && !isCompiled() && !isObject(this.text[module][lang]))
+			if(isDevFile() && !isCompiled() && !isObject(this[module].text[lang]))
 			{
 				var path = module + "/text/" + module + "_" + lang;
-				this.text[module][lang] = this.getJson(path);
+				this[module].text[lang] = this.getJson(path);
 			}
-			$.extend(true, text, this.text[module][lang]);
-			forEach(this.moduleDependencies[module], function(dependency)
+			text[module] = this[module].text[lang];
+			forEach(this._moduleDependencies[module], function(dependency)
 			{
-				if(isDevFile() && !isCompiled() && !isObject(self.text[dependency][lang]))
+				if(isDevFile() && !isCompiled() && !isObject(self[dependency].text[lang]))
 				{
 					var path = dependency + "/text/" + dependency + "_" + lang;
-					self.text[dependency][lang] = self.getJson(path);
+					self[dependency].text[lang] = self.getJson(path);
 				}
-				$.extend(true, text, self.text[dependency][lang]);
+				text[dependency] = self[dependency].text[lang];
 			});
 		}
 		return text;
@@ -178,25 +77,26 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 
 	Register.prototype.getConstructor = function(module, name, type)
 	{
-		var constructor = this[type][module][name];
+		var constructor = this[module][type][name];
 		if(isDevFile() && !isCompiled())
 		{
 			var path = module + "/" + type + "/" + name;
 			if(!isFunction(constructor))
 			{
 				this.loadScript(path);
-				constructor = this[type][module][name];
+				constructor = this[module][type][name];
 			}
 			if(!isFunction(constructor))
 			{
 				var source = this.getSource(path);
 				if(isValidString(source))
 				{
-					this[type][module][name] = function()
+					this[module][type][name] = function() {};
+					constructor = this[module][type][name];
+					constructor.config =
 					{
-						this.init = null;
+						init : null
 					};
-					constructor = this[type][module][name];
 					constructor.source = source;
 				}
 			}
@@ -221,7 +121,7 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 		var constructor = this.getConstructor(module, name, type);
 		if(!isFunction(constructor))
 		{
-			forEach(this.moduleDependencies[module], function(dependency)
+			forEach(this._moduleDependencies[module], function(dependency)
 			{
 				constructor = self.getConstructor(dependency, name, type);
 				if(isFunction(constructor))
@@ -240,7 +140,7 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 	};
 
 
-	Register.prototype.constructView = function(constructor, web)
+	Register.prototype.constructView = function(constructor, data, web)
 	{
 		var view = null;
 		if(isFunction(constructor))
@@ -262,7 +162,8 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 				}
 				constructor.prototype.constructor = constructor;
 			}
-			view = new constructor();
+			view = new constructor(data);
+			view.data = data;
 			view._init(web);
 		}
 		return view;
@@ -282,7 +183,7 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 			layoutConstructor._module = module;
 			layoutConstructor._name = "default";
 			layoutConstructor.config = { init : null };
-			layoutConstructor.source = this.template.parse(defaultSource);
+			layoutConstructor.source = this._template.parse(defaultSource);
 		}
 		return layoutConstructor;
 	};
@@ -302,7 +203,7 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 
 	Register.prototype.loadScript = function(path)
 	{
-		var url = "dev/app/" + this.app + "/" + path + ".js";
+		var url = "dev/app/" + this._app + "/" + path + ".js";
 		$.ajax(
 		{
 			url : url,
@@ -317,10 +218,10 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 	{
 		var self = this;
 		var source = null;
-		var url = "dev/app/" + this.app + "/" + path + ".html";
+		var url = "dev/app/" + this._app + "/" + path + ".html";
 		var success = function(data)
 		{
-			source = self.template.parse(data);
+			source = self._template.parse(data);
 		};
 		$.ajax(
 		{
@@ -338,7 +239,7 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 	{
 		var self = this;
 		var json = null;
-		var url = "dev/app/" + this.app + "/" + path + ".json";
+		var url = "dev/app/" + this._app + "/" + path + ".json";
 		var success = function(data)
 		{
 			json = data;
