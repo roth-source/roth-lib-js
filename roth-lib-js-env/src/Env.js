@@ -6,6 +6,7 @@ roth.lib.js.env = roth.lib.js.env || {};
 
 roth.lib.js.env.hosts = roth.lib.js.env.hosts || { local : ["localhost", "127.0.0.1"] };
 roth.lib.js.env.environment = roth.lib.js.env.environment || null;
+roth.lib.js.env.mobile = roth.lib.js.env.mobile || null;
 roth.lib.js.env.debug = roth.lib.js.env.debug || null;
 roth.lib.js.env.compiled = roth.lib.js.env.compiled || null;
 roth.lib.js.env.cssCompiled = roth.lib.js.env.cssCompiled || false;
@@ -81,6 +82,12 @@ var setProd = setProd || function(context)
 {
 	setEnvironment(Environment.PROD);
 	setContext(context);
+};
+
+
+var setMobile = setMobile || function(mobile)
+{
+	roth.lib.js.env.mobile = mobile !== false ? true : false;
 };
 
 
@@ -236,6 +243,46 @@ var isDemo = isDemo || function()
 var isProd = isProd || function()
 {
 	return isEnvironment(Environment.PROD);
+};
+
+
+var isMobile = function()
+{
+	if(roth.lib.js.env.mobile == null)
+	{
+		roth.lib.js.env.mobile = isAndroidMobile() || isBlackBerryMobile() || isIosMobile() || isOperaMobile() || isWindowsMobile();
+	}
+	return roth.lib.js.env.mobile;
+};
+
+
+var isAndroidMobile = function()
+{
+	return navigator.userAgent.match(/Android/i);
+};
+
+
+var isBlackBerryMobile = function()
+{
+	return navigator.userAgent.match(/BlackBerry/i);
+};
+
+
+var isIosMobile = function()
+{
+	return navigator.userAgent.match(/iPhone|iPad|iPod/i);
+};
+
+
+var isOperaMobile = function()
+{
+	return navigator.userAgent.match(/Opera Mini/i);
+};
+
+
+var isWindowsMobile = function()
+{
+	return navigator.userAgent.match(/IEMobile/i);
 };
 
 
