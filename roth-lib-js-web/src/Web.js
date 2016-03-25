@@ -1095,12 +1095,25 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 			var value = element.attr("value");
 			if(isValidString(value))
 			{
-				var option = element.find("option[value='" + value + "']");
-				if(option.length > 0)
+				var values = [];
+				var matches = value.match(/^\[(.*?)\]$/);
+				if(!isEmpty(matches))
 				{
-					option.first().prop("selected", true);
-					selected = true;
+					values = matches[1].split(",");
 				}
+				else
+				{
+					values.push(value);
+				}
+				forEach(values, function(value)
+				{
+					var option = element.find("option[value='" + value + "']");
+					if(option.length > 0)
+					{
+						option.first().prop("selected", true);
+						selected = true;
+					}
+				});
 			}
 			var placeholder = element.attr("placeholder");
 			if(isValidString(placeholder))

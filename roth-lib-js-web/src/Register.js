@@ -83,7 +83,7 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 			var path = module + "/" + type + "/" + name;
 			if(!isFunction(constructor))
 			{
-				this.loadScript(path);
+				this[module][type][name] = eval(this.getScript(path));
 				constructor = this[module][type][name];
 			}
 			if(!isFunction(constructor))
@@ -201,16 +201,24 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 	};
 
 
-	Register.prototype.loadScript = function(path)
+	Register.prototype.getScript = function(path)
 	{
+		var self = this;
+		var script = "";
 		var url = "dev/app/" + this._app + "/" + path + ".js";
+		var success = function(data)
+		{
+			script = data;
+		};
 		$.ajax(
 		{
 			url : url,
-			dataType : "script",
+			dataType : "text",
 			cache : false,
-			async : false
+			async : false,
+			success : success
 		});
+		return script;
 	};
 
 
