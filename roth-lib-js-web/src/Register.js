@@ -83,7 +83,7 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 			var path = module + "/" + type + "/" + name;
 			if(!isFunction(constructor))
 			{
-				this[module][type][name] = eval(this.getScript(path));
+				this[module][type][name] = new Function(this.getScript(path)).apply(this);
 				constructor = this[module][type][name];
 			}
 			if(!isFunction(constructor))
