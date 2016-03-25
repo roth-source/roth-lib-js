@@ -85,8 +85,7 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 			var path = module + "/" + type + "/" + name;
 			if(!isFunction(constructor))
 			{
-				this[module][type][name] = new Function(this.getScript(path)).apply(this);
-				constructor = this[module][type][name];
+				constructor = new Function(this.getScript(path)).apply(this);
 			}
 			if(type != "mixin")
 			{
@@ -95,8 +94,7 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 					var source = this.getSource(path);
 					if(isValidString(source))
 					{
-						this[module][type][name] = function() {};
-						constructor = this[module][type][name];
+						constructor = function() {};
 						constructor.config =
 						{
 							init : null
@@ -112,29 +110,40 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 						constructor = null;
 					}
 				}
-				if(isFunction(constructor) && !isFunction(constructor.prototype._init))
+			}
+		}
+		if(type != "mixin")
+		{
+			this.extendViewConstructor(constructor);
+		}
+		this[module][type][name] = constructor;
+		return constructor;
+	};
+	
+	
+	Register.prototype.extendViewConstructor = function(constructor)
+	{
+		if(isFunction(constructor) && !isFunction(constructor.prototype._init))
+		{
+			var prototype = constructor.prototype;
+			constructor.prototype = Object.create(roth.lib.js.web.View.prototype);
+			for(var name in prototype)
+			{
+				if(!isSet(constructor.prototype[name]))
 				{
-					var prototype = constructor.prototype;
-					constructor.prototype = Object.create(roth.lib.js.web.View.prototype);
-					for(var name in prototype)
-					{
-						if(!isSet(constructor.prototype[name]))
-						{
-							constructor.prototype[name] = prototype[name];
-						}
-						else
-						{
-							console.error(name + " cannot be on view prototype");
-						}
-					}
-					constructor.prototype.constructor = constructor;
+					constructor.prototype[name] = prototype[name];
+				}
+				else
+				{
+					console.error(name + " cannot be on view prototype");
 				}
 			}
+			constructor.prototype.constructor = constructor;
 		}
 		return constructor;
 	};
-
-
+	
+	
 	Register.prototype.getViewConstructor = function(module, name, type)
 	{
 		var self = this;
@@ -201,6 +210,7 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 			layoutConstructor._name = "default";
 			layoutConstructor.config = { init : null };
 			layoutConstructor.source = this._template.parse(defaultSource);
+			this.extendViewConstructor(layoutConstructor);
 		}
 		return layoutConstructor;
 	};

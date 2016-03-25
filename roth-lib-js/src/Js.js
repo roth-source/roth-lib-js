@@ -207,7 +207,10 @@ var mixin = mixin || function(dest, source)
 	{
 		forEach(source.prototype, function(value, name)
 		{
-			dest.prototype[name] = value;
+			if(!isSet(dest.prototype[name]))
+			{
+				dest.prototype[name] = value;
+			}
 		});
 	}
 };
