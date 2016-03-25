@@ -15,6 +15,7 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 			self[module] =
 			{
 				text 		: {},
+				mixin		: {},
 				layout 		: {},
 				page 		: {},
 				component	: {}
@@ -77,6 +78,7 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 
 	Register.prototype.getConstructor = function(module, name, type)
 	{
+		var self = this;
 		var constructor = this[module][type][name];
 		if(isDevFile() && !isCompiled())
 		{
@@ -86,26 +88,46 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 				this[module][type][name] = new Function(this.getScript(path)).apply(this);
 				constructor = this[module][type][name];
 			}
-			if(!isFunction(constructor))
+			if(type != "mixin")
 			{
-				var source = this.getSource(path);
-				if(isValidString(source))
+				if(!isFunction(constructor))
 				{
-					this[module][type][name] = function() {};
-					constructor = this[module][type][name];
-					constructor.config =
+					var source = this.getSource(path);
+					if(isValidString(source))
 					{
-						init : null
-					};
-					constructor.source = source;
+						this[module][type][name] = function() {};
+						constructor = this[module][type][name];
+						constructor.config =
+						{
+							init : null
+						};
+						constructor.source = source;
+					}
 				}
-			}
-			else if(!isValidString(constructor.source))
-			{
-				constructor.source = this.getSource(path);
-				if(!isValidString(constructor.source))
+				else if(!isValidString(constructor.source))
 				{
-					constructor = null;
+					constructor.source = this.getSource(path);
+					if(!isValidString(constructor.source))
+					{
+						constructor = null;
+					}
+				}
+				if(isFunction(constructor) && !isFunction(constructor.prototype._init))
+				{
+					var prototype = constructor.prototype;
+					constructor.prototype = Object.create(roth.lib.js.web.View.prototype);
+					for(var name in prototype)
+					{
+						if(!isSet(constructor.prototype[name]))
+						{
+							constructor.prototype[name] = prototype[name];
+						}
+						else
+						{
+							console.error(name + " cannot be on view prototype");
+						}
+					}
+					constructor.prototype.constructor = constructor;
 				}
 			}
 		}
@@ -135,6 +157,17 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 		{
 			constructor._module = constructorModule;
 			constructor._name = name;
+			if(isObject(constructor.config) && isArray(constructor.config.mixins))
+			{
+				forEach(constructor.config.mixins, function(mixinName)
+				{
+					var mixinConstructor = self.getMixinConstructor(module, mixinName)
+					if(isFunction(mixinConstructor))
+					{
+						mixin(constructor, mixinConstructor);
+					}
+				});
+			}
 		}
 		return constructor;
 	};
@@ -142,26 +175,10 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 
 	Register.prototype.constructView = function(constructor, data, web)
 	{
+		var self = this;
 		var view = null;
 		if(isFunction(constructor))
 		{
-			if(!isFunction(constructor.prototype._init))
-			{
-				var prototype = constructor.prototype;
-				constructor.prototype = Object.create(roth.lib.js.web.View.prototype);
-				for(var name in prototype)
-				{
-					if(!isSet(constructor.prototype[name]))
-					{
-						constructor.prototype[name] = prototype[name];
-					}
-					else
-					{
-						console.error(name + " cannot be on view prototype");
-					}
-				}
-				constructor.prototype.constructor = constructor;
-			}
 			view = new constructor(data);
 			view.data = data;
 			view._init(web);
@@ -199,8 +216,14 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 	{
 		return this.getViewConstructor(module, name, "component");
 	};
-
-
+	
+	
+	Register.prototype.getMixinConstructor = function(module, name)
+	{
+		return this.getViewConstructor(module, name, "mixin");
+	};
+	
+	
 	Register.prototype.getScript = function(path)
 	{
 		var self = this;
