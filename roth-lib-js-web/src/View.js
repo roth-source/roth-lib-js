@@ -590,6 +590,17 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 						field.value = this.eval("return " + field.filter, scope);
 					}
 				}
+				else if(isArray(field.value))
+				{
+					var i = field.value.length;
+					while(i--)
+					{
+						if(!isValidString(field.value[i]))
+						{
+							field.value.splice(i, 1);
+						}
+					}
+				}
 			}
 		}
 		if(!isValid(field.value))
