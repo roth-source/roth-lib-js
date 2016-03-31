@@ -17,7 +17,6 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 			defaultLang 		: "en",
 			endpoint 			: "endpoint",
 			service 			: "service",
-			sessionId 			: "jsessionid",
 			csrfToken 			: "csrfToken",
 			xCsrfToken 			: "X-Csrf-Token",
 			layoutId			: "layout",
@@ -531,7 +530,10 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 			};
 			var error = function(errors, status, xhr)
 			{
-				
+				if(isFunction(self.handler.redirector.init))
+				{
+					self.handler.redirector.init(errors, status, xhr);
+				}
 			};
 			var complete = function(status, xhr)
 			{
@@ -619,7 +621,10 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		};
 		var error = function(errors, status, xhr)
 		{
-			
+			if(isFunction(self.handler.redirector.init))
+			{
+				self.handler.redirector.init(errors, status, xhr);
+			}
 		};
 		var complete = function(status, xhr)
 		{
@@ -792,14 +797,6 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		else
 		{
 			path = this.config.service+ "/" + service + "/" + method;
-			if(isFileProtocol())
-			{
-				var sessionId = localStorage.getItem(this.config.sessionId);
-				if(isSet(sessionId))
-				{
-					path += ";" + this.config.sessionId + "=" + encodeURIComponent(sessionId);
-				}
-			}
 			var csrfToken = localStorage.getItem("csrfToken");
 			if(isSet(csrfToken))
 			{
@@ -831,13 +828,6 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 			},
 			success		: function(response, status, xhr)
 			{
-				if(isSet(response.dev))
-				{
-					if(isSet(response.dev[self.config.sessionId]))
-					{
-						localStorage.setItem(self.config.sessionId, response.dev[self.config.sessionId]);
-					}
-				}
 				var csrfTokenHeader = xhr.getResponseHeader(self.config.xCsrfToken);
 				if(isSet(csrfTokenHeader))
 				{
@@ -853,6 +843,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 				}
 				else
 				{
+					var handled = false;
 					var groupElement = isSet(group) ? $("[" + self.config.attr.group + "='" + group + "']") : $();
 					forEach(response.errors, function(error)
 					{
@@ -869,6 +860,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 								if(isFunction(authRedirector))
 								{
 									authRedirector();
+									handled = true;
 								}
 								break;
 							}
@@ -884,7 +876,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 							}
 						}
 					});
-					if(isFunction(error))
+					if(!handled && isFunction(error))
 					{
 						error(response.errors, status, xhr);
 					}
