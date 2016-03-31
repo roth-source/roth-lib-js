@@ -307,7 +307,7 @@ var isCompiled = isCompiled || function()
 {
 	if(roth.lib.js.env.compiled == null)
 	{
-		roth.lib.js.env.compiled = !isDev();
+		roth.lib.js.env.compiled = !isDevFile();
 	}
 	return roth.lib.js.env.compiled;
 };
