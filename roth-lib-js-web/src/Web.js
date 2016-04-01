@@ -267,13 +267,15 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		var console = window.console;
 		if(console && !isDev() && !isDebug())
 		{
+			var noop = function(){};
 			for(var method in console)
 			{
 				if(isFunction(console[method]) && Object.prototype.hasOwnProperty.call(console, method))
 				{
-					console[method] = function(){};
+					console[method] = noop;
 				}
 			}
+			console.json = noop;
 		}
 		else
 		{
