@@ -154,6 +154,25 @@ var isHyperTextProtocol = isHyperTextProtocol || function()
 };
 
 
+var hasHost = hasHost || function()
+{
+	var host = false;
+	var hostname = window.location.hostname.toLowerCase();
+	for(var environment in roth.lib.js.env.hosts)
+	{
+		if(Array.isArray(roth.lib.js.env.hosts[environment]))
+		{
+			if(roth.lib.js.env.hosts[environment].indexOf(hostname) != -1)
+			{
+				host = true;
+				break;
+			}
+		}
+	}
+	return host;
+};
+
+
 var getEnvironment = getEnvironment || function()
 {
 	if(roth.lib.js.env.environment == null)
