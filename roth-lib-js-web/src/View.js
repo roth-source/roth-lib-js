@@ -633,11 +633,12 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 		element = this.wrap(element);
 		var field = this.filter(element);
 		field.visible = element.is(":visible");
-		field.required =  StringUtil.equals(element.attr(this.config.attr.required), "true");
+		field.include = field.visible || isTrue(element.attr(this.config.attr.include));
+		field.required =  isTrue(element.attr(this.config.attr.required));
 		field.defined = !isEmpty(field.value);
 		field.valid = !(field.required && !field.defined) ? true : false;
 		field.validate = element.attr(this.config.attr.validate);
-		if(field.visible && field.valid && field.defined)
+		if(field.include && field.valid && field.defined)
 		{
 			if(isValidString(field.validate))
 			{
