@@ -1,6 +1,6 @@
 
 
-web.register.component.common.widget = function()
+var View = function()
 {
 	
 };

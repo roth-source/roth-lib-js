@@ -1,32 +1,30 @@
 
 
-web.register.page.person.test = function()
+var View = function()
 {
 	
 };
 
-
-web.register.page.person.test.config =
+View.config =
 {
 	allowedParams : [ "asdf" ],
 	changeParams : [ "tab" ]
 };
 
-
-web.register.page.person.test.prototype.ready = function(data)
+View.prototype.ready = function()
 {
 	
 };
 
-
-web.register.page.person.test.prototype.change = function(data, changeParam)
+View.prototype.change = function(changeParam)
 {
 	
 };
 
-
-web.register.page.person.test.prototype.someFunction = function()
+View.prototype.someFunction = function()
 {
 	
 };
+
+return View;
 

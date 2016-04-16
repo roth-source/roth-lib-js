@@ -45,16 +45,15 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 				error			: "data-error",
 				complete		: "data-complete",
 				request			: "data-request",
+				placeholder		: "data-placeholder",
+				value			: "data-value",
+				_default		: "data-default",
 				updateValue		: "data-update-value",
-				editable		: "data-editable",
 				name			: "data-name",
 				key				: "data-key",
 				editor			: "data-editor",
 				type			: "data-type",
 				radioGroup		: "data-radio-group",
-				radioValue		: "data-radio-value",
-				checkboxValue	: "data-checkbox-value",
-				fileValue		: "data-file-value",
 				field			: "data-field",
 				onclick			: "data-onclick",
 				ondblclick		: "data-ondblclick",
@@ -522,7 +521,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 					layout._temp = $("<div></div>");
 					layout._temp.html(html);
 					self._translate(layout._temp, layoutConstructor._module + ".layout." + layoutConstructor._name + ".");
-					self._defaults(layout._temp);
+					self._values(layout._temp);
 					self._bind(layout);
 					self.hash.loadedLayout();
 					self.layout = layout;
@@ -610,7 +609,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 				page._temp = $("<div></div>");
 				page._temp.html(html);
 				self._translate(page._temp, pageConstructor._module + ".page." + pageConstructor._name + ".");
-				self._defaults(page._temp);
+				self._values(page._temp);
 				self._bind(page);
 				self.hash.loadedModule();
 				self.hash.loadedPage();
@@ -729,7 +728,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		component._temp = $("<div></div>");
 		component._temp.html(html);
 		self._translate(component._temp, component.constructor._module + ".component." + component.constructor._name + ".");
-		self._defaults(component._temp);
+		self._values(component._temp);
 		self._bind(component);
 		self._loadComponents(component, loadId);
 		if(!isFalse(hide))
@@ -1076,19 +1075,23 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		}
 		return object;
 	};
-
-
-	Web.prototype._defaults = function(viewElement)
+	
+	
+	Web.prototype._values = function(viewElement)
 	{
 		var self = this;
-		// select value
-		viewElement.find("select[value], select[placeholder]").each(function()
+		viewElement.find("select[" + this.config.attr.value + "], select[" + this.config.attr._default + "], select[" + this.config.attr.placeholder + "]").each(function()
 		{
 			var element = $(this);
 			var selected = false;
-			var value = element.attr("value");
+			var value = element.attr(self.config.attr.value);
+			if(!isValidString(value))
+			{
+				value = element.attr(self.config.attr._default);
+			}
 			if(isValidString(value))
 			{
+				element.removeAttr(self.config.attr.value);
 				var values = [];
 				var matches = value.match(/^\[(.*?)\]$/);
 				if(!isEmpty(matches))
@@ -1109,7 +1112,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 					}
 				});
 			}
-			var placeholder = element.attr("placeholder");
+			var placeholder = element.attr(self.config.attr.placeholder);
 			if(isValidString(placeholder))
 			{
 				var color = element.css("color");
@@ -1135,28 +1138,56 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 			}
 		});
 		// radio group value
-		viewElement.find("[" + self.config.attr.radioValue + "]").each(function()
+		viewElement.find("[" + this.config.attr.radioGroup + "][" + this.config.attr.value + "], [" + this.config.attr.radioGroup + "][" + this.config.attr._default + "]").each(function()
 		{
 			var element = $(this);
-			var value = element.attr(self.config.attr.radioValue);
-			var radio = element.find("input[type=radio][value='" + value + "']");
-			if(radio.length > 0)
+			var value = element.attr(self.config.attr.value);
+			if(!isValidString(value))
 			{
-				radio.first().prop("checked", true);
+				value = element.attr(self.config.attr._default);
 			}
-			else
+			if(isValidString(value))
 			{
-				element.find("input[type=radio]").first().prop("checked", true);
+				element.removeAttr(self.config.attr.value);
+				var radio = element.find("input[type=radio][value='" + value + "']");
+				if(radio.length > 0)
+				{
+					radio.first().prop("checked", true);
+				}
 			}
 		});
 		// checkbox value
-		viewElement.find("input[type=checkbox][" + self.config.attr.checkboxValue + "]").each(function()
+		viewElement.find("input[type=checkbox][" + self.config.attr.value + "], input[type=checkbox][" + self.config.attr._default + "]").each(function()
 		{
 			var element = $(this);
-			var value = element.attr(self.config.attr.checkboxValue);
-			if(isSet(value) && value.toLowerCase() == "true")
+			var value = element.attr(self.config.attr.value);
+			if(!isValidString(value))
+			{
+				value = element.attr(self.config.attr._default);
+			}
+			var checkboxValue = element.attr("value");
+			if(!isValidString(checkboxValue))
+			{
+				checkboxValue = "true";
+			}
+			if(StringUtil.equals(value, checkboxValue))
 			{
 				element.prop("checked", true);
+			}
+		});
+		// text input value
+		viewElement.find("input[type!=checkbox][type!=radio][" + self.config.attr.value + "], input[type!=checkbox][type!=radio][" + self.config.attr._default + "]").each(function()
+		{
+			var element = $(this);
+			var value = element.attr(self.config.attr.value);
+			element.removeAttr(self.config.attr.value);
+			if(!isValidString(value))
+			{
+				value = element.attr(self.config.attr._default);
+			}
+			if(isValidString(value))
+			{
+				element.val(value);
 			}
 		});
 	};

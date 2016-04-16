@@ -556,7 +556,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 			}
 			else if(field.type == "file")
 			{
-				field.value = element.attr(this.config.attr.fileValue);
+				field.value = element.attr(this.config.attr.value);
 			}
 			else
 			{
@@ -683,7 +683,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 				var reader  = new FileReader();
 				reader.onload = function(event)
 				{
-					element.attr(self.config.attr.fileValue, reader.result);
+					element.attr(self.config.attr.value, reader.result);
 					if(isFunction(callback))
 					{
 						callback(reader.result);
@@ -780,7 +780,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 		{
 			self.resetValue($(this));
 		});
-		this.web._defaults(element);
+		this.web._values(element);
 	};
 
 
@@ -792,7 +792,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 		element.val("");
 		if(type == "file")
 		{
-			element.attr(this.config.attr.fileValue, "");
+			element.attr(this.config.attr.value, "");
 		}
 	};
 

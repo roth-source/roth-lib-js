@@ -1,7 +1,10 @@
 
 
-web.register.layout.person.person = function()
+var View = function()
 {
 	
 };
+
+
+return View;
 
