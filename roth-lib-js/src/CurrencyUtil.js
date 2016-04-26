@@ -55,7 +55,7 @@ var CurrencyUtil = CurrencyUtil ||
 				value = parseFloat(value.replace(/[^0-9.]/g, ""));
 				if(!isNaN(value))
 				{
-					parsedValue = Math.floor(value * 100);
+					parsedValue = Math.round(value * 100);
 				}
 			}
 			catch(e)
