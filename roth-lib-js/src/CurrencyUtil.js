@@ -25,6 +25,7 @@ var CurrencyUtil = CurrencyUtil ||
 	
 	format : function(value, symbol, seperator, round)
 	{
+		value = parseInt(value);
 		if(isNumber(value))
 		{
 			var decimal = 2;

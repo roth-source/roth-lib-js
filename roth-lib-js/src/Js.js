@@ -89,7 +89,7 @@ var isBoolean = isBoolean || function(value)
 
 var isNumber = isNumber || function(value)
 {
-	return typeof value === "number";
+	return !isNaN(value);
 };
 
 
