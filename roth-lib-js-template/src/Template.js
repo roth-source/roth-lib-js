@@ -74,6 +74,7 @@ roth.lib.js.template.Template.prototype.parse = function(source)
 	var self = this;
 	var escape = true;
 	var parsedSource = "";
+	parsedSource += "var self = this; ";
 	parsedSource += "var " + self.config.tempVar + "; var " + self.config.sourceVar + "=\"\"; " + self.config.sourceVar + "+=\"";
 	parsedSource += source.replace(self.syntaxRegExp, function(match, capture)
 	{

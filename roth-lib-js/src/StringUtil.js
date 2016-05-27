@@ -79,8 +79,12 @@ var StringUtil = StringUtil ||
 			return replacement;
 		});
 		return value;
-	}
+	},
 	
+	stripHtml : function(value)
+	{
+		return value.replace(/<\/?[^>]+(>|$)/g, "");
+	}
 	
 };
 
