@@ -36,7 +36,34 @@ var CurrencyUtil = CurrencyUtil ||
 				value = Math.round(value);
 			}
 			var formattedValue = isValidString(symbol) ? symbol : "";
-			formattedValue += isValidString(seperator) ? parseFloat(value).toFixed(decimal).replace(/\B(?=(\d{3})+(?!\d))/g, seperator) : parseFloat(value).toFixed(decimal);
+			if(isValidString(seperator))
+			{
+				var stringValue = parseFloat(value).toFixed(decimal);
+				var formattedValues = [];
+				if(decimal > 0)
+				{
+					for(var i = 1; i <= decimal; i++)
+					{
+						formattedValues.push(stringValue.charAt(stringValue.length - i));
+					}
+					formattedValues.push(".");
+				}
+				var length = stringValue.length - decimal - 1;
+				for(var i = 1; i <= length; i++)
+				{
+					formattedValues.push(stringValue.charAt(length - i));
+					if(i < length && i % 3 == 0)
+					{
+						formattedValues.push(seperator);
+					}
+				}
+				formattedValue += formattedValues.reverse().join("");
+			}
+			else
+			{
+				formattedValue = parseFloat(value).toFixed(decimal);
+			}
+			//formattedValue += isValidString(seperator) ? parseFloat(value).toFixed(decimal).replace(/\B(?=(\d{3})+(?!\d))/g, seperator) : parseFloat(value).toFixed(decimal);
 			return formattedValue;
 		}
 		else
