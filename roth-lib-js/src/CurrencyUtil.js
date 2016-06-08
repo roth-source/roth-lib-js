@@ -29,7 +29,8 @@ var CurrencyUtil = CurrencyUtil ||
 		if(isNumber(value))
 		{
 			var decimal = 2;
-			value = value / 100;
+			var negative = value < 0;
+			value = Math.abs(value) / 100;
 			if(isTrue(round)) 
 			{
 				decimal = 0;
@@ -63,7 +64,10 @@ var CurrencyUtil = CurrencyUtil ||
 			{
 				formattedValue = parseFloat(value).toFixed(decimal);
 			}
-			//formattedValue += isValidString(seperator) ? parseFloat(value).toFixed(decimal).replace(/\B(?=(\d{3})+(?!\d))/g, seperator) : parseFloat(value).toFixed(decimal);
+			if(negative)
+			{
+				formattedValue = "(" + formattedValue + ")";
+			}
 			return formattedValue;
 		}
 		else
