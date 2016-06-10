@@ -41,15 +41,16 @@ var CurrencyUtil = CurrencyUtil ||
 			{
 				var stringValue = parseFloat(value).toFixed(decimal);
 				var formattedValues = [];
+				var length = stringValue.length;
 				if(decimal > 0)
 				{
 					for(var i = 1; i <= decimal; i++)
 					{
-						formattedValues.push(stringValue.charAt(stringValue.length - i));
+						formattedValues.push(stringValue.charAt(length - i));
 					}
 					formattedValues.push(".");
+					length = length - decimal - 1;
 				}
-				var length = stringValue.length - decimal - 1;
 				for(var i = 1; i <= length; i++)
 				{
 					formattedValues.push(stringValue.charAt(length - i));
