@@ -434,7 +434,7 @@ roth.lib.js.web.Hash = roth.lib.js.web.Hash || (function()
 		var empty = false;
 		forEach(names, function(name)
 		{
-			var changed = param[name] != loadedParam[name];
+			var changed = !ObjectUtil.equals(param[name], loadedParam[name]);
 			if(changed)
 			{
 				if(inArray(name, changeParams))

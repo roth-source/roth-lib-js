@@ -31,13 +31,20 @@
 		<script>
 			$(function()
 			{
-				var value = 1234567890;
-				console.log(CurrencyUtil.formatRounded(value));
+				//var object1 = "test";
+				//var object2 = "test";
+				//var object1 = [ "one", "two", "three" ];
+				//var object2 = [ "one", "two", "three" ];
+				var object1 = { "one" : 1, "two" : 2, "three": 3 };
+				var object2 = {"one" : 1, "two" : 2, "three": 3 };
+				var equals = ObjectUtil.equals(object1, object2);
+				console.log(equals);
+				$("#equals").text(equals);
 			});
 		</script>
 		
 	</head>
 	<body>
-		
+		<h1 id="equals"></h1>
 	</body>
 </html>

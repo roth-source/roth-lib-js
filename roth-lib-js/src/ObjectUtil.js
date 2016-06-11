@@ -43,7 +43,31 @@ var ObjectUtil = ObjectUtil ||
 			}
 		}
 		return object;
+	},
+	
+	
+	equals : function(object1, object2)
+	{
+		var equals = false;
+		if(!isSet(object1) && !isSet(object2))
+		{
+			equals = true;
+		}
+		else if(isArray(object1) && isArray(object2))
+		{
+			equals = JSON.stringify(object1) == JSON.stringify(object2);
+		}
+		else if(isObject(object1) && isObject(object2))
+		{
+			equals = JSON.stringify(object1) == JSON.stringify(object2);
+		}
+		else
+		{
+			equals = object1 == object2;
+		}
+		return equals;
 	}
+	
 	
 };
 
