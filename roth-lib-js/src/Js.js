@@ -157,10 +157,14 @@ var inMap = inMap || function(value, map)
 };
 
 
-var forEach = forEach || function(object, callback)
+var forEach = forEach || function(object, callback, thisArg)
 {
 	if(isFunction(callback))
 	{
+		if(!isSet(thisArg))
+		{
+			thisArg = this;
+		}
 		if(isArray(object))
 		{
 			for(var i in object)
@@ -172,7 +176,7 @@ var forEach = forEach || function(object, callback)
 					first	: i == 0,
 					last	: i == object.length - 1
 				};
-				if(isFalse(callback(object[i], i, loop)))
+				if(isFalse(callback.call(thisArg, object[i], i, loop)))
 				{
 					break;
 				}
@@ -191,7 +195,7 @@ var forEach = forEach || function(object, callback)
 					first	: i == 0,
 					last	: i == keys.length - 1
 				};
-				if(isFalse(callback(object[key], key, loop)))
+				if(isFalse(callback.call(thisArg, object[key], key, loop)))
 				{
 					break;
 				}
