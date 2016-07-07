@@ -819,7 +819,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		{
 			type		: type,
 			url			: url,
-			data		: JSON.stringify(request),
+			data		: !isMock() ? JSON.stringify(request) : null,
 			contentType	: "text/plain",
 			dataType	: "json",
 			cache		: false,
