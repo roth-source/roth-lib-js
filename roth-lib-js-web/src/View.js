@@ -81,7 +81,8 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 			if(isValidString(service) && isValidString(method))
 			{
 				request = isObject(request) ? request : {};
-				$.extend(true, request, this.hash.cloneParam(), ObjectUtil.parse(element.attr(this.config.attr.request)));
+				var serviceRequest = this.hash.cloneParam();
+				$.extend(true, serviceRequest, request, ObjectUtil.parse(element.attr(this.config.attr.request)));
 				var success = function(response)
 				{
 					data = isObject(data) ? data : {};
@@ -96,7 +97,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 				{
 					
 				};
-				this.service(service, method, request, success, error, complete);
+				this.service(service, method, serviceRequest, success, error, complete);
 			}
 			else
 			{
@@ -433,26 +434,23 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 				this.service(service, method, request, function(data)
 				{
 					scope.data = data;
-					if(isFunction(disabler))
-					{
-						disabler(element, false);
-					}
+					var enable = true;
 					if(isFunction(success))
 					{
 						success(data, request, element);
 					}
 					if(isValidString(successAttr))
 					{
-						self.eval(successAttr, scope);
+						enable = self.eval(successAttr, scope);
+					}
+					if(isFunction(disabler) && !isFalse(enable))
+					{
+						disabler(element, false);
 					}
 				},
 				function(errors)
 				{
 					scope.errors = errors;
-					if(isFunction(disabler))
-					{
-						disabler(element, false);
-					}
 					if(isFunction(error))
 					{
 						error(errors, request, element);
@@ -460,6 +458,10 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 					if(isValidString(errorAttr))
 					{
 						self.eval(errorAttr, scope);
+					}
+					if(isFunction(disabler))
+					{
+						disabler(element, false);
 					}
 				},
 				function()
@@ -556,7 +558,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 			}
 			else if(field.type == "file")
 			{
-				field.value = element.attr(this.config.attr.value);
+				field.value = element.attr(this.config.attr.fileValue);
 			}
 			else
 			{
@@ -683,7 +685,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 				var reader  = new FileReader();
 				reader.onload = function(event)
 				{
-					element.attr(self.config.attr.value, reader.result);
+					element.attr(self.config.attr.fileValue, reader.result);
 					if(isFunction(callback))
 					{
 						callback(reader.result);
@@ -780,7 +782,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 		{
 			self.resetValue($(this));
 		});
-		this.web._values(element);
+		this.web._defaults(element);
 	};
 
 
@@ -792,7 +794,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 		element.val("");
 		if(type == "file")
 		{
-			element.attr(this.config.attr.value, "");
+			element.attr(this.config.attr.fileValue, "");
 		}
 	};
 
@@ -847,4 +849,6 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 	return View;
 	 
 })();
+
+
 
