@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-version="0.2.0-SNAPSHOT";
+version="0.2.1-SNAPSHOT";
 while getopts "v:" opt;
 do
 	case $opt in
