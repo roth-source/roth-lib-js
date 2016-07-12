@@ -61,6 +61,9 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 				onblur			: "data-onblur",
 				onfocus			: "data-onfocus",
 				onscroll		: "data-onscroll",
+				oninput			: "data-oninput",
+				onpaste			: "data-onpaste",
+				onkeypress		: "data-onkeypress",
 				onkeyup			: "data-onkeyup",
 				onenter			: "data-onenter",
 				onescape		: "data-onescape",
@@ -1218,6 +1221,9 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		this._bindEvent(view, "blur", this.config.attr.onblur);
 		this._bindEvent(view, "focus", this.config.attr.onfocus);
 		this._bindEvent(view, "scroll", this.config.attr.onscroll);
+		this._bindEvent(view, "input", this.config.attr.oninput);
+		this._bindEvent(view, "paste", this.config.attr.onpaste);
+		this._bindEvent(view, "keypress", this.config.attr.onkeypress);
 		this._bindEvent(view, "keyup", this.config.attr.onkeyup);
 		this._bindEvent(view, "keyup", this.config.attr.onenter, 13);
 		this._bindEvent(view, "keyup", this.config.attr.onescape, 27);
