@@ -33,13 +33,13 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 
 	Register.prototype.isValidLang = function(module, lang)
 	{
-		if(isSet(lang))
+		if(isSet(lang) && isSet(this[module]) && isSet(this[module].text))
 		{
-			var valid = inMap(lang, this[module].text);
+			var valid = isObject(this[module].text[lang]);
 			if(isDevFile() && !isCompiled() && !valid)
 			{
 				this.getText(module, lang);
-				valid = inMap(lang, this[module].text);
+				valid = isObject(this[module].text[lang]);
 			}
 			return valid;
 		}
