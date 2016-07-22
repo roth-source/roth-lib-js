@@ -106,8 +106,14 @@ roth.lib.js.web.Hash = roth.lib.js.web.Hash || (function()
 
 	Hash.prototype.changeLang = function(lang)
 	{
-		this.setLang(lang);
-		window.location.replace("#/" + lang + window.location.hash.slice(1));
+		if(isValidString(lang))
+		{
+			lang = lang.toLowerCase();
+			if(this.lang != lang)
+			{
+				window.location.replace("#/" + lang + window.location.hash.slice(1));
+			}
+		}
 	};
 
 
