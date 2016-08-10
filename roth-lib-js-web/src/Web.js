@@ -21,6 +21,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 			xCsrfToken 			: "X-Csrf-Token",
 			layoutId			: "layout",
 			pageId				: "page",
+			pageClass			: "",
 			attr :
 			{
 				text			: "data-text",
@@ -499,7 +500,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		this.hash.setLayout(layoutName);
 		if(this.hash.newLayout)
 		{
-			var defaultSource = "<div id=\"" +  this.config.pageId + "\"><div>";
+			var defaultSource = "<div id=\"" + this.config.pageId + "\" class=\"" + this.config.pageClass + "\"><div>";
 			var layoutConstructor = this.register.getLayoutConstructor(module, layoutName, defaultSource);
 			var layoutConfig = isObject(layoutConstructor.config) ? layoutConstructor.config : {};
 			var success = function(data, status, xhr)
