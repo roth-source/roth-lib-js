@@ -498,7 +498,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		var module = this.hash.getModule();
 		var layoutName = !isUndefined(this._pageConfig.layout) ? this._pageConfig.layout : module;
 		this.hash.setLayout(layoutName);
-		if(this.hash.newLayout)
+		if(this.hash.newLayout || this.hash.newLang)
 		{
 			var defaultSource = "<div id=\"" + this.config.pageId + "\" class=\"" + this.config.pageClass + "\"><div>";
 			var layoutConstructor = this.register.getLayoutConstructor(module, layoutName, defaultSource);
