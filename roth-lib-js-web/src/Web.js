@@ -942,9 +942,16 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 	{
 		var endpointStorage = this.config.endpoint + "-" + getEnvironment();
 		var endpoint = localStorage.getItem(endpointStorage);
+		var endpoints = this.handler.endpoint[getEnvironment()];
+		if(isSet(endpoint))
+		{
+			if(!inArray(endpoint, endpoints))
+			{
+				endpoint = null;
+			}
+		}
 		if(!isSet(endpoint))
 		{
-			var endpoints = this.handler.endpoint[getEnvironment()];
 			if(isArray(endpoints) && !isEmpty(endpoints))
 			{
 				endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];
