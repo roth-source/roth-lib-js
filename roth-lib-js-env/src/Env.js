@@ -10,6 +10,7 @@ roth.lib.js.env.hosts = roth.lib.js.env.hosts || { local : ["localhost", "127.0.
 roth.lib.js.env.environment = roth.lib.js.env.environment || null;
 roth.lib.js.env.mobile = roth.lib.js.env.mobile || null;
 roth.lib.js.env.debug = roth.lib.js.env.debug || null;
+roth.lib.js.env.print = roth.lib.js.env.print || null;
 roth.lib.js.env.compiled = roth.lib.js.env.compiled || null;
 roth.lib.js.env.cssCompiled = roth.lib.js.env.cssCompiled || false;
 roth.lib.js.env.context = roth.lib.js.env.context || null;
@@ -96,6 +97,12 @@ var setMobile = setMobile || function(mobile)
 var setDebug = setDebug || function(debug)
 {
 	roth.lib.js.env.debug = debug !== false ? true : false;
+};
+
+
+var setPrint = setPrint || function(print)
+{
+	roth.lib.js.env.print = print !== false ? true : false;
 };
 
 
@@ -317,10 +324,20 @@ var isDebug = isDebug || function()
 		}
 		else
 		{
-			setDebug(window.location.search.toLowerCase().indexOf("debug") != -1);
+			setDebug(window.location.search.search(/[?&]debug/i) != -1);
 		}
 	}
 	return roth.lib.js.env.debug;
+};
+
+
+var isPrint = isPrint || function()
+{
+	if(roth.lib.js.env.print == null)
+	{
+		setPrint(window.location.search.search(/[?&]print/i) != -1);
+	}
+	return roth.lib.js.env.print;
 };
 
 
@@ -374,43 +391,46 @@ var loadDependencies = loadDependencies || function(app, cssCompiled)
 			{
 				if((cssCompiled === undefined && dependency.cssCompiled === undefined) || (cssCompiled === true && dependency.cssCompiled === true) || (cssCompiled === false && dependency.cssCompiled === false))
 				{
-					var local = dependency.local;
-					var external = dependency.external;
-					var path = local;
-					if((!local && isDev()) || (external && !isDev()))
+					if(dependency.print === undefined || (isPrint() && dependency.print === true) || (!isPrint() && dependency.print === false))
 					{
-						path = external;
-					}
-					if(path)
-					{
-						var tag = dependency.tag;
-						if((tag && tag.toLowerCase() == "link") || styleRegExp.test(path))
+						var local = dependency.local;
+						var external = dependency.external;
+						var path = local;
+						if((!local && isDev()) || (external && !isDev()))
 						{
-							var builder = "";
-							builder += "<link ";
-							var attributeMap = dependency.attributeMap || {};
-							attributeMap.href = path;
-							attributeMap.rel = attributeMap.rel || "stylesheet";
-							attributeMap.type = attributeMap.type || "text/css";
-							for(var name in attributeMap)
-							{
-								builder += name + "=\"" + attributeMap[name] + "\" ";
-							}
-							builder += " />";
-							document.write(builder);
+							path = external;
 						}
-						else if((tag && tag.toLowerCase() == "script") || scriptRegExp.test(path))
+						if(path)
 						{
-							var builder = "";
-							builder += "<script ";
-							var attributeMap = dependency.attributeMap || {};
-							attributeMap.src = path;
-							for(var name in attributeMap)
+							var tag = dependency.tag;
+							if((tag && tag.toLowerCase() == "link") || styleRegExp.test(path))
 							{
-								builder += name + "=\"" + attributeMap[name] + "\" ";
+								var builder = "";
+								builder += "<link ";
+								var attributeMap = dependency.attributeMap || {};
+								attributeMap.href = path;
+								attributeMap.rel = attributeMap.rel || "stylesheet";
+								attributeMap.type = attributeMap.type || "text/css";
+								for(var name in attributeMap)
+								{
+									builder += name + "=\"" + attributeMap[name] + "\" ";
+								}
+								builder += " />";
+								document.write(builder);
 							}
-							builder += "></script>";
-							document.write(builder);
+							else if((tag && tag.toLowerCase() == "script") || scriptRegExp.test(path))
+							{
+								var builder = "";
+								builder += "<script ";
+								var attributeMap = dependency.attributeMap || {};
+								attributeMap.src = path;
+								for(var name in attributeMap)
+								{
+									builder += name + "=\"" + attributeMap[name] + "\" ";
+								}
+								builder += "></script>";
+								document.write(builder);
+							}
 						}
 					}
 				}

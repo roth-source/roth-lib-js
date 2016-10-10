@@ -497,6 +497,10 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		var self = this;
 		var module = this.hash.getModule();
 		var layoutName = !isUndefined(this._pageConfig.layout) ? this._pageConfig.layout : module;
+		if(isPrint())
+		{
+			layoutName = null;
+		}
 		this.hash.setLayout(layoutName);
 		if(this.hash.newLayout || this.hash.newLang)
 		{
@@ -668,6 +672,10 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 			}
 			this.page.element.show();
 			this.page._visible();
+			if(isPrint())
+			{
+				window.print();
+			}
 		}
 	};
 
