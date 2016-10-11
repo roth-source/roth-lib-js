@@ -672,10 +672,6 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 			}
 			this.page.element.show();
 			this.page._visible();
-			if(isPrint())
-			{
-				window.print();
-			}
 		}
 	};
 
