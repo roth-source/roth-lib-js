@@ -242,6 +242,7 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 		var success = function(data)
 		{
 			script = data;
+			script += "return View;"
 		};
 		$.ajax(
 		{
