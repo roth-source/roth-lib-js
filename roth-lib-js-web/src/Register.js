@@ -180,8 +180,8 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 		}
 		return constructor;
 	};
-
-
+	
+	
 	Register.prototype.constructView = function(constructor, data, web)
 	{
 		var self = this;

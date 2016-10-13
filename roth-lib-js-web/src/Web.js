@@ -572,7 +572,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 	{
 		if(this._continueLoad(loadId))
 		{
-			this.layout._init(this);
+			this.layout._references(this);
 			this.layout.element = this.layoutElement();
 			this.layout.element.hide();
 			this.layout.element.empty().append(this.layout._temp.contents().detach());
@@ -658,7 +658,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		if(this._continueLoad(loadId))
 		{
 			this.layout.page = this.page;
-			this.page._init(this);
+			this.page._references(this);
 			this.page.element = this.pageElement();
 			this.page.element.hide();
 			this.page.element.empty().append(this.page._temp.contents().detach());

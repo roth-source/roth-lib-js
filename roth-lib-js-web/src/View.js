@@ -11,6 +11,16 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 	
 	View.prototype._init = function(web)
 	{
+		this._references(web);
+		if(isFunction(this.init))
+		{
+			this.init();
+		}
+	};
+	
+	
+	View.prototype._references = function(web)
+	{
 		this.web = web;
 		this.config = web.config;
 		this.handler = web.handler;
@@ -114,7 +124,6 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 	View.prototype.loadComponent = function(element, componentName, data, callback)
 	{
 		var component = null;
-		
 		element = this.wrap(element);
 		if(element.length > 0)
 		{
