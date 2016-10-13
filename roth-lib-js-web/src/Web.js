@@ -691,7 +691,12 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 				if(isFunction(componentConstructor))
 				{
 					var componentConfig = isObject(componentConstructor.config) ? componentConstructor.config : {};
-					var data = ObjectUtil.parse(element.attr(self.config.attr.data));
+					var data = {};
+					var attrData = element.attr(self.config.attr.data);
+					if(isSet(attrData))
+					{
+						data = ObjectUtil.parse(decodeURIComponent(attrData));
+					}
 					var component = self.register.constructView(componentConstructor, data, self);
 					if(isSet(component))
 					{
