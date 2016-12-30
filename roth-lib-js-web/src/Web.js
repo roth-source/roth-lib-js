@@ -164,7 +164,8 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		
 		this.handler.validator.email = function(value)
 		{
-			return (/^[a-zA-Z0-9._\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]+$/).test(value);
+			//return (/^[a-zA-Z0-9._\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]+$/).test(value);
+			return (/^[A-Za-z0-9_\-\+]+(?:\.[A-Za-z0-9_\-]+)*@([A-Za-z0-9\-]+(?:\.[A-Za-z0-9\-]+)*\.[A-Za-z]{2,})$/).test(value);
 		};
 		
 		this.handler.validator.phone = function(value)
@@ -791,12 +792,13 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 	};
 
 
-	Web.prototype._serviceCall = function(service, method, request, success, error, complete, group, view, scenario)
+	Web.prototype._serviceCall = function(service, method, request, success, error, complete, group, view, scenario, endpoints)
 	{
 		var self = this;
 		var module = this.hash.getModule();
 		var page = this.hash.getPage();
 		var url = null;
+		var endpoint = null;
 		var type = "POST";
 		if(isMock())
 		{
@@ -812,12 +814,16 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		else
 		{
 			path = this.config.service+ "/" + service + "/" + method;
-			var csrfToken = localStorage.getItem("csrfToken");
+			var csrfToken = localStorage.getItem(getEnvironment() + "-" + this.config.csrfToken);
 			if(isSet(csrfToken))
 			{
 				path += "?csrfToken=" + encodeURIComponent(csrfToken);
 			}
-			var endpoint = this._endpoint();
+			if(!isArray(endpoints))
+			{
+				endpoints = this._endpoints();
+			}
+			endpoint = this._randomEndpoint(endpoints);
 			if(isSet(endpoint))
 			{
 				var context = isValidString(this.hash.context) ? this.hash.context + "/" : "";
@@ -828,107 +834,134 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 				// TODO: error
 			}
 		}
-		var errored = false;
-		$.ajax(
+		if(isSet(url))
 		{
-			type		: type,
-			url			: url,
-			data		: !isMock() ? JSON.stringify(request) : null,
-			contentType	: "text/plain",
-			dataType	: "json",
-			cache		: false,
-			xhrFields	:
+			var errored = false;
+			$.ajax(
 			{
-				withCredentials : true
-			},
-			success		: function(response, status, xhr)
-			{
-				var csrfTokenHeader = xhr.getResponseHeader(self.config.xCsrfToken);
-				if(isSet(csrfTokenHeader))
+				type		: type,
+				url			: url,
+				data		: !isMock() ? JSON.stringify(request) : null,
+				contentType	: "text/plain",
+				dataType	: "json",
+				cache		: false,
+				xhrFields	:
 				{
-					localStorage.setItem(self.config.csrfToken, csrfTokenHeader);
-				}
-				self._serviceLog(service, method, url, request, response);
-				if(isEmpty(response.errors))
+					withCredentials : true
+				},
+				success		: function(response, status, xhr)
 				{
-					if(isFunction(success))
+					var csrfTokenHeader = xhr.getResponseHeader(self.config.xCsrfToken);
+					if(isSet(csrfTokenHeader))
 					{
-						success(response, status, xhr);
+						localStorage.setItem(getEnvironment() + "-" + self.config.csrfToken, csrfTokenHeader);
 					}
-				}
-				else
-				{
-					var handled = false;
-					var groupElement = isSet(group) ? $("[" + self.config.attr.group + "='" + group + "']") : $();
-					forEach(response.errors, function(error)
+					self._serviceLog(service, method, url, request, response);
+					if(isEmpty(response.errors))
 					{
-						switch(error.type)
+						if(isFunction(success))
 						{
-							case "SERVICE_AJAX_NOT_AUTHENTICATED":
-							case "SERVICE_CSRF_TOKEN_INVALID":
-							{
-								var authRedirector = self.handler.redirector[self._pageConfig.authRedirector];
-								if(!isFunction(authRedirector))
-								{
-									authRedirector = self.handler.redirector.auth;
-								}
-								if(isFunction(authRedirector))
-								{
-									authRedirector();
-									handled = true;
-								}
-								break;
-							}
-							case "REQUEST_FIELD_REQUIRED":
-							case "REQUEST_FIELD_INVALID":
-							{
-								if(isSet(error.context))
-								{
-									var element = groupElement.find("[name='" + error.context + "']");
-									view.feedback(element, { valid : false });
-								}
-								break;
-							}
+							success(response, status, xhr);
 						}
-					});
-					if(!handled && isFunction(error))
+					}
+					else
 					{
-						error(response.errors, status, xhr);
+						var handled = false;
+						var groupElement = isSet(group) ? $("[" + self.config.attr.group + "='" + group + "']") : $();
+						forEach(response.errors, function(error)
+						{
+							switch(error.type)
+							{
+								case "DATABASE_CONNECTION_EXCEPTION":
+								{
+									endpoints = self._removeEndpoint(endpoints, endpoint);
+									if(isArray(endpoints) && !isEmpty(endpoints))
+									{
+										self._serviceCall(service, method, request, success, error, complete, group, view, scenario, endpoints);
+										handled = true;
+									}
+									return false;
+								}
+								case "SERVICE_AJAX_NOT_AUTHENTICATED":
+								case "SERVICE_CSRF_TOKEN_INVALID":
+								{
+									var authRedirector = self.handler.redirector[self._pageConfig.authRedirector];
+									if(!isFunction(authRedirector))
+									{
+										authRedirector = self.handler.redirector.auth;
+									}
+									if(isFunction(authRedirector))
+									{
+										authRedirector();
+										handled = true;
+									}
+									break;
+								}
+								case "REQUEST_FIELD_REQUIRED":
+								case "REQUEST_FIELD_INVALID":
+								{
+									if(isSet(error.context))
+									{
+										var element = groupElement.find("[name='" + error.context + "']");
+										view.feedback(element, { valid : false });
+									}
+									break;
+								}
+							}
+						});
+						if(!handled && isFunction(error))
+						{
+							error(response.errors, status, xhr);
+						}
+					}
+				},
+				error		: function(xhr, status, errorMessage)
+				{
+					if(!errored)
+					{
+						self._serviceLog(service, method, url, request, status + " - " + errorMessage);
+						errored = true;
+						endpoints = self._removeEndpoint(endpoints, endpoint);
+						if(isArray(endpoints) && !isEmpty(endpoints))
+						{
+							self._serviceCall(service, method, request, success, error, complete, group, view, scenario, endpoints);
+						}
+						else if(isFunction(error))
+						{
+							error({}, status, xhr);
+						}
+					}
+				},
+				complete	: function(xhr, status)
+				{
+					if("success" != status && !errored)
+					{
+						self._serviceLog(service, method, url, request, status);
+						errored = true;
+						endpoints = self._removeEndpoint(endpoints, endpoint);
+						if(isArray(endpoints) && !isEmpty(endpoints))
+						{
+							self._serviceCall(service, method, request, success, error, complete, group, view, scenario, endpoints);
+						}
+						else if(isFunction(error))
+						{
+							error({}, status, xhr);
+						}
+					}
+					if(isFunction(complete))
+					{
+						complete(status, xhr);
 					}
 				}
-			},
-			error		: function(xhr, status, errorMessage)
-			{
-				if(!errored)
-				{
-					self._serviceLog(service, method, url, request, status + " - " + errorMessage);
-					errored = true;
-					if(isFunction(error))
-					{
-						error({}, status, xhr);
-					}
-				}
-			},
-			complete	: function(xhr, status)
-			{
-				if("success" != status && !errored)
-				{
-					self._serviceLog(service, method, url, request, status);
-					errored = true;
-					if(isFunction(error))
-					{
-						error({}, status, xhr);
-					}
-				}
-				if(isFunction(complete))
-				{
-					complete(status, xhr);
-				}
-			}
-		});
+			});
+		}
+		else
+		{
+			// endpoint error stop retrying
+		}
 	};
-
-
+	
+	
 	Web.prototype._serviceLog = function(service, method, url, request, response)
 	{
 		if(isDebug())
@@ -945,32 +978,40 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 			console.groupEnd();
 		}
 	};
-
-
-	Web.prototype._endpoint = function()
+	
+	
+	Web.prototype._endpoints = function()
 	{
-		var endpointStorage = this.config.endpoint + "-" + getEnvironment();
-		var endpoint = localStorage.getItem(endpointStorage);
 		var endpoints = this.handler.endpoint[getEnvironment()];
-		if(isSet(endpoint))
+		return isArray(endpoints) ? endpoints.slice() : [];
+	};
+	
+	
+	Web.prototype._randomEndpoint = function(endpoints)
+	{
+		var endpoint = null;
+		if(isArray(endpoints) && !isEmpty(endpoints))
 		{
-			if(!inArray(endpoint, endpoints))
-			{
-				endpoint = null;
-			}
-		}
-		if(!isSet(endpoint))
-		{
-			if(isArray(endpoints) && !isEmpty(endpoints))
-			{
-				endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];
-				localStorage.setItem(endpointStorage, endpoint);
-			}
+			endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];
 		}
 		return endpoint;
 	};
 
-
+	
+	Web.prototype._removeEndpoint = function(endpoints, endpoint)
+	{
+		if(isArray(endpoints) && !isEmpty(endpoints) && isValidString(endpoint))
+		{
+			var index = endpoints.indexOf(endpoint);
+			if(index > -1)
+			{
+				endpoints.splice(index, 1);
+			}
+		}
+		return endpoints;
+	};
+	
+	
 	Web.prototype._translate = function(viewElement, prefix)
 	{
 		var self = this;
