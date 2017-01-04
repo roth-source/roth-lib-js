@@ -93,6 +93,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		
 		this.handler = 
 		{
+			change			: null,	
 			endpoint		: {},
 			filterer		: {},
 			validator		: {},
@@ -216,6 +217,10 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 			{
 				if(self._isLoadable())
 				{
+					if(isFunction(self.handler.change))
+					{
+						self.handler.change(self.hash);
+					}
 					self._loadId = IdUtil.generate();
 					self._loadLayout(self._loadId);
 				}
