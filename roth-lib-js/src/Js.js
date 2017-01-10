@@ -138,7 +138,7 @@ var isObject = isObject || function(value)
 var inArray = inArray || function(value, array)
 {
 	var contains = false;
-	if(isArray(array))
+	if(isSet(value) && isArray(array))
 	{
 		contains = array.indexOf(value) > -1;
 	}
