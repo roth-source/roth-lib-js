@@ -33,13 +33,13 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 
 	Register.prototype.isValidLang = function(module, lang)
 	{
-		if(isSet(lang))
+		if(isSet(lang) && isSet(this[module]) && isSet(this[module].text))
 		{
-			var valid = inMap(lang, this[module].text);
+			var valid = isObject(this[module].text[lang]);
 			if(isDevFile() && !isCompiled() && !valid)
 			{
 				this.getText(module, lang);
-				valid = inMap(lang, this[module].text);
+				valid = isObject(this[module].text[lang]);
 			}
 			return valid;
 		}
@@ -180,8 +180,8 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 		}
 		return constructor;
 	};
-
-
+	
+	
 	Register.prototype.constructView = function(constructor, data, web)
 	{
 		var self = this;
@@ -242,6 +242,7 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 		var success = function(data)
 		{
 			script = data;
+			script += "return View;"
 		};
 		$.ajax(
 		{
@@ -299,5 +300,6 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 	return Register;
 	
 })();
+
 
 

@@ -98,7 +98,8 @@ var CurrencyUtil = CurrencyUtil ||
 		}
 		return parsedValue;
 	}
-		
+	
+	
 };
 
 

@@ -21,6 +21,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 			xCsrfToken 			: "X-Csrf-Token",
 			layoutId			: "layout",
 			pageId				: "page",
+			pageClass			: "",
 			attr :
 			{
 				text			: "data-text",
@@ -45,15 +46,16 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 				error			: "data-error",
 				complete		: "data-complete",
 				request			: "data-request",
-				placeholder		: "data-placeholder",
-				value			: "data-value",
-				_default		: "data-default",
 				updateValue		: "data-update-value",
+				editable		: "data-editable",
 				name			: "data-name",
 				key				: "data-key",
 				editor			: "data-editor",
 				type			: "data-type",
 				radioGroup		: "data-radio-group",
+				radioValue		: "data-radio-value",
+				checkboxValue	: "data-checkbox-value",
+				fileValue		: "data-file-value",
 				field			: "data-field",
 				onclick			: "data-onclick",
 				ondblclick		: "data-ondblclick",
@@ -91,6 +93,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		
 		this.handler = 
 		{
+			change			: null,	
 			endpoint		: {},
 			filterer		: {},
 			validator		: {},
@@ -162,7 +165,8 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		
 		this.handler.validator.email = function(value)
 		{
-			return (/^[a-zA-Z0-9._\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]+$/).test(value);
+			//return (/^[a-zA-Z0-9._\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]+$/).test(value);
+			return (/^[A-Za-z0-9_\-\+]+(?:\.[A-Za-z0-9_\-]+)*@([A-Za-z0-9\-]+(?:\.[A-Za-z0-9\-]+)*\.[A-Za-z]{2,})$/).test(value);
 		};
 		
 		this.handler.validator.phone = function(value)
@@ -213,6 +217,10 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 			{
 				if(self._isLoadable())
 				{
+					if(isFunction(self.handler.change))
+					{
+						self.handler.change(self.hash);
+					}
 					self._loadId = IdUtil.generate();
 					self._loadLayout(self._loadId);
 				}
@@ -495,10 +503,14 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		var self = this;
 		var module = this.hash.getModule();
 		var layoutName = !isUndefined(this._pageConfig.layout) ? this._pageConfig.layout : module;
-		this.hash.setLayout(layoutName);
-		if(this.hash.newLayout)
+		if(isPrint())
 		{
-			var defaultSource = "<div id=\"" +  this.config.pageId + "\"><div>";
+			layoutName = null;
+		}
+		this.hash.setLayout(layoutName);
+		if(this.hash.newLayout || this.hash.newLang)
+		{
+			var defaultSource = "<div id=\"" + this.config.pageId + "\" class=\"" + this.config.pageClass + "\"><div>";
 			var layoutConstructor = this.register.getLayoutConstructor(module, layoutName, defaultSource);
 			var layoutConfig = isObject(layoutConstructor.config) ? layoutConstructor.config : {};
 			var success = function(data, status, xhr)
@@ -524,7 +536,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 					layout._temp = $("<div></div>");
 					layout._temp.html(html);
 					self._translate(layout._temp, layoutConstructor._module + ".layout." + layoutConstructor._name + ".");
-					self._values(layout._temp);
+					self._defaults(layout._temp);
 					self._bind(layout);
 					self.hash.loadedLayout();
 					self.layout = layout;
@@ -566,7 +578,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 	{
 		if(this._continueLoad(loadId))
 		{
-			this.layout._init(this);
+			this.layout._references(this);
 			this.layout.element = this.layoutElement();
 			this.layout.element.hide();
 			this.layout.element.empty().append(this.layout._temp.contents().detach());
@@ -612,7 +624,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 				page._temp = $("<div></div>");
 				page._temp.html(html);
 				self._translate(page._temp, pageConstructor._module + ".page." + pageConstructor._name + ".");
-				self._values(page._temp);
+				self._defaults(page._temp);
 				self._bind(page);
 				self.hash.loadedModule();
 				self.hash.loadedPage();
@@ -652,7 +664,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		if(this._continueLoad(loadId))
 		{
 			this.layout.page = this.page;
-			this.page._init(this);
+			this.page._references(this);
 			this.page.element = this.pageElement();
 			this.page.element.hide();
 			this.page.element.empty().append(this.page._temp.contents().detach());
@@ -685,7 +697,12 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 				if(isFunction(componentConstructor))
 				{
 					var componentConfig = isObject(componentConstructor.config) ? componentConstructor.config : {};
-					var data = ObjectUtil.parse(element.attr(self.config.attr.data));
+					var data = {};
+					var attrData = element.attr(self.config.attr.data);
+					if(isSet(attrData))
+					{
+						data = ObjectUtil.parse(decodeURIComponent(attrData));
+					}
 					var component = self.register.constructView(componentConstructor, data, self);
 					if(isSet(component))
 					{
@@ -731,7 +748,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		component._temp = $("<div></div>");
 		component._temp.html(html);
 		self._translate(component._temp, component.constructor._module + ".component." + component.constructor._name + ".");
-		self._values(component._temp);
+		self._defaults(component._temp);
 		self._bind(component);
 		self._loadComponents(component, loadId);
 		if(!isFalse(hide))
@@ -780,12 +797,13 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 	};
 
 
-	Web.prototype._serviceCall = function(service, method, request, success, error, complete, group, view, scenario)
+	Web.prototype._serviceCall = function(service, method, request, success, error, complete, group, view, scenario, endpoints)
 	{
 		var self = this;
 		var module = this.hash.getModule();
 		var page = this.hash.getPage();
 		var url = null;
+		var endpoint = null;
 		var type = "POST";
 		if(isMock())
 		{
@@ -801,12 +819,16 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		else
 		{
 			path = this.config.service+ "/" + service + "/" + method;
-			var csrfToken = localStorage.getItem("csrfToken");
+			var csrfToken = localStorage.getItem(getEnvironment() + "-" + this.config.csrfToken);
 			if(isSet(csrfToken))
 			{
 				path += "?csrfToken=" + encodeURIComponent(csrfToken);
 			}
-			var endpoint = this._endpoint();
+			if(!isArray(endpoints))
+			{
+				endpoints = this._endpoints();
+			}
+			endpoint = this._randomEndpoint(endpoints);
 			if(isSet(endpoint))
 			{
 				var context = isValidString(this.hash.context) ? this.hash.context + "/" : "";
@@ -817,107 +839,134 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 				// TODO: error
 			}
 		}
-		var errored = false;
-		$.ajax(
+		if(isSet(url))
 		{
-			type		: type,
-			url			: url,
-			data		: !isMock() ? JSON.stringify(request) : null,
-			contentType	: "text/plain",
-			dataType	: "json",
-			cache		: false,
-			xhrFields	:
+			var errored = false;
+			$.ajax(
 			{
-				withCredentials : true
-			},
-			success		: function(response, status, xhr)
-			{
-				var csrfTokenHeader = xhr.getResponseHeader(self.config.xCsrfToken);
-				if(isSet(csrfTokenHeader))
+				type		: type,
+				url			: url,
+				data		: !isMock() ? JSON.stringify(request) : null,
+				contentType	: "text/plain",
+				dataType	: "json",
+				cache		: false,
+				xhrFields	:
 				{
-					localStorage.setItem(self.config.csrfToken, csrfTokenHeader);
-				}
-				self._serviceLog(service, method, url, request, response);
-				if(isEmpty(response.errors))
+					withCredentials : true
+				},
+				success		: function(response, status, xhr)
 				{
-					if(isFunction(success))
+					var csrfTokenHeader = xhr.getResponseHeader(self.config.xCsrfToken);
+					if(isSet(csrfTokenHeader))
 					{
-						success(response, status, xhr);
+						localStorage.setItem(getEnvironment() + "-" + self.config.csrfToken, csrfTokenHeader);
 					}
-				}
-				else
-				{
-					var handled = false;
-					var groupElement = isSet(group) ? $("[" + self.config.attr.group + "='" + group + "']") : $();
-					forEach(response.errors, function(error)
+					self._serviceLog(service, method, url, request, response);
+					if(isEmpty(response.errors))
 					{
-						switch(error.type)
+						if(isFunction(success))
 						{
-							case "SERVICE_AJAX_NOT_AUTHENTICATED":
-							case "SERVICE_CSRF_TOKEN_INVALID":
-							{
-								var authRedirector = self.handler.redirector[self._pageConfig.authRedirector];
-								if(!isFunction(authRedirector))
-								{
-									authRedirector = self.handler.redirector.auth;
-								}
-								if(isFunction(authRedirector))
-								{
-									authRedirector();
-									handled = true;
-								}
-								break;
-							}
-							case "REQUEST_FIELD_REQUIRED":
-							case "REQUEST_FIELD_INVALID":
-							{
-								if(isSet(error.context))
-								{
-									var element = groupElement.find("[name='" + error.context + "']");
-									view.feedback(element, { valid : false });
-								}
-								break;
-							}
+							success(response, status, xhr);
 						}
-					});
-					if(!handled && isFunction(error))
+					}
+					else
 					{
-						error(response.errors, status, xhr);
+						var handled = false;
+						var groupElement = isSet(group) ? $("[" + self.config.attr.group + "='" + group + "']") : $();
+						forEach(response.errors, function(error)
+						{
+							switch(error.type)
+							{
+								case "DATABASE_CONNECTION_EXCEPTION":
+								{
+									endpoints = self._removeEndpoint(endpoints, endpoint);
+									if(isArray(endpoints) && !isEmpty(endpoints))
+									{
+										self._serviceCall(service, method, request, success, error, complete, group, view, scenario, endpoints);
+										handled = true;
+									}
+									return false;
+								}
+								case "SERVICE_AJAX_NOT_AUTHENTICATED":
+								case "SERVICE_CSRF_TOKEN_INVALID":
+								{
+									var authRedirector = self.handler.redirector[self._pageConfig.authRedirector];
+									if(!isFunction(authRedirector))
+									{
+										authRedirector = self.handler.redirector.auth;
+									}
+									if(isFunction(authRedirector))
+									{
+										authRedirector();
+										handled = true;
+									}
+									break;
+								}
+								case "REQUEST_FIELD_REQUIRED":
+								case "REQUEST_FIELD_INVALID":
+								{
+									if(isSet(error.context))
+									{
+										var element = groupElement.find("[name='" + error.context + "']");
+										view.feedback(element, { valid : false });
+									}
+									break;
+								}
+							}
+						});
+						if(!handled && isFunction(error))
+						{
+							error(response.errors, status, xhr);
+						}
+					}
+				},
+				error		: function(xhr, status, errorMessage)
+				{
+					if(!errored)
+					{
+						self._serviceLog(service, method, url, request, status + " - " + errorMessage);
+						errored = true;
+						endpoints = self._removeEndpoint(endpoints, endpoint);
+						if(isArray(endpoints) && !isEmpty(endpoints))
+						{
+							self._serviceCall(service, method, request, success, error, complete, group, view, scenario, endpoints);
+						}
+						else if(isFunction(error))
+						{
+							error({}, status, xhr);
+						}
+					}
+				},
+				complete	: function(xhr, status)
+				{
+					if("success" != status && !errored)
+					{
+						self._serviceLog(service, method, url, request, status);
+						errored = true;
+						endpoints = self._removeEndpoint(endpoints, endpoint);
+						if(isArray(endpoints) && !isEmpty(endpoints))
+						{
+							self._serviceCall(service, method, request, success, error, complete, group, view, scenario, endpoints);
+						}
+						else if(isFunction(error))
+						{
+							error({}, status, xhr);
+						}
+					}
+					if(isFunction(complete))
+					{
+						complete(status, xhr);
 					}
 				}
-			},
-			error		: function(xhr, status, errorMessage)
-			{
-				if(!errored)
-				{
-					self._serviceLog(service, method, url, request, status + " - " + errorMessage);
-					errored = true;
-					if(isFunction(error))
-					{
-						error({}, status, xhr);
-					}
-				}
-			},
-			complete	: function(xhr, status)
-			{
-				if("success" != status && !errored)
-				{
-					self._serviceLog(service, method, url, request, status);
-					errored = true;
-					if(isFunction(error))
-					{
-						error({}, status, xhr);
-					}
-				}
-				if(isFunction(complete))
-				{
-					complete(status, xhr);
-				}
-			}
-		});
+			});
+		}
+		else
+		{
+			// endpoint error stop retrying
+		}
 	};
-
-
+	
+	
 	Web.prototype._serviceLog = function(service, method, url, request, response)
 	{
 		if(isDebug())
@@ -934,25 +983,40 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 			console.groupEnd();
 		}
 	};
-
-
-	Web.prototype._endpoint = function()
+	
+	
+	Web.prototype._endpoints = function()
 	{
-		var endpointStorage = this.config.endpoint + "-" + getEnvironment();
-		var endpoint = localStorage.getItem(endpointStorage);
-		if(!isSet(endpoint))
+		var endpoints = this.handler.endpoint[getEnvironment()];
+		return isArray(endpoints) ? endpoints.slice() : [];
+	};
+	
+	
+	Web.prototype._randomEndpoint = function(endpoints)
+	{
+		var endpoint = null;
+		if(isArray(endpoints) && !isEmpty(endpoints))
 		{
-			var endpoints = this.handler.endpoint[getEnvironment()];
-			if(isArray(endpoints) && !isEmpty(endpoints))
-			{
-				endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];
-				localStorage.setItem(endpointStorage, endpoint);
-			}
+			endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];
 		}
 		return endpoint;
 	};
 
-
+	
+	Web.prototype._removeEndpoint = function(endpoints, endpoint)
+	{
+		if(isArray(endpoints) && !isEmpty(endpoints) && isValidString(endpoint))
+		{
+			var index = endpoints.indexOf(endpoint);
+			if(index > -1)
+			{
+				endpoints.splice(index, 1);
+			}
+		}
+		return endpoints;
+	};
+	
+	
 	Web.prototype._translate = function(viewElement, prefix)
 	{
 		var self = this;
@@ -1078,23 +1142,19 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		}
 		return object;
 	};
-	
-	
-	Web.prototype._values = function(viewElement)
+
+
+	Web.prototype._defaults = function(viewElement)
 	{
 		var self = this;
-		viewElement.find("select[" + this.config.attr.value + "], select[" + this.config.attr._default + "], select[" + this.config.attr.placeholder + "]").each(function()
+		// select value
+		viewElement.find("select[value], select[placeholder]").each(function()
 		{
 			var element = $(this);
 			var selected = false;
-			var value = element.attr(self.config.attr.value);
-			if(!isValidString(value))
-			{
-				value = element.attr(self.config.attr._default);
-			}
+			var value = element.attr("value");
 			if(isValidString(value))
 			{
-				element.removeAttr(self.config.attr.value);
 				var values = [];
 				var matches = value.match(/^\[(.*?)\]$/);
 				if(!isEmpty(matches))
@@ -1115,7 +1175,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 					}
 				});
 			}
-			var placeholder = element.attr(self.config.attr.placeholder);
+			var placeholder = element.attr("placeholder");
 			if(isValidString(placeholder))
 			{
 				var color = element.css("color");
@@ -1141,56 +1201,28 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 			}
 		});
 		// radio group value
-		viewElement.find("[" + this.config.attr.radioGroup + "][" + this.config.attr.value + "], [" + this.config.attr.radioGroup + "][" + this.config.attr._default + "]").each(function()
+		viewElement.find("[" + self.config.attr.radioValue + "]").each(function()
 		{
 			var element = $(this);
-			var value = element.attr(self.config.attr.value);
-			if(!isValidString(value))
+			var value = element.attr(self.config.attr.radioValue);
+			var radio = element.find("input[type=radio][value='" + value + "']");
+			if(radio.length > 0)
 			{
-				value = element.attr(self.config.attr._default);
+				radio.first().prop("checked", true);
 			}
-			if(isValidString(value))
+			else
 			{
-				element.removeAttr(self.config.attr.value);
-				var radio = element.find("input[type=radio][value='" + value + "']");
-				if(radio.length > 0)
-				{
-					radio.first().prop("checked", true);
-				}
+				element.find("input[type=radio]").first().prop("checked", true);
 			}
 		});
 		// checkbox value
-		viewElement.find("input[type=checkbox][" + self.config.attr.value + "], input[type=checkbox][" + self.config.attr._default + "]").each(function()
+		viewElement.find("input[type=checkbox][" + self.config.attr.checkboxValue + "]").each(function()
 		{
 			var element = $(this);
-			var value = element.attr(self.config.attr.value);
-			if(!isValidString(value))
-			{
-				value = element.attr(self.config.attr._default);
-			}
-			var checkboxValue = element.attr("value");
-			if(!isValidString(checkboxValue))
-			{
-				checkboxValue = "true";
-			}
-			if(StringUtil.equals(value, checkboxValue))
+			var value = element.attr(self.config.attr.checkboxValue);
+			if(isSet(value) && value.toLowerCase() == "true")
 			{
 				element.prop("checked", true);
-			}
-		});
-		// text input value
-		viewElement.find("input[type!=checkbox][type!=radio][" + self.config.attr.value + "], input[type!=checkbox][type!=radio][" + self.config.attr._default + "]").each(function()
-		{
-			var element = $(this);
-			var value = element.attr(self.config.attr.value);
-			element.removeAttr(self.config.attr.value);
-			if(!isValidString(value))
-			{
-				value = element.attr(self.config.attr._default);
-			}
-			if(isValidString(value))
-			{
-				element.val(value);
 			}
 		});
 	};
@@ -1266,8 +1298,6 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 	return Web;
 	
 })();
-
-
 
 
 

@@ -106,8 +106,14 @@ roth.lib.js.web.Hash = roth.lib.js.web.Hash || (function()
 
 	Hash.prototype.changeLang = function(lang)
 	{
-		this.setLang(lang);
-		this.refresh();
+		if(isValidString(lang))
+		{
+			lang = lang.toLowerCase();
+			if(this.lang != lang)
+			{
+				window.location.replace("#/" + lang + window.location.hash.slice(1));
+			}
+		}
 	};
 
 
@@ -452,7 +458,31 @@ roth.lib.js.web.Hash = roth.lib.js.web.Hash || (function()
 	};
 	
 	
+	Hash.prototype.print = function()
+	{
+		var url = "";
+		url += window.location.protocol;
+		url += "//";
+		url += window.location.hostname;
+		url += window.location.pathname;
+		if(isValidString(window.location.search))
+		{
+			url += window.location.search;
+			url += "&";
+		}
+		else
+		{
+			url += "?";
+		}
+		url += "print";
+		url += window.location.hash;
+		window.open(url, "_blank");
+	};
+	
+	
 	return Hash;
 	
 })();
+
+
 

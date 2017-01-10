@@ -62,7 +62,7 @@ var StringUtil = StringUtil ||
 	
 	capitalize : function(value)
 	{
-		return value.charAt(0).toUpperCase() + value.slice(1);
+		return isValidString(value) ? value.charAt(0).toUpperCase() + value.slice(1) : "";
 	},
 	
 	
@@ -80,6 +80,7 @@ var StringUtil = StringUtil ||
 		});
 		return value;
 	},
+	
 	
 	stripHtml : function(value)
 	{
