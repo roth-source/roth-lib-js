@@ -818,7 +818,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		else
 		{
 			path = this.config.service+ "/" + service + "/" + method;
-			var csrfToken = localStorage.getItem(getEnvironment() + "-" + this.config.csrfToken);
+			var csrfToken = localStorage.getItem(this.config.csrfToken);
 			if(isSet(csrfToken))
 			{
 				path += "?csrfToken=" + encodeURIComponent(csrfToken);
@@ -827,7 +827,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 			{
 				endpoints = this._endpoints();
 			}
-			endpoint = this._randomEndpoint(endpoints);
+			endpoint = this._endpoint(endpoints);
 			if(isSet(endpoint))
 			{
 				var context = isValidString(this.hash.context) ? this.hash.context + "/" : "";
@@ -858,7 +858,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 					var csrfTokenHeader = xhr.getResponseHeader(self.config.xCsrfToken);
 					if(isSet(csrfTokenHeader))
 					{
-						localStorage.setItem(getEnvironment() + "-" + self.config.csrfToken, csrfTokenHeader);
+						localStorage.setItem(self.config.csrfToken, csrfTokenHeader);
 					}
 					self._serviceLog(service, method, url, request, response);
 					if(isEmpty(response.errors))
@@ -991,12 +991,17 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 	};
 	
 	
-	Web.prototype._randomEndpoint = function(endpoints)
+	Web.prototype._endpoint = function(endpoints)
 	{
 		var endpoint = null;
 		if(isArray(endpoints) && !isEmpty(endpoints))
 		{
-			endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];
+			endpoint = sessionStorage.getItem(this.config.endpoint);
+			if(!inArray(endpoint, endpoints))
+			{
+				endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];
+				sessionStorage.setItem(this.config.endpoint, endpoint);
+			}
 		}
 		return endpoint;
 	};
@@ -1012,6 +1017,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 				endpoints.splice(index, 1);
 			}
 		}
+		sessionStorage.removeItem(this.config.endpoint);
 		return endpoints;
 	};
 	
