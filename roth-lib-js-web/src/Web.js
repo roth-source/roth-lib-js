@@ -165,7 +165,6 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		
 		this.handler.validator.email = function(value)
 		{
-			//return (/^[a-zA-Z0-9._\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]+$/).test(value);
 			return (/^[A-Za-z0-9_\-\+]+(?:\.[A-Za-z0-9_\-]+)*@([A-Za-z0-9\-]+(?:\.[A-Za-z0-9\-]+)*\.[A-Za-z]{2,})$/).test(value);
 		};
 		
@@ -323,7 +322,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 	{
 		if(isCompiled() && !inArray(module, this._loadedModules))
 		{
-			var src = "app/" + this.app + "/" + module + ".js";
+			var src = "app/" + this.app + "/" + module + ".js?" + roth.lib.js.cache.key;
 			$("<script></script>").attr("src", src).appendTo("head");
 			this._loadedModules.push(module);
 		}

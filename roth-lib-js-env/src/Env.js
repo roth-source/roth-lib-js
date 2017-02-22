@@ -405,31 +405,11 @@ var loadDependencies = loadDependencies || function(app, cssCompiled)
 							var tag = dependency.tag;
 							if((tag && tag.toLowerCase() == "link") || styleRegExp.test(path))
 							{
-								var builder = "";
-								builder += "<link ";
-								var attributeMap = dependency.attributeMap || {};
-								attributeMap.href = path;
-								attributeMap.rel = attributeMap.rel || "stylesheet";
-								attributeMap.type = attributeMap.type || "text/css";
-								for(var name in attributeMap)
-								{
-									builder += name + "=\"" + attributeMap[name] + "\" ";
-								}
-								builder += " />";
-								document.write(builder);
+								loadLink(path, dependency.attributeMap);
 							}
 							else if((tag && tag.toLowerCase() == "script") || scriptRegExp.test(path))
 							{
-								var builder = "";
-								builder += "<script ";
-								var attributeMap = dependency.attributeMap || {};
-								attributeMap.src = path;
-								for(var name in attributeMap)
-								{
-									builder += name + "=\"" + attributeMap[name] + "\" ";
-								}
-								builder += "></script>";
-								document.write(builder);
+								loadScript(path, dependency.attributeMap);
 							}
 						}
 					}
