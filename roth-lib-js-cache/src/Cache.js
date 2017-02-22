@@ -5,7 +5,7 @@ roth.lib = roth.lib || {};
 roth.lib.js = roth.lib.js || {};
 roth.lib.js.cache = roth.lib.js.cache || {};
 roth.lib.js.cache.key = "key" + (new Date().getTime());
-document.write("<script src=\"script/cache.js\"></script>");
+document.write("<script src=\"script/cache.js?" + roth.lib.js.cache.key + "\"></script>");
 
 
 var loadScript = loadScript || function(path, attributeMap)

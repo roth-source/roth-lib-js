@@ -322,8 +322,14 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 	{
 		if(isCompiled() && !inArray(module, this._loadedModules))
 		{
-			var src = "app/" + this.app + "/" + module + ".js?" + roth.lib.js.cache.key;
-			$("<script></script>").attr("src", src).appendTo("head");
+			var url = "app/" + this.app + "/" + module + ".js?" + roth.lib.js.cache.key;
+			$.ajax(
+			{
+				url:url,
+				dataType:"script",
+				cache:true,
+				async:false
+			});
 			this._loadedModules.push(module);
 		}
 	};
