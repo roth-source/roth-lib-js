@@ -322,7 +322,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 	{
 		if(isCompiled() && !inArray(module, this._loadedModules))
 		{
-			var url = "app/" + this.app + "/" + module + ".js?" + roth.lib.js.cache.key;
+			var url = "app/" + this.app + "/" + module + ".js?key=" + roth.lib.js.cache.key;
 			$.ajax(
 			{
 				url:url,
