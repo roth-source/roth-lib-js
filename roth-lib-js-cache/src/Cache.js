@@ -47,4 +47,3 @@ var loadLink = loadLink || function(path, attributeMap)
 
 
 
-roth.lib.js.cache.version = "0.2.0-SNAPSHOT";
