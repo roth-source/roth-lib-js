@@ -38,6 +38,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 				feedback		: "data-feedback",
 				submitGroup		: "data-submit-group",
 				disable			: "data-disable",
+				requestError	: "data-request-error",
 				prerequest		: "data-prerequest",
 				presubmit		: "data-presubmit",
 				service			: "data-service",

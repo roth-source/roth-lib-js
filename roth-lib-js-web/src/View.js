@@ -198,7 +198,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 	};
 
 
-	View.prototype.request = function(element, service, method)
+	View.prototype.request = function(element, service, method, requestError, scope)
 	{
 		var self = this;
 		var elementRegExp = new RegExp("^(\\w+)(?:\\[|$)");
@@ -314,6 +314,14 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 		}
 		else
 		{
+			if(isValidString(requestError))
+			{
+				if(isObject(scope))
+				{
+					scope.fields = fields;
+				}
+				this.eval(requestError, scope)
+			}
 			if(isDebug())
 			{
 				var i = fields.length;
@@ -376,6 +384,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 		var disable = element.attr(this.config.attr.disable);
 		var submitGroup = element.attr(this.config.attr.submitGroup);
 		var prerequest = element.attr(this.config.attr.prerequest);
+		var requestError = element.attr(this.config.attr.requestError);
 		var presubmit = element.attr(this.config.attr.presubmit);
 		var service = element.attr(this.config.attr.service);
 		var method = element.attr(this.config.attr.method);
@@ -421,7 +430,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 		}
 		if(!isObject(request))
 		{
-			request = this.request(groupElement, service, method);
+			request = this.request(groupElement, service, method, requestError, scope);
 		}
 		if(isObject(request))
 		{
