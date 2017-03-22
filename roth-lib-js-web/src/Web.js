@@ -886,7 +886,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 								case "DATABASE_CONNECTION_EXCEPTION":
 								{
 									endpoints = self._removeEndpoint(endpoints, endpoint);
-									if(isArray(endpoints) && !isEmpty(endpoints))
+									if(isArray(endpoints) && !isEmpty(endpoints) && self._isInitMethod(method))
 									{
 										self._serviceCall(service, method, request, success, error, complete, group, view, scenario, endpoints);
 										handled = true;
@@ -933,7 +933,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 						self._serviceLog(service, method, url, request, status + " - " + errorMessage);
 						errored = true;
 						endpoints = self._removeEndpoint(endpoints, endpoint);
-						if(isArray(endpoints) && !isEmpty(endpoints))
+						if(isArray(endpoints) && !isEmpty(endpoints) && self._isInitMethod(method))
 						{
 							self._serviceCall(service, method, request, success, error, complete, group, view, scenario, endpoints);
 						}
@@ -950,7 +950,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 						self._serviceLog(service, method, url, request, status);
 						errored = true;
 						endpoints = self._removeEndpoint(endpoints, endpoint);
-						if(isArray(endpoints) && !isEmpty(endpoints))
+						if(isArray(endpoints) && !isEmpty(endpoints) && self._isInitMethod(method))
 						{
 							self._serviceCall(service, method, request, success, error, complete, group, view, scenario, endpoints);
 						}
@@ -970,6 +970,12 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		{
 			// endpoint error stop retrying
 		}
+	};
+	
+	
+	Web.prototype._isInitMethod = function(method)
+	{
+		return StringUtil.startsWith(method, "init");
 	};
 	
 	

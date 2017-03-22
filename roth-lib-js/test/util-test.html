@@ -35,11 +35,15 @@
 				//var object2 = "test";
 				//var object1 = [ "one", "two", "three" ];
 				//var object2 = [ "one", "two", "three" ];
-				var object1 = { "one" : 1, "two" : 2, "three": 3 };
-				var object2 = {"one" : 1, "two" : 2, "three": 3 };
-				var equals = ObjectUtil.equals(object1, object2);
-				console.log(equals);
-				$("#equals").text(equals);
+				//var object1 = { "one" : 1, "two" : 2, "three": 3 };
+				//var object2 = {"one" : 1, "two" : 2, "three": 3 };
+				//var equals = ObjectUtil.equals(object1, object2);
+				//console.log(equals);
+				//$("#equals").text(equals);
+				var method1 = "initMethod";
+				var method2 = "submitMethod";
+				console.log(StringUtil.startsWith(method1, "init"));
+				console.log(StringUtil.startsWith(method2, "init"));
 			});
 		</script>
 		
