@@ -528,26 +528,29 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 						data = {};
 					}
 					var layout = self.register.constructView(layoutConstructor, data, self);
-					var html = self.template.eval(layoutConstructor.source,
+					if(isSet(layout))
 					{
-						data : data,
-						config : self.config,
-						register : self.register,
-						hash : self.hash,
-						text : self.text,
-						layout : layout,
-						context : self.context
-					},
-					layout);
-					layout._temp = $("<div></div>");
-					layout._temp.html(html);
-					self._translate(layout._temp, layoutConstructor._module + ".layout." + layoutConstructor._name + ".");
-					self._defaults(layout._temp);
-					self._bind(layout);
-					self.hash.loadedLayout();
-					self.layout = layout;
-					self._loadComponents(layout, loadId);
-					self._readyLayout(loadId);
+						var html = self.template.eval(layoutConstructor.source,
+						{
+							data : data,
+							config : self.config,
+							register : self.register,
+							hash : self.hash,
+							text : self.text,
+							layout : layout,
+							context : self.context
+						},
+						layout);
+						layout._temp = $("<div></div>");
+						layout._temp.html(html);
+						self._translate(layout._temp, layoutConstructor._module + ".layout." + layoutConstructor._name + ".");
+						self._defaults(layout._temp);
+						self._bind(layout);
+						self.hash.loadedLayout();
+						self.layout = layout;
+						self._loadComponents(layout, loadId);
+						self._readyLayout(loadId);
+					}
 				}
 			};
 			var error = function(errors, status, xhr)
@@ -615,30 +618,33 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 					data = {};
 				}
 				var page = self.register.constructView(pageConstructor, data, self);
-				var html = self.template.eval(pageConstructor.source,
+				if(isSet(page))
 				{
-					data : data,
-					config : self.config,
-					register : self.register,
-					hash : self.hash,
-					text : self.text,
-					layout : self.layout,
-					page : page,
-					context : self.context
-				},
-				page);
-				page._temp = $("<div></div>");
-				page._temp.html(html);
-				self._translate(page._temp, pageConstructor._module + ".page." + pageConstructor._name + ".");
-				self._defaults(page._temp);
-				self._bind(page);
-				self.hash.loadedModule();
-				self.hash.loadedPage();
-				self.hash.loadedValue();
-				self.hash.loadedLang();
-				self.page = page;
-				self._loadComponents(page, loadId);
-				self._readyPage(loadId);
+					var html = self.template.eval(pageConstructor.source,
+					{
+						data : data,
+						config : self.config,
+						register : self.register,
+						hash : self.hash,
+						text : self.text,
+						layout : self.layout,
+						page : page,
+						context : self.context
+					},
+					page);
+					page._temp = $("<div></div>");
+					page._temp.html(html);
+					self._translate(page._temp, pageConstructor._module + ".page." + pageConstructor._name + ".");
+					self._defaults(page._temp);
+					self._bind(page);
+					self.hash.loadedModule();
+					self.hash.loadedPage();
+					self.hash.loadedValue();
+					self.hash.loadedLang();
+					self.page = page;
+					self._loadComponents(page, loadId);
+					self._readyPage(loadId);
+				}
 			}
 		};
 		var error = function(errors, status, xhr)

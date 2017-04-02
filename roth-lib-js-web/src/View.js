@@ -55,9 +55,10 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 	View.prototype._ready = function()
 	{
 		var self = this;
-		if(isFunction(this.ready))
+		if(isFunction(this.ready) && !isTrue(this._readied))
 		{
 			this.ready();
+			this._readied = true;
 		}
 		forEach(this._components, function(component)
 		{
@@ -69,9 +70,10 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 	View.prototype._visible = function()
 	{
 		var self = this;
-		if(isFunction(this.visible) && isSet(this.element) && this.element.is(":visible"))
+		if(isFunction(this.visible) && isSet(this.element) && !isTrue(this._visibled) && this.element.is(":visible"))
 		{
 			this.visible();
+			this._visibled = true;
 		}
 		forEach(this._components, function(component)
 		{

@@ -190,7 +190,10 @@ roth.lib.js.web.Register = roth.lib.js.web.Register || (function()
 		{
 			view = new constructor(data);
 			view.data = data;
-			view._init(web);
+			if(isFalse(view._init(web)))
+			{
+				view = null;
+			}
 		}
 		return view;
 	};
