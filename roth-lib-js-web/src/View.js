@@ -850,6 +850,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 		if(this.enter(event))
 		{
 			var element = $(event.target);
+			element.blur();
 			var groupElement = element.closest("[" + self.config.attr.group + "]");
 			if(groupElement.length > 0)
 			{
