@@ -14,7 +14,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 		this._references(web);
 		if(isFunction(this.init))
 		{
-			this.init();
+			return this.init();
 		}
 	};
 	
