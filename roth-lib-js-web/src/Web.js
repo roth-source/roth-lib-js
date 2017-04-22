@@ -741,7 +741,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 	};
 
 
-	Web.prototype._loadComponent = function(component, hide, loadId)
+	Web.prototype._loadComponent = function(component, hide, loadId, append)
 	{
 		var self = this;
 		var html = self.template.eval(component.constructor.source,
@@ -767,7 +767,11 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		{
 			component.element.hide();
 		}
-		component.element.empty().append(component._temp.contents().detach());
+		if(!isTrue(append))
+		{
+			component.element.empty();
+		}
+		component.element.append(component._temp.contents().detach());
 	};
 
 

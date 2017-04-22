@@ -82,7 +82,13 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 	};
 	
 	
-	View.prototype.loadComponentInit = function(element, componentName, service, method, request, data, callback)
+	View.prototype.appendComponentInit = function(element, componentName, service, method, request, data, callback)
+	{
+		this.loadComponentInit(element, componentName, service, method, request, data, callback, true);
+	};
+	
+	
+	View.prototype.loadComponentInit = function(element, componentName, service, method, request, data, callback, append)
 	{
 		var self = this;
 		element = this.wrap(element);
@@ -99,11 +105,11 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 				{
 					data = isObject(data) ? data : {};
 					$.extend(true, data, response);
-					self.loadComponent(element, componentName, data, callback);
+					self.loadComponent(element, componentName, data, callback, append);
 				};
 				var error = function(errors)
 				{
-					self.loadComponent(element, componentName, data, callback);
+					self.loadComponent(element, componentName, data, callback, append);
 				};
 				var complete = function()
 				{
@@ -113,7 +119,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 			}
 			else
 			{
-				this.loadComponent(element, componentName, data, callback);
+				this.loadComponent(element, componentName, data, callback, append);
 			}
 		}
 		else
@@ -123,7 +129,13 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 	};
 	
 	
-	View.prototype.loadComponent = function(element, componentName, data, callback)
+	View.prototype.appendComponent = function(element, componentName, data, callback)
+	{
+		this.loadComponent(element, componentName, data, callback, true);
+	};
+	
+	
+	View.prototype.loadComponent = function(element, componentName, data, callback, append)
 	{
 		var component = null;
 		element = this.wrap(element);
@@ -148,7 +160,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 						this._components = [];
 					}
 					this._components.push(component);
-					this.web._loadComponent(component, true);
+					this.web._loadComponent(component, true, null, append);
 					component._ready();
 					component._change();
 					component.element.show();
