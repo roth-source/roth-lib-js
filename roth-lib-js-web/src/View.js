@@ -212,7 +212,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 	};
 
 
-	View.prototype.request = function(element, service, method, requestError, scope)
+	View.prototype.request = function(element, feedback, service, method, requestError, scope)
 	{
 		var self = this;
 		var elementRegExp = new RegExp("^(\\w+)(?:\\[|$)");
@@ -222,7 +222,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 		var fields = [];
 		this.groupElements(element).each(function()
 		{
-			var field = self.validate($(this));
+			var field = self.validate($(this), feedback);
 			if(!field.valid)
 			{
 				valid = false;
@@ -444,7 +444,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 		}
 		if(!isObject(request))
 		{
-			request = this.request(groupElement, service, method, requestError, scope);
+			request = this.request(groupElement, true, service, method, requestError, scope);
 		}
 		if(isObject(request))
 		{
@@ -645,13 +645,13 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 	};
 
 
-	View.prototype.validateGroup = function(element)
+	View.prototype.validateGroup = function(element, feedback)
 	{
 		var self = this;
 		var validGroup = true;
 		this.groupElements(element).each(function()
 		{
-			var field = self.validate($(this));
+			var field = self.validate($(this), feedback);
 			if(!field.valid)
 			{
 				validGroup = false;
@@ -661,7 +661,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 	};
 
 
-	View.prototype.validate = function(element)
+	View.prototype.validate = function(element, feedback)
 	{
 		var self = this;
 		element = this.wrap(element);
@@ -699,7 +699,10 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 				field.valid = this.eval("return " + field.validate, scope);
 			}
 		}
-		this.feedback(element, field);
+		if(!isFalse(feedback))
+		{
+			this.feedback(element, field);
+		}
 		return field;
 	};
 
