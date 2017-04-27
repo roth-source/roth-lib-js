@@ -1028,7 +1028,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		}
 		return endpoint;
 	};
-
+	
 	
 	Web.prototype._removeEndpoint = function(endpoints, endpoint)
 	{
