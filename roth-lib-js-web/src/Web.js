@@ -17,6 +17,8 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 			defaultLang 		: "en",
 			endpoint 			: "endpoint",
 			service 			: "service",
+			session 			: "session",
+			xSession 			: "X-Session",
 			csrfToken 			: "csrfToken",
 			xCsrfToken 			: "X-Csrf-Token",
 			layoutId			: "layout",
@@ -835,10 +837,12 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		else
 		{
 			path = this.config.service+ "/" + service + "/" + method;
+			var session = localStorage.getItem(this.config.session);
 			var csrfToken = localStorage.getItem(this.config.csrfToken);
-			if(isSet(csrfToken))
+			if(isSet(session) && isSet(csrfToken))
 			{
-				path += "?csrfToken=" + encodeURIComponent(csrfToken);
+				path += "?session=" + encodeURIComponent(session);
+				path += "&csrfToken=" + encodeURIComponent(csrfToken);
 			}
 			if(!isArray(endpoints))
 			{
@@ -872,6 +876,11 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 				},
 				success		: function(response, status, xhr)
 				{
+					var sessionHeader = xhr.getResponseHeader(self.config.xSession);
+					if(isSet(sessionHeader))
+					{
+						localStorage.setItem(self.config.session, sessionHeader);
+					}
 					var csrfTokenHeader = xhr.getResponseHeader(self.config.xCsrfToken);
 					if(isSet(csrfTokenHeader))
 					{
