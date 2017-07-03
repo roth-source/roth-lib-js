@@ -58,7 +58,7 @@ roth.lib.js.template.Template = roth.lib.js.template.Template || function(config
 	
 	this.escape = function(value)
 	{
-		return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+		return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/'/g, "&apos;").replace(/"/g, "&quot;");
 	};
 	
 	this.isset = function(value)
