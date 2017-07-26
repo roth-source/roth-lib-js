@@ -24,6 +24,10 @@ var StringUtil = StringUtil ||
 	
 	pad : function(value, length, character, left)
 	{
+		if(!isSet(value))
+		{
+			value = "";
+		}
 		if(value.length < length)
 		{
 			character = isValidString(character) ? character.substring(0, 1) : " ";
