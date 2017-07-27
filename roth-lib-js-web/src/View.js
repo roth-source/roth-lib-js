@@ -723,7 +723,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 					element.attr(self.config.attr.fileValue, reader.result);
 					if(isFunction(callback))
 					{
-						callback(reader.result);
+						callback(reader.result, file);
 					}
 				};
 				reader.readAsDataURL(file);
