@@ -873,7 +873,7 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 				if(isSet(group))
 				{
 					var submitElement = groupElement.find("[" + self.config.attr.submitGroup + "='" + group + "'], [" + self.config.attr.method + "='" + group + "']");
-					if(submitElement.length > 0)
+					if(submitElement.length > 0 && submitElement.is(":enabled"))
 					{
 						self.submit(submitElement);
 					}
