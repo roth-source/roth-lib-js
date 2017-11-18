@@ -167,7 +167,7 @@ var forEach = forEach || function(object, callback, thisArg)
 		}
 		if(isArray(object))
 		{
-			for(var i in object)
+			for(var i = 0; i < object.length; i++)
 			{
 				var loop =
 				{
@@ -185,7 +185,7 @@ var forEach = forEach || function(object, callback, thisArg)
 		else if(isObject(object))
 		{
 			var keys = Object.keys(object);
-			for(var i in keys)
+			for(var i = 0; i < keys.length; i++)
 			{
 				var key = keys[i];
 				var loop =
