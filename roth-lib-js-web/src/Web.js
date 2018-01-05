@@ -773,7 +773,7 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		{
 			component.element.append(component._temp.contents().detach());
 		}
-		else(isFalse(append))
+		else if(isFalse(append))
 		{
 			component.element.prepend(component._temp.contents().detach());
 		}
