@@ -769,11 +769,19 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		{
 			component.element.hide();
 		}
-		if(!isTrue(append))
+		if(isTrue(append))
+		{
+			component.element.append(component._temp.contents().detach());
+		}
+		else(isFalse(append))
+		{
+			component.element.prepend(component._temp.contents().detach());
+		}
+		else
 		{
 			component.element.empty();
+			component.element.append(component._temp.contents().detach());
 		}
-		component.element.append(component._temp.contents().detach());
 	};
 
 
