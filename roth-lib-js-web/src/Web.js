@@ -14,47 +14,47 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		this.config =
 		{
 			jqueryScript 		: "https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.js",
-			defaultLang 		: "en",
+			defaultLang 			: "en",
 			endpoint 			: "endpoint",
-			service 			: "service",
-			session 			: "session",
+			service 				: "service",
+			session 				: "session",
 			xSession 			: "X-Session",
 			csrfToken 			: "csrfToken",
 			xCsrfToken 			: "X-Csrf-Token",
-			layoutId			: "layout",
+			layoutId				: "layout",
 			pageId				: "page",
 			pageClass			: "",
 			attr :
 			{
-				text			: "data-text",
-				textAttr		: "data-text-attr",
+				text				: "data-text",
+				textAttr			: "data-text-attr",
 				textParam		: "data-text-param",
 				component		: "data-component",
 				reference		: "data-reference",
-				data			: "data-data",
+				data				: "data-data",
 				group 			: "data-group",
-				include 		: "data-include",
-				required		: "data-required",
+				include 			: "data-include",
+				required			: "data-required",
 				filter			: "data-filter",
-				validate		: "data-validate",
-				feedback		: "data-feedback",
+				validate			: "data-validate",
+				feedback			: "data-feedback",
 				submitGroup		: "data-submit-group",
 				disable			: "data-disable",
-				requestError	: "data-request-error",
+				requestError		: "data-request-error",
 				prerequest		: "data-prerequest",
 				presubmit		: "data-presubmit",
 				service			: "data-service",
 				method			: "data-method",
 				success			: "data-success",
 				error			: "data-error",
-				complete		: "data-complete",
+				complete			: "data-complete",
 				request			: "data-request",
 				updateValue		: "data-update-value",
-				editable		: "data-editable",
-				name			: "data-name",
+				editable			: "data-editable",
+				name				: "data-name",
 				key				: "data-key",
 				editor			: "data-editor",
-				type			: "data-type",
+				type				: "data-type",
 				radioGroup		: "data-radio-group",
 				radioValue		: "data-radio-value",
 				checkboxValue	: "data-checkbox-value",
@@ -62,17 +62,25 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 				field			: "data-field",
 				onclick			: "data-onclick",
 				ondblclick		: "data-ondblclick",
-				onchange		: "data-onchange",
+				onchange			: "data-onchange",
 				onblur			: "data-onblur",
 				onfocus			: "data-onfocus",
-				onscroll		: "data-onscroll",
+				onscroll			: "data-onscroll",
 				oninput			: "data-oninput",
 				onpaste			: "data-onpaste",
 				onkeypress		: "data-onkeypress",
 				onkeyup			: "data-onkeyup",
 				onenter			: "data-onenter",
-				onescape		: "data-onescape",
-				onbackspace		: "data-onbackspace"
+				onescape			: "data-onescape",
+				onbackspace		: "data-onbackspace",
+				ondrag			: "data-ondrag",
+				ondragstart		: "data-ondragstart",
+				ondragenter		: "data-ondragenter",
+				ondragover		: "data-ondragover",
+				ondragleave		: "data-ondragleave",
+				ondragexit		: "data-ondragexit",
+				ondragend		: "data-ondragend",
+				ondrop			: "data-ondrop"
 			}
 		};
 		
@@ -1305,6 +1313,14 @@ roth.lib.js.web.Web = roth.lib.js.web.Web || (function()
 		this._bindEvent(view, "keyup", this.config.attr.onenter, 13);
 		this._bindEvent(view, "keyup", this.config.attr.onescape, 27);
 		this._bindEvent(view, "keyup", this.config.attr.onbackspace, 8);
+		this._bindEvent(view, "drag", this.config.attr.ondrag);
+		this._bindEvent(view, "dragstart", this.config.attr.ondragstart);
+		this._bindEvent(view, "dragenter", this.config.attr.ondragenter);
+		this._bindEvent(view, "dragover", this.config.attr.ondragover);
+		this._bindEvent(view, "dragleave", this.config.attr.ondragleave);
+		this._bindEvent(view, "dragexit", this.config.attr.ondragexit);
+		this._bindEvent(view, "dragend", this.config.attr.ondragend);
+		this._bindEvent(view, "drop", this.config.attr.ondrop);
 	};
 	
 	
