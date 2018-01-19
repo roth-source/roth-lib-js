@@ -84,13 +84,13 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 	
 	View.prototype.appendComponentInit = function(element, componentName, service, method, request, data, callback)
 	{
-		this.loadComponentInit(element, componentName, service, method, request, data, callback, true);
+		return this.loadComponentInit(element, componentName, service, method, request, data, callback, true);
 	};
 	
 	
 	View.prototype.prependComponentInit = function(element, componentName, service, method, request, data, callback)
 	{
-		this.loadComponentInit(element, componentName, service, method, request, data, callback, false);
+		return this.loadComponentInit(element, componentName, service, method, request, data, callback, false);
 	};
 	
 	
