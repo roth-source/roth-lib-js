@@ -84,13 +84,13 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 	
 	View.prototype.appendComponentInit = function(element, componentName, service, method, request, data, callback)
 	{
-		return this.loadComponentInit(element, componentName, service, method, request, data, callback, true);
+		this.loadComponentInit(element, componentName, service, method, request, data, callback, true);
 	};
 	
 	
 	View.prototype.prependComponentInit = function(element, componentName, service, method, request, data, callback)
 	{
-		return this.loadComponentInit(element, componentName, service, method, request, data, callback, false);
+		this.loadComponentInit(element, componentName, service, method, request, data, callback, false);
 	};
 	
 	
@@ -137,13 +137,13 @@ roth.lib.js.web.View = roth.lib.js.web.View || (function()
 	
 	View.prototype.appendComponent = function(element, componentName, data, callback)
 	{
-		this.loadComponent(element, componentName, data, callback, true);
+		return this.loadComponent(element, componentName, data, callback, true);
 	};
 	
 	
 	View.prototype.prependComponent = function(element, componentName, data, callback)
 	{
-		this.loadComponent(element, componentName, data, callback, false);
+		return this.loadComponent(element, componentName, data, callback, false);
 	};
 	
 	
