@@ -2,9 +2,9 @@
 
 
 repo_user="root";
-repo_host="dist.roth.cm";
+repo_host="framework.aptx.cm";
 repo_port="22";
-repo_dir="/opt/nginx/base/apps/dist";
+repo_dir="/opt/nginx/home";
 ctl_dir="$HOME/.ssh/ctl";
 ctl_path="$ctl_dir/%L-%r@%h:%p";
 source "package.sh";
